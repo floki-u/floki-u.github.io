@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="CSAPP-链接" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/avatar.png">
+    <title>Floki</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 8.1.1"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/avatar.png" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">Floki</a> 
+            <span class="description">一个写作爱好者的在线笔记本</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+            
+                <li><a href="/">🖼️首页</a></li>
+            
+        
+            
+                <li><a href="/list/">📚文章</a></li>
+            
+        
+            
+                <li><a href="/about/">🐈️关于</a></li>
+            
+        
+            
+                <li><a href="/tags/">🏔️标签</a></li>
+            
+        
+            
+                <li><a href="/categories/">🎲分类</a></li>
+            
+        
+            
+                <li><a href="/now/">🧊Now</a></li>
+            
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    CSAPP-链接
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-01-02</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：3.8k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：13分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E9%93%BE%E6%8E%A5%E5%99%A8%E8%A6%81%E5%81%9A%E4%B8%A4%E4%BB%B6%E4%BA%8B"><span class="post-toc-text">链接器要做两件事</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E7%9B%AE%E6%A0%87%E6%96%87%E4%BB%B6%E6%9C%89%E4%B8%89%E7%A7%8D%E5%BD%A2%E5%BC%8F%EF%BC%9A"><span class="post-toc-text">目标文件有三种形式：</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E7%AC%A6%E5%8F%B7%E5%92%8C%E7%AC%A6%E5%8F%B7%E8%A1%A8"><span class="post-toc-text">符号和符号表</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E7%AC%A6%E5%8F%B7%E8%A7%A3%E6%9E%90"><span class="post-toc-text">符号解析</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%B8%8E%E9%9D%99%E6%80%81%E5%BA%93%E9%93%BE%E6%8E%A5"><span class="post-toc-text">与静态库链接</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E5%BA%94%E7%94%A8%EF%BC%9A"><span class="post-toc-text">应用：</span></a></li></ol></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%8F%AF%E6%89%A7%E8%A1%8C%E7%9B%AE%E6%A0%87%E6%96%87%E4%BB%B6"><span class="post-toc-text">可执行目标文件</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E5%8A%A0%E8%BD%BD%E5%99%A8%E5%AE%9E%E9%99%85%E8%BF%90%E4%BD%9C%E8%BF%87%E7%A8%8B"><span class="post-toc-text">加载器实际运作过程</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%85%B1%E4%BA%AB%E5%BA%93"><span class="post-toc-text">动态链接共享库</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E5%85%B1%E4%BA%AB%E5%BA%93%E5%BA%94%E7%94%A8"><span class="post-toc-text">共享库应用</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#dlopen-%E5%87%BD%E6%95%B0"><span class="post-toc-text">dlopen 函数</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%80%BB%E7%BB%93"><span class="post-toc-text">总结</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><p>先看一段程序代码</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">sum</span><span class="params">(xxx)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">/**/</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//sum.c</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">sum</span><span class="params">(xxx)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">/**/</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们用 gcc -Og -o prog main.c sum.c</p>
+<p>-Og 选项表示使用优化级别为 Og 的优化，该优化级别会对程序进行基本的优化，但不会对代码进行过度优化，以保留代码的可读性和调试性。</p>
+<p><strong>整个过程如下：</strong></p>
+<ol>
+<li>编译器驱动程序首先运行<strong>C预处理器(cpp)将C的源程序main.c翻译成ASCII码的中间文件main.i</strong> (cpp [other arguments] main.c &#x2F;tmp&#x2F;main.i)</li>
+<li>然后运行<strong>C编译器</strong>(cc1)，<strong>将main.i翻译成一个ASCII汇编语言文件main.s</strong> (cc1 &#x2F;tmp&#x2F;main.i -Og [other arguments] -o &#x2F;tmp&#x2F;main.s)</li>
+<li>接着运行<strong>汇编器(as)，将main.s翻译成一个可重定位目标文件</strong>(relocatable object file)main.o (cs [other arguments] -o &#x2F;tmp&#x2F;main.o &#x2F;tmp&#x2F;main.s)</li>
+<li>最后运行<strong>链接器程序ld，将main.o和sum.o以及一些必要的系统目标文件组合起来</strong>，创建一个可执行的目标文件prog (ld -o prog [system object files and args ] &#x2F;tmp&#x2F;main.o &#x2F;tmp&#x2F;sum.o)</li>
+</ol>
+<p>要运行可执行文件prog，直接在Linux shell命令行输入它的名称即可</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; ./prog</span><br></pre></td></tr></table></figure>
+
+<p>shell调用操作系统中一个叫做<strong>加载器(loader)的函数，它可以将可执行文件prog中的代码和数据复制到内存，然后将控制转移到这个程序的开头</strong>。</p>
+<h3 id="链接器要做两件事"><a href="#链接器要做两件事" class="headerlink" title="链接器要做两件事"></a>链接器要做两件事</h3><p><strong>符号解析</strong></p>
+<ul>
+<li>符号定义：目标文件定义和引用符号，每个符号对应于一个函数、一个全局变量或一个静态变量。</li>
+<li>符号解析的目的：将每个符号引用正好和一个符号定义关联起来。</li>
+</ul>
+<p><strong>重定位</strong></p>
+<ul>
+<li>由编译器和汇编器生成的<strong>可重定位目标文件</strong>中的代码和数据节是从 0 开始的。可重定位目标文件中还包含重定位条目。</li>
+<li>如何实现重定位：链接器通过把每个符号定义与一个内存位置关联起来，从而重定位这些节，然后修改所有对这些符号的引用，使得它们指向这个内存位置</li>
+</ul>
+<p>文件格式都是标准ELF格式</p>
+<h3 id="目标文件有三种形式："><a href="#目标文件有三种形式：" class="headerlink" title="目标文件有三种形式："></a>目标文件有三种形式：</h3><ol>
+<li><strong>可重定位目标文件</strong>：包含二进制的<strong>代码</strong>和<strong>数据</strong>。可以与其他可重定位目标文件合并成可执行目标文件。又称 obj 文件，gcc 经过预处理、编译、汇编后生成的 .o 文件即为可重定位目标文件。</li>
+</ol>
+<p><a href="/../img/CSAPP/1686727904505-4eb352a0-c327-423d-b60e-0a27bf0a71ed-20251207234808032.png" title="img" class="gallery-item" style="box-shadow: none;"> <img src="/../img/CSAPP/1686727904505-4eb352a0-c327-423d-b60e-0a27bf0a71ed-20251207234808032.png" alt="img"></a></p>
+<ol>
+<li><strong>可执行目标文件</strong>：包含二进制的代码和数据。可以被直接复制到内存并执行。简称可执行文件，gcc 经过链接后生成的 .out 文件以及无后缀名文件都是可执行文件。</li>
+<li><strong>共享目标文件</strong>：一种特殊类型的可重定位目标文件，即<strong>动态链接库</strong>。可以在<strong>加载</strong>或者<strong>运行时</strong>被动态地加载进内存并链接</li>
+</ol>
+<h2 id="符号和符号表"><a href="#符号和符号表" class="headerlink" title="符号和符号表"></a>符号和符号表</h2><p><strong>重定位的核心就是对符号表进行符号解析</strong></p>
+<p>每个可重定位目标模块 m 都有一个符号表（即 .symtab 节），包含着 m 定义和引用的符号的信息。</p>
+<p>在链接器的上下文中，<strong>有三种不同的符号：</strong></p>
+<ol>
+<li>由<strong>模块 m 定义并能被其他模块引用</strong>的<strong>全局符号</strong>。包括非静态的函数和全局变量</li>
+<li>由<strong>其他模块定义并被 m 引用</strong>的全局符号，称之为<strong>外部符号</strong>。对应其他模块中定义的非静态函数和全局变量。</li>
+<li>由<strong>模块 m 定义且只能被 m 引用</strong>的<strong>局部符号</strong>。**包括带 static 属性的函数和全局变量。</li>
+</ol>
+<p><strong>对照 C++ 的语法来理解什么是****全局符号和局部符号</strong>（static 对全局变量和函数的<strong>隐藏效果</strong>是一样的）：</p>
+<ol>
+<li>C++ 中，static 变量只能在本文件中使用，即使外其他文件中用 extern 中声明也不行。属于这里的局部符号</li>
+<li>C++ 中，非 static 的全局变量在其他文件中也能使用，只需在该文件中用 extern 声明即可。属于这里的全局符号</li>
+</ol>
+<p>**注意：**符号表中没有非 static 局部变量的符号，非 static 局部变量在运行时在栈中被管理。这里的局部符号和程序中的局部变量是不同的。</p>
+<p><strong>编译器</strong>在 .data 或 .bss 中<strong>为每个全局变量和 static 变量的定义分配空间</strong>，并<strong>在符号表中创建一个有唯一名字的符号</strong>。</p>
+<h2 id="符号解析"><a href="#符号解析" class="headerlink" title="符号解析"></a>符号解析</h2><p>链接器解析符号引用的方法：<strong>将每个引用和它输入的可重定位文件的符号表中的一个确定的符号定义关联起来。对于多重定义的全局符号，符号分强弱符号，强：函数和已初始化的全局变量，，弱：未初始化的全局变量</strong></p>
+<h3 id="与静态库链接"><a href="#与静态库链接" class="headerlink" title="与静态库链接"></a>与静态库链接</h3><p>静态库：将所有相关的目标模块打包成一个单独的文件。</p>
+<p>通过静态库，相关的函数可以被编译为独立的目标模块，然后封装成一个单独的静态库文件。然后，应用程序可以通过在命令行上指定单独的文件名称来使用这些在库中定义的函数。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; gcc main.c /usr/lib/libm.a /usr/lib/libc.a //使用C标准库和数学库中的函数</span><br></pre></td></tr></table></figure>
+
+<p>在链接时，<strong>链接器将只复制被程序引用的目标模块，减少了可执行文件在磁盘和内存中所占用的空间。</strong></p>
+<p>在 Linux 系统中，<strong>静态库</strong>以一种称为存档的特殊文件格式存放磁盘中。存档文件是<strong>一组连接起来的可重定位目标文件的集合</strong>，有一个头部用来描述每个成员目标文件的大小和位置。存档文件后缀名为 <strong>.a</strong> 。</p>
+<p><strong>理解</strong>：静态库和存档文件可以当作一个东西。存档是文件层面的描述，静态库是模块层面的描述。</p>
+<p>在 linux 中，静态链接库是 <strong>.a</strong> 文件，动态链接库是 <strong>.so</strong> 文件。在windows 中，静态链接库是 .lib 文件，动态链接库是 .dll 文件。</p>
+<h4 id="应用："><a href="#应用：" class="headerlink" title="应用："></a>应用：</h4><p>两个文件 addvec.c  和multvec.c</p>
+<p>把这俩文件链接成静态库</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">linux&gt; gcc -c addvec.c multvec.c  </span><br><span class="line">    <span class="comment">//将 addvec.c 和 multvec 两个文件编译成两个可重定位目标文件</span></span><br><span class="line">linux&gt; ar rcs libvector.a addvec.o multvec.o  </span><br><span class="line"><span class="comment">//采用 ar 工具将上一步生成的两个可重定位目标文件 addvec.o 和 multvec.o 封装到静态库 libvector.a 中。</span></span><br></pre></td></tr></table></figure>
+
+<p>然后我们main.c要用这个库</p>
+<p>libvector.a和main在一个路径下，-static必须指定，不然链接器默认会链接动态库，我们没用到，那么这个命令就会报错</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -<span class="type">static</span> -o prog2c main.c ./libvector.a</span><br></pre></td></tr></table></figure>
+
+<p><a href="/../img/CSAPP/1686729711204-1c16aad0-b538-444a-a2aa-75a380cb263e-20251207234817392.png" title="img" class="gallery-item" style="box-shadow: none;"> <img src="/../img/CSAPP/1686729711204-1c16aad0-b538-444a-a2aa-75a380cb263e-20251207234817392.png" alt="img"></a></p>
+<p>直接将所需的静态库里面模块代码 全部通过链接器去链接成一个文件，，后面说共享库的时候有对比，可以看图，很清晰</p>
+<h3 id="可执行目标文件"><a href="#可执行目标文件" class="headerlink" title="可执行目标文件"></a>可执行目标文件</h3><p><strong>可执行目标文件是一个二进制文件，包含加载程序到内存并运行它所需的所有信息</strong></p>
+<p>可执行目标文件的格式与可重定位目标文件的格式类似。</p>
+<p><a href="/../img/CSAPP/1686729024720-513c3995-4644-49aa-8de0-7dbdab160e07-20251207234808165.png" title="img" class="gallery-item" style="box-shadow: none;"> <img src="/../img/CSAPP/1686729024720-513c3995-4644-49aa-8de0-7dbdab160e07-20251207234808165.png" alt="img"></a></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; ./prog</span><br></pre></td></tr></table></figure>
+
+<p>因为 prog 不是一个内置的 shell 命令，所以 shell 会认为 prog 是一个可执行目标文件，通过调用<strong>加载器</strong>（是操作系统中的一个程序）来运行它。任何 Linux 程序都可以<strong>通过 execve 函数来调用加载器</strong>。</p>
+<p><strong>加载</strong>：加载器将可执行目标文件的代码和数据从磁盘复制到内存，然后跳转到程序的第一条指令或入口点来运行程序。</p>
+<p>每个 Linux 程序都有一个运行时内存映像，如下图所示。<strong>代码段总是从 0x400000 处开始</strong>，后面是<strong>数据段</strong>，然后是<strong>运行时堆段</strong>，通过调用 malloc 库往上增长。堆后面的区域是为共享模块保留的。<strong>用户栈</strong>总是<strong>从最大的用户地址</strong> 2^48-1 开始，向较小内存地址增长。从地址 2^48 开始是留给内核的。</p>
+<p><a href="/../img/CSAPP/1686729286606-7aeab6ca-5baa-4e6b-a3eb-75943687f441-20251207234812798.png" title="img" class="gallery-item" style="box-shadow: none;"> <img src="/../img/CSAPP/1686729286606-7aeab6ca-5baa-4e6b-a3eb-75943687f441-20251207234812798.png" alt="img"></a></p>
+<h4 id="加载器实际运作过程"><a href="#加载器实际运作过程" class="headerlink" title="加载器实际运作过程"></a>加载器实际运作过程</h4><p><a href="/../img/CSAPP/1686729318139-8a5be546-6569-4f55-ab8f-4f00e05e10a9-20251207234808081.png" title="img" class="gallery-item" style="box-shadow: none;"> <img src="/../img/CSAPP/1686729318139-8a5be546-6569-4f55-ab8f-4f00e05e10a9-20251207234808081.png" alt="img"></a></p>
+<h2 id="动态链接共享库"><a href="#动态链接共享库" class="headerlink" title="动态链接共享库"></a><strong>动态链接共享库</strong></h2><p>虽然静态库解决了如何让大量相关函数对应用程序可用的问题。但是，仍然存在很多明显的缺点：</p>
+<ol>
+<li>静态库需要定期维护和更新。如果想要使用一个更新后的静态库，必须显式地将程序与更新了的静态库重新链接。</li>
+<li>调用的静态库中的函数在运行时会被复制到每个运行进程的文本段中。在一个运行上百个进程的系统上，会对稀缺的内存系统资源造成极大浪费。</li>
+</ol>
+<p>共享库是为了解决静态库缺陷的产物，其主要目的是：</p>
+<ol>
+<li>共享库与可执行文件相独立，只要输出接口不变（即名称、参数、返回值类型和调用约定不变），共享库更新不会对可执行文件造成任何影响。</li>
+<li>允许多个正在运行的进程共享内存中相同的库代码，从而节约宝贵的内存资源。</li>
+</ol>
+<p><strong>共享库是一个目标模块，在运行或加载时，可以加载到任意的内存地址，并和内存中的程序链接起来</strong>。也就是说，链接的时候相当于把库里面符号地址和自己源文件链接起来了，在运行的时候，进程走到需要用共享库的地方才会通过动态链接器去根据前面的链接器链接的地址才去共享库里面去找对应的代码 数据</p>
+<p><strong>动态链接：在程序运行或加载时，动态链接器将共享库加载到内存中并和程序链接起来</strong>。</p>
+<p>共享库在 Linux 中以 <strong>.so</strong> 后缀表示，在 Windows 中以 <strong>.dll</strong> 表示。Windows 操作系统中大量使用了共享库。</p>
+<p>共享库的共享方式：</p>
+<ol>
+<li><strong>一个共享库只有一个 .so 文件，所有引用该库的可执行目标文件共享这个 .so 文件中的代码和数据，而不是像静态库那样复制和嵌入到引用它们的文件中。</strong></li>
+<li><strong>在内存中，一个共享库 .text 节的一个副本可以被不同的正在运行的进程共享。</strong></li>
+</ol>
+<h4 id="共享库应用"><a href="#共享库应用" class="headerlink" title="共享库应用"></a>共享库应用</h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">linux&gt; gcc -shared -fpic -o libvector.so addvec.c multvec.c  </span><br><span class="line"><span class="comment">//将 addvec.c 和 multvec.c 封装到动态库 libvector.so 中</span></span><br><span class="line"><span class="comment">// -fpic 选项指示编译器生成与位置无关的代码。</span></span><br><span class="line"><span class="comment">// -shared 选项指示链接器创建一个共享的目标文件。</span></span><br></pre></td></tr></table></figure>
+
+<p>然后，以这个共享库为基础生成可执行目标文件：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">linux&gt; gcc -o prog21 main<span class="number">2.</span>c ./libvector.so  <span class="comment">//创建了一个可执行目标文件 prog21</span></span><br></pre></td></tr></table></figure>
+
+<p><a href="/../img/CSAPP/1686729667074-414a5e7c-e784-4b36-b6e0-d0acc496affc-20251207234808174.png" title="img" class="gallery-item" style="box-shadow: none;"> <img src="/../img/CSAPP/1686729667074-414a5e7c-e784-4b36-b6e0-d0acc496affc-20251207234808174.png" alt="img"></a></p>
+<p>将 main2.o 和 libvector.so 链接并不是将 libvector.so 中的内容拷贝到了可执行文件 prog21 中，<strong>而是链接器复制了一些 libvector.so 中的重定位和符号表信息</strong>，以便运行时可以解析对 libvector.so 中代码和数据的引用。</p>
+<p>和前面静态库的图完全不一样</p>
+<p><strong>理解</strong>：</p>
+<ul>
+<li>动态链接库是在程序运行或加载时才动态链接的，但并不意味着在执行之前不需要进行其他操作：在链接时，链接器要与动态链接库进行一次部分链接以获取到它的重定位和符号表信息。</li>
+<li>要在程序中使用动态链接库，也需要在源文件中包含相关的头文件。</li>
+</ul>
+<h4 id="dlopen-函数"><a href="#dlopen-函数" class="headerlink" title="dlopen 函数"></a>dlopen 函数</h4><p>Linux 系统为动态链接器提供了一个简单接口<strong>dlopen 函数，允许应用程序在运行时加载和链接共享库</strong> 。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;dlfcn.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">void</span> *<span class="title">dlopen</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *filename, <span class="type">int</span> flag)</span></span>; </span><br><span class="line"><span class="comment">//加载和链接共享库。若成功就返回指向句柄的指针，否则返回 NULL。</span></span><br><span class="line"><span class="function"><span class="type">void</span> *<span class="title">dlsym</span><span class="params">(<span class="type">void</span> *handle, <span class="type">char</span> *symbol)</span></span>;  </span><br><span class="line"><span class="comment">//调用共享库中的函数。若成功，返回指向符号 symbol 的指针，若出错返回 NULL。</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">dlclose</span><span class="params">(<span class="type">void</span> *handle)</span></span>;  </span><br><span class="line"><span class="comment">//卸载该共享库。若成功返回 0，出错返回 -1。</span></span><br><span class="line"><span class="function"><span class="type">const</span> <span class="type">char</span> *<span class="title">dlerror</span><span class="params">(<span class="type">void</span>)</span></span>;   </span><br><span class="line"><span class="comment">//如果前面对 dlopen, dlsym, dlclose 的调用失败，则返回用字符串表示的错误消息，否则返回 NULL。</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><strong>链接可以在编译时由静态编译器完成（静态库的链接），也可以在加载和运行时由动态链接器完成（动态库的链接）。</strong></p>
+<p>链接器处理的文件是目标文件，目标文件是一种二进制文件，有 3 种不同形式：</p>
+<ol>
+<li>可重定位目标文件：</li>
+<li>可执行目标文件：静态链接器将多个可重定位目标文件合并成一个可执行目标文件，它可以加载到内存中并执行。.exe 文件就是可执行目标文件。</li>
+<li>共享目标文件（共享库）：运行时由动态链接器链接和加载。</li>
+</ol>
+<p>链接器的两个主要任务：</p>
+<ol>
+<li>符号解析：将目标文件中的每个全局符号都绑定到一个唯一的定义。</li>
+<li>重定位：确定每个符号的最终内存地址，并修改对那些目标的引用。</li>
+</ol>
+<p>静态链接器是由 GCC 这样的编译驱动程序调用的。它们**将多个可重定位目标文件合并成一个单独的可执行目标文件。**多个目标文件可以定义相同的符号，链接器可以按照一定规则来解析这些相同的符号。</p>
+<p><strong>多个目标文件可以被连接到一个单独的静态库中</strong>。链接器用库来解析其他目标模块中的符号引用。许多链接器都是通过从左到右的顺序扫描库来解析符号引用。</p>
+<p><strong>加载器将可执行文件的内容映射到内存，并运行这个程序。</strong></p>
+<p>**链接器还可能生成部分链接的可执行目标文件，这样的文件中有对定义在共享库中的例程和数据的为解析的引用。**在加载时，加载器将部分链接的可执行文件映射到内存，然后调用动态链接器，动态链接器通过加载共享库和重定位程序中的引用来完成链接任务。</p>
+<p>**被编译为位置无关代码的共享库可以加载到任何地方，也可以在运行时被多个进程共享。**为了加载、链接和访问共享库的函数和数据，应用程序也可以在运行时使用动态链接器。</p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2024-08-12</span>
+            
+                <span>该篇文章被 floki</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/C/'>
+                            C++
+                        </a>
+                    
+                        <a href='/tags/%E7%9F%A5%E8%AF%86%E7%B1%BB/'>
+                            知识类
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E6%8A%80%E6%9C%AF/'>
+                            技术
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/2024/10/17/Effecitve_C++/'>Effecitve_C++(个人总结向)</a></span>
+                
+
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            ☪︎ 2002 
+
+            
+                
+
+            
+                
+                    / <a href="/contact/"> 联系 </a>
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>人生短短3万天，又能留下多少痕迹</span>
+            
+                <span class="footer-last-span-right"><i><a href=""></a><a href=""></a></i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>
