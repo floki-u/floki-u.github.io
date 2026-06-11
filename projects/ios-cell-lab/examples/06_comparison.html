@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>6. 反例 vs 正例 完整对比</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/shared.css">
+<script src="../assets/theme.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "PingFang SC", sans-serif; background: #f5f5f5; padding: 20px; }
+  .nav { max-width: 1100px; margin: 0 auto 20px; display: flex; gap: 10px; }
+  .nav a { padding: 6px 12px; background: white; color: #333; text-decoration: none; border-radius: 6px; font-size: 13px; border: 1px solid #ddd; }
+  .nav a:hover { background: #1a1a2e; color: white; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .header { background: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; }
+  .header h1 { font-size: 24px; color: #1a1a2e; margin-bottom: 8px; }
+
+  .compare-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;
+  }
+  @media (max-width: 900px) { .compare-row { grid-template-columns: 1fr; } }
+  .panel {
+    background: white; border-radius: 12px; padding: 20px; border-top: 4px solid;
+  }
+  .panel.bad { border-color: #f44336; }
+  .panel.good { border-color: #4caf50; }
+  .panel h3 { font-size: 16px; margin-bottom: 4px; }
+  .panel.bad h3 { color: #c62828; }
+  .panel.good h3 { color: #2e7d32; }
+  .panel .subtitle { font-size: 12px; color: #888; margin-bottom: 14px; }
+
+  .demo-area {
+    background: #fafafa; padding: 20px; border-radius: 8px; margin-bottom: 14px;
+    display: flex; align-items: center; justify-content: center; min-height: 100px;
+  }
+
+  .avatar-bad {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 600; font-size: 20px;
+    overflow: hidden; position: relative;
+  }
+  .avatar-bad::after {
+    content: '🔥 离屏'; position: absolute; bottom: -8px; right: -8px;
+    background: #f44336; color: white; font-size: 9px; padding: 2px 5px; border-radius: 3px;
+  }
+  .avatar-good {
+    width: 60px; height: 60px;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 600; font-size: 20px;
+    -webkit-mask: radial-gradient(circle, black 50%, transparent 50%);
+    mask: radial-gradient(circle, black 50%, transparent 50%);
+  }
+
+  .card-bad, .card-good {
+    width: 240px; height: 80px; background: white; border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex; align-items: center; justify-content: center;
+    color: #888; font-size: 13px; position: relative;
+  }
+  .card-bad::after {
+    content: '🔥 阴影离屏'; position: absolute; top: -8px; right: -8px;
+    background: #f44336; color: white; font-size: 9px; padding: 2px 5px; border-radius: 3px;
+  }
+
+  .cell-list { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+  .mini-cell {
+    background: white; padding: 10px; border-radius: 6px;
+    display: flex; align-items: center; gap: 8px; font-size: 12px;
+    border: 1px solid #eee; position: relative;
+  }
+  .mini-avatar { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; }
+  .mini-text { flex: 1; color: #555; }
+  .badge-miss { position: absolute; top: 50%; transform: translateY(-50%); right: 8px; background: #f44336; color: white; font-size: 10px; padding: 2px 6px; border-radius: 3px; }
+</style>
+</head>
+<body>
+  <div class="nav">
+    <a href="../index.html">← 返回主菜单</a>
+    <a href="05_hero_card.html">← 上一个</a>
+    <a href="07_skeleton_cell.html">下一个 (进阶篇) →</a>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <h1>6️⃣ 反例 vs 正例 完整对比</h1>
+      <p style="color:#6c7293;font-size:14px;line-height:1.6;">
+        同一个视觉效果，不同写法导致的性能差异巨大。<b>视觉一样，性能差 5~10 倍</b>。
+        这一页是前面所有内容的<b>速查表</b>，写代码 / 面试前看一遍。
+      </p>
+    </div>
+
+    <!-- 对比 1：圆角头像 -->
+    <div class="compare-row">
+      <div class="panel bad">
+        <h3>❌ 反例 1：cornerRadius + clipsToBounds</h3>
+        <div class="subtitle">视觉对，但每帧触发离屏渲染</div>
+        <div class="demo-area"><div class="avatar-bad">头</div></div>
+<pre class="code-block" style="margin:0;">avatar.layer.cornerRadius = <span class="num">30</span>;
+avatar.<span class="bad">clipsToBounds</span> = <span class="kw">YES</span>;
+
+<span class="comm">// → Color Off-screen 黄色块
+// → 100 个头像 = 100 次离屏</span></pre>
+      </div>
+      <div class="panel good">
+        <h3>✅ 正例 1：子线程预切圆图</h3>
+        <div class="subtitle">视觉一样，0 离屏</div>
+        <div class="demo-area"><div class="avatar-good">头</div></div>
+<pre class="code-block" style="margin:0;">dispatch_async(global, ^{
+  <span class="type">UIImage</span> *circle =
+    [src <span class="meth">circleImageWithSize:</span>size];
+  dispatch_async(main, ^{
+    avatar.image = circle;
+  });
+});
+<span class="comm">// avatar 不需要任何 cornerRadius</span></pre>
+      </div>
+    </div>
+
+    <!-- 对比 2：阴影 -->
+    <div class="compare-row">
+      <div class="panel bad">
+        <h3>❌ 反例 2：阴影不设 shadowPath</h3>
+        <div class="subtitle">系统按 alpha 通道推算，每帧都做</div>
+        <div class="demo-area"><div class="card-bad">复杂卡片</div></div>
+<pre class="code-block" style="margin:0;">view.layer.shadowColor =
+  [<span class="type">UIColor</span> blackColor].CGColor;
+view.layer.shadowOpacity = <span class="num">0.15</span>;
+view.layer.shadowRadius = <span class="num">8</span>;
+<span class="bad">// 没设 shadowPath</span>
+<span class="comm">// → 每帧都要算阴影形状 → 离屏</span></pre>
+      </div>
+      <div class="panel good">
+        <h3>✅ 正例 2：显式 shadowPath</h3>
+        <div class="subtitle">告诉系统阴影形状，省去推算</div>
+        <div class="demo-area"><div class="card-good">复杂卡片</div></div>
+<pre class="code-block" style="margin:0;">view.layer.shadowColor =
+  [<span class="type">UIColor</span> blackColor].CGColor;
+view.layer.shadowOpacity = <span class="num">0.15</span>;
+view.layer.shadowRadius = <span class="num">8</span>;
+<span class="comm">// ⭐ 显式给 path</span>
+view.layer.<span class="good">shadowPath</span> =
+  [<span class="type">UIBezierPath</span>
+    <span class="meth">bezierPathWithRoundedRect:</span>bounds
+                <span class="meth">cornerRadius:</span><span class="num">12</span>].CGPath;</pre>
+      </div>
+    </div>
+
+    <!-- 对比 3：cell 开光栅化 -->
+    <div class="compare-row">
+      <div class="panel bad">
+        <h3>❌ 反例 3：cell 开 shouldRasterize</h3>
+        <div class="subtitle">复用即失效，反向优化</div>
+        <div class="demo-area">
+          <div class="cell-list">
+            <div class="mini-cell">
+              <div class="mini-avatar" style="background: #4facfe;"></div>
+              <span class="mini-text">第 1 次配置</span>
+              <span class="badge-miss">缓存 MISS</span>
+            </div>
+            <div class="mini-cell">
+              <div class="mini-avatar" style="background: #f5576c;"></div>
+              <span class="mini-text">复用，数据变了</span>
+              <span class="badge-miss">缓存 MISS</span>
+            </div>
+            <div class="mini-cell">
+              <div class="mini-avatar" style="background: #43e97b;"></div>
+              <span class="mini-text">复用，数据又变</span>
+              <span class="badge-miss">缓存 MISS</span>
+            </div>
+          </div>
+        </div>
+<pre class="code-block" style="margin:0;"><span class="comm">// ❌ 千万不要这么写</span>
+cell.layer.<span class="bad">shouldRasterize</span> = <span class="kw">YES</span>;
+<span class="comm">// cell 复用 → 内容变 → 缓存失效
+// → 每帧重画 + 多了一次缓存写入
+// → 比不开还慢</span></pre>
+      </div>
+      <div class="panel good">
+        <h3>✅ 正例 3：HeroCard 动画期间开</h3>
+        <div class="subtitle">layer 不变，缓存命中率 100%</div>
+        <div class="demo-area">
+          <div style="text-align: center; color: #2e7d32; font-size: 14px;">
+            <div style="font-size: 30px; margin-bottom: 8px;">🎯</div>
+            <b>静态卡片 + transform 动画</b><br>
+            <span style="font-size: 11px; color: #666;">layer 内容不变 → 缓存全命中</span>
+          </div>
+        </div>
+<pre class="code-block" style="margin:0;">heroCard.layer.<span class="good">shouldRasterize</span> = <span class="kw">YES</span>;
+[<span class="type">UIView</span> animateWithDuration:<span class="num">0.6</span>
+                 animations:^{
+  heroCard.transform = identity;
+} completion:^(<span class="type">BOOL</span> done) {
+  <span class="comm">// ⭐ 动画结束立刻关</span>
+  heroCard.layer.<span class="good">shouldRasterize</span> = <span class="kw">NO</span>;
+}];</pre>
+      </div>
+    </div>
+
+    <!-- 对比 4：复杂背景 -->
+    <div class="compare-row">
+      <div class="panel bad">
+        <h3>❌ 反例 4：多层 view 叠加做装饰</h3>
+        <div class="subtitle">N 个 subview，N 次混合，N 次离屏</div>
+        <div class="demo-area">
+          <div style="position: relative; width: 240px; height: 80px;">
+            <div style="position:absolute;inset:0;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:8px;"></div>
+            <div style="position:absolute;width:80px;height:80px;right:-20px;top:-20px;background:rgba(255,255,255,0.3);border-radius:50%;"></div>
+            <div style="position:absolute;width:50px;height:50px;left:20px;bottom:-20px;background:rgba(255,255,255,0.2);border-radius:50%;"></div>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:white;font-size:13px;">广告卡片</div>
+          </div>
+        </div>
+<pre class="code-block" style="margin:0;">[contentView <span class="bad">addSubview:</span>gradientView];
+[contentView <span class="bad">addSubview:</span>circle1];
+[contentView <span class="bad">addSubview:</span>circle2];
+[contentView <span class="bad">addSubview:</span>label];
+<span class="comm">// → 4 次混合，2 次圆形离屏</span></pre>
+      </div>
+      <div class="panel good">
+        <h3>✅ 正例 4：离线渲染成 UIImage</h3>
+        <div class="subtitle">cell 上只 1 个 UIImageView</div>
+        <div class="demo-area">
+          <div style="position: relative; width: 240px; height: 80px;">
+            <div style="position:absolute;inset:0;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:8px;overflow:hidden;">
+              <div style="position:absolute;width:80px;height:80px;right:-20px;top:-20px;background:rgba(255,255,255,0.3);border-radius:50%;"></div>
+              <div style="position:absolute;width:50px;height:50px;left:20px;bottom:-20px;background:rgba(255,255,255,0.2);border-radius:50%;"></div>
+            </div>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:white;font-size:13px;">广告卡片</div>
+          </div>
+        </div>
+<pre class="code-block" style="margin:0;"><span class="comm">// ⭐ 子线程一次画完 → UIImage</span>
+<span class="type">UIImage</span> *bg = [<span class="good">AdBackgroundRenderer</span>
+  <span class="meth">backgroundImageForSize:</span>size
+                  <span class="meth">theme:</span>vm.theme];
+imageView.image = bg;
+<span class="comm">// → 1 个 UIImageView, 0 离屏</span></pre>
+      </div>
+    </div>
+
+    <!-- 对比 5：高度计算 -->
+    <div class="compare-row">
+      <div class="panel bad">
+        <h3>❌ 反例 5：heightForRow 现算</h3>
+        <div class="subtitle">10000 行就是 10000 次 layout</div>
+<pre class="code-block" style="margin:0;">- (<span class="type">CGFloat</span>)<span class="meth">tableView:</span>tv
+   <span class="meth">heightForRow:</span>(<span class="type">NSIndexPath</span> *)ip {
+  <span class="type">MessageCell</span> *cell =
+    [[<span class="type">MessageCell</span> alloc] init];
+  [cell <span class="meth">configureWith:</span>data];
+  <span class="comm">// ❌ 用 systemLayoutSize 现算</span>
+  <span class="kw">return</span> [cell.contentView
+    <span class="bad">systemLayoutSizeFittingSize:</span>...
+  ].height;
+}
+<span class="comm">// reloadData → 全部行算一遍 → 卡顿</span></pre>
+      </div>
+      <div class="panel good">
+        <h3>✅ 正例 5：子线程预算 + 缓存</h3>
+        <div class="subtitle">heightForRow 是 O(1) 查表</div>
+<pre class="code-block" style="margin:0;"><span class="comm">// 子线程预算所有 cell 的高度</span>
+dispatch_async(global, ^{
+  <span class="kw">for</span> (<span class="type">Message</span> *m <span class="kw">in</span> messages) {
+    <span class="type">MessageViewModel</span> *vm = ...;
+    [vm <span class="meth">prepareLayoutIfNeeded</span>];
+  }
+  dispatch_async(main, ^{
+    [tableView reloadData];
+  });
+});
+
+- (<span class="type">CGFloat</span>)<span class="meth">tableView:</span>tv <span class="meth">heightForRow:</span>ip {
+  <span class="kw">return</span> vms[ip.row].<span class="good">cachedHeight</span>;
+}</pre>
+      </div>
+    </div>
+
+    <!-- 对比 6：图片解码 -->
+    <div class="compare-row">
+      <div class="panel bad">
+        <h3>❌ 反例 6：主线程加载大图</h3>
+        <div class="subtitle">主线程解码 4MB 图 = 20+ms 卡顿</div>
+<pre class="code-block" style="margin:0;"><span class="type">UIImage</span> *image =
+  [<span class="type">UIImage</span> imageNamed:@<span class="str">"big_4mb"</span>];
+imageView.image = image;
+<span class="comm">// ❌ imageNamed 是懒解码
+// 第一次上屏时主线程解码
+// → 一帧时间 20+ms</span></pre>
+      </div>
+      <div class="panel good">
+        <h3>✅ 正例 6：子线程强制解码</h3>
+        <div class="subtitle">主线程只做 setImage</div>
+<pre class="code-block" style="margin:0;">dispatch_async(global, ^{
+  <span class="type">UIImage</span> *raw =
+    [<span class="type">UIImage</span> imageWithContentsOfFile:p];
+  <span class="comm">// ⭐ 子线程强制解码</span>
+  <span class="type">UIImage</span> *decoded =
+    [raw <span class="good">decodedImage</span>];
+  dispatch_async(main, ^{
+    imageView.image = decoded;
+  });
+});
+<span class="comm">// SDWebImage 默认这么做</span></pre>
+      </div>
+    </div>
+
+    <!-- 对比 7：prepareForReuse -->
+    <div class="compare-row">
+      <div class="panel bad">
+        <h3>❌ 反例 7：没写 prepareForReuse</h3>
+        <div class="subtitle">头像错乱、红点不消失等经典 bug</div>
+<pre class="code-block" style="margin:0;">- (<span class="kw">void</span>)<span class="meth">configureWith:</span>(<span class="type">Message</span> *)m {
+  [<span class="selector">self</span>.avatarView
+    <span class="meth">sd_setImageWithURL:</span>m.url];
+
+  <span class="kw">if</span> (m.unreadCount &gt; <span class="num">0</span>) {
+    <span class="selector">self</span>.badgeView.hidden = <span class="kw">NO</span>;
+  }
+  <span class="bad">// ❌ 没 else
+  // 复用时旧红点不消失</span>
+}</pre>
+      </div>
+      <div class="panel good">
+        <h3>✅ 正例 7：prepareForReuse 重置</h3>
+        <div class="subtitle">复用前自动清理所有状态</div>
+<pre class="code-block" style="margin:0;">- (<span class="kw">void</span>)<span class="meth">prepareForReuse</span> {
+  [<span class="kw">super</span> <span class="meth">prepareForReuse</span>];
+  <span class="comm">// 1. 取消异步任务</span>
+  [<span class="selector">self</span>.avatarView
+    <span class="good">sd_cancelCurrentImageLoad</span>];
+  <span class="comm">// 2. 清空 UI 状态</span>
+  <span class="selector">self</span>.avatarView.image = <span class="kw">nil</span>;
+  <span class="selector">self</span>.badgeView.hidden = <span class="kw">YES</span>;
+  <span class="comm">// 3. 停止动画</span>
+  [<span class="selector">self</span>.indicator <span class="meth">stopAnimating</span>];
+}</pre>
+      </div>
+    </div>
+
+    <!-- 总结表 -->
+    <div class="section-block">
+      <h2>📊 性能对比汇总</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <tr style="background:#1a1a2e;color:white;">
+          <th style="padding:10px;text-align:left;">场景</th>
+          <th style="padding:10px;text-align:left;">❌ 反例</th>
+          <th style="padding:10px;text-align:left;">✅ 正例</th>
+          <th style="padding:10px;text-align:center;">收益</th>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">圆角头像</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#c62828;">cornerRadius + clipsToBounds</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">子线程预切圆图</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;text-align:center;color:#2e7d32;font-weight:600;">FPS +20</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">卡片阴影</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#c62828;">不设 shadowPath</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">显式 shadowPath</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;text-align:center;color:#2e7d32;font-weight:600;">FPS +15</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">cell 优化</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#c62828;">shouldRasterize = YES</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">从源头消除离屏</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;text-align:center;color:#2e7d32;font-weight:600;">避免反向优化</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">复杂装饰背景</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#c62828;">多层 view 叠加</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">离线渲染 UIImage</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;text-align:center;color:#2e7d32;font-weight:600;">FPS +25</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">cell 高度</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#c62828;">现算 systemLayoutSize</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">子线程预算 + 缓存</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;text-align:center;color:#2e7d32;font-weight:600;">reload 快 100x</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">图片解码</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#c62828;">主线程 imageNamed</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">子线程 CGBitmapContext</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;text-align:center;color:#2e7d32;font-weight:600;">主线程 -20ms</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">cell 复用</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#c62828;">不写 prepareForReuse</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">统一重置状态</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;text-align:center;color:#2e7d32;font-weight:600;">消除复用 bug</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- 验证工具 -->
+    <div class="section-block">
+      <h2>🔬 验证工具速查</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <tr style="background:#1a1a2e;color:white;">
+          <th style="padding:10px;text-align:left;">想验证什么</th>
+          <th style="padding:10px;text-align:left;">用什么</th>
+          <th style="padding:10px;text-align:left;">健康指标</th>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">离屏渲染</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;">Simulator → Color Off-screen Rendered</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">无黄色块</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">混合层（透明）</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;">Simulator → Color Blended Layers</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">全绿，无红色</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">光栅化命中率</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;">Color Hits Green and Misses Red</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">绿多，无大片红</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">cellForRow 耗时</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;">Instruments → Time Profiler</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">&lt; 1ms</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">滚动 FPS</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;">Instruments → Core Animation</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">≥ 58 (60Hz) / ≥ 115 (120Hz)</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">线上卡顿</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;">MetricKit → MXAnimationMetric</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">scrollHitchTimeRatio &lt; 5 ms/s</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="nav" style="margin-top: 24px;">
+      <a href="../index.html">← 返回主菜单</a>
+      <a href="05_hero_card.html">← 上一个</a>
+      <a href="07_skeleton_cell.html">下一个 (进阶篇) →</a>
+    </div>
+  </div>
+</body>
+</html>

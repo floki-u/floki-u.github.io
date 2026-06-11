@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hexo + pixelterm v1.0.0">
+<meta name="description" content="一个写作爱好者的在线笔记本">
+<meta name="author" content="floki">
+<meta name="theme-color" content="#0b0f14">
+
+<title>SDWebImage 深度剖析 · Floki</title>
+
+<link rel="icon" type="image/png" href="/img/cat.png">
+
+<!-- 字体（与设计稿一致） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css">
+
+<!-- 主题样式 -->
+<link rel="stylesheet" href="/css/pixelterm.css">
+<!-- 移动端适配增强（必须放在 pixelterm.css 之后） -->
+<link rel="stylesheet" href="/css/mobile.css">
+
+  <link rel="stylesheet" href="/css/mermaid.css">
+
+
+  <link rel="stylesheet" href="/css/lightgallery.min.css">
+
+
+<!-- 代码高亮（内置 IDE 风格：暗色 One Dark / 亮色 GitHub Light，跟随主题切换） -->
+<link rel="stylesheet" href="/css/highlight.css">
+
+<!-- 自定义 CSS 注入 -->
+
+
+
+<!-- 主题模式优先注入（避免闪屏） -->
+<script>
+(function(){
+  var def = 'auto';
+  var t;
+  try { t = localStorage.getItem('pt-theme'); } catch(e){}
+  if(!t){
+    t = (def === 'auto')
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : def;
+  }
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+
+<body class="layout-post">
+
+<!-- 全屏背景层（CSS pseudos 提供 CRT 扫描线/vignette；下面是 canvas + grid） -->
+
+  <canvas id="rain" aria-hidden="true"></canvas>
+
+<div class="pix-grid" aria-hidden="true"></div>
+
+<div class="titlebar">
+  <div class="dots"><i></i><i></i><i></i></div>
+  <div class="path">— <b>floki@pixelterm</b>: <span>~/SDWebImage 深度剖析</span> — zsh — </div>
+  <div class="right">
+    <span class="clock" data-clock>00:00:00</span>
+    <div class="menu">
+      
+        <a href="/" class="">HOME</a>
+      
+        <a href="/list/" class="">POSTS</a>
+      
+        <a href="/categories/" class="">CATEGORIES</a>
+      
+        <a href="/tags/" class="">TAGS</a>
+      
+        <a href="/about/" class="">ABOUT</a>
+      
+    </div>
+    
+      <button class="theme-toggle" data-theme-toggle aria-label="toggle theme">
+        <span class="icon moon">☾</span>
+        <span class="icon sun">☀</span>
+        <span class="knob"></span>
+      </button>
+    
+  </div>
+</div>
+
+
+<main class="shell">
+  
+<article class="article ">
+  <header class="art-head fade">
+    <span class="head-spacer"></span>
+    <div class="head-inner" data-vim="SDWebImage 深度剖析.md   --  2026/05/18">
+      <span class="art-tag">IOS</span>
+      
+        <span class="art-tag cyan">技术</span>
+      
+      <h1 class="art-title">SDWebImage 深度剖析</h1>
+      <div class="art-meta">
+  
+    <span>2026-05-18</span>
+  
+  
+    <span>updated <b>2026-06-11</b></span>
+  
+  
+    <span><b>4.1k</b> words</span>
+  
+  
+    <span>▶ <b>17</b> min</span>
+  
+  
+    <span id="busuanzi_container_page_pv">views <b><span id="busuanzi_value_page_pv"></span></b></span>
+  
+  
+    <span>in
+      
+        <a href="/categories/%E6%8A%80%E6%9C%AF/">技术</a>
+      
+    </span>
+  
+  
+    <span>tags
+      
+        <a href="/tags/iOS/">#iOS</a>
+      
+    </span>
+  
+</div>
+
+    </div>
+  </header>
+
+  <div class="art-body">
+    
+
+  
+    <aside class="toc-card" data-toc>
+      <h5>QUEST LOG</h5>
+      <ol class="pt-toc-inner"><li class="pt-toc-inner-item pt-toc-inner-level-1"><a class="pt-toc-inner-link" href="#SDWebImage-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%EF%BC%9A%E4%BB%8E%E4%BD%BF%E7%94%A8%E5%88%B0%E5%8E%9F%E7%90%86"><span class="pt-toc-inner-text">SDWebImage 深度剖析：从使用到原理</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E7%9B%AE%E5%BD%95"><span class="pt-toc-inner-text">目录</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="pt-toc-inner-text">1. 概述</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#2-%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8"><span class="pt-toc-inner-text">2. 基本使用</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#2-1-%E6%9C%80%E7%AE%80%E5%8D%95%E7%9A%84%E7%94%A8%E6%B3%95"><span class="pt-toc-inner-text">2.1 最简单的用法</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#2-2-%E5%B8%A6%E5%8D%A0%E4%BD%8D%E5%9B%BE%E5%92%8C%E5%AE%8C%E6%88%90%E5%9B%9E%E8%B0%83"><span class="pt-toc-inner-text">2.2 带占位图和完成回调</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#2-3-%E5%B8%B8%E7%94%A8-Options-%E7%BB%84%E5%90%88"><span class="pt-toc-inner-text">2.3 常用 Options 组合</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#2-4-%E9%A2%84%E5%8A%A0%E8%BD%BD"><span class="pt-toc-inner-text">2.4 预加载</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#3-%E6%A0%B8%E5%BF%83%E6%9E%B6%E6%9E%84"><span class="pt-toc-inner-text">3. 核心架构</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#3-1-%E4%B8%BB%E6%B5%81%E7%A8%8B%EF%BC%9A%E4%BB%8E-URL-%E5%88%B0%E5%B1%8F%E5%B9%95%E7%9A%84%E5%AE%8C%E6%95%B4%E9%93%BE%E8%B7%AF"><span class="pt-toc-inner-text">3.1 主流程：从 URL 到屏幕的完整链路</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#4-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%AF%94-UIImageView-%E5%BF%AB%EF%BC%9F%E2%80%94%E2%80%94-%E5%9B%BE%E7%89%87%E6%B8%B2%E6%9F%93%E7%AE%A1%E7%BA%BF%E7%9A%84%E7%A7%98%E5%AF%86"><span class="pt-toc-inner-text">4. 为什么比 UIImageView 快？—— 图片渲染管线的秘密</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#4-1-%E4%B8%89%E7%A7%8D-Buffer"><span class="pt-toc-inner-text">4.1 三种 Buffer</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#4-2-UIImage-%E7%9A%84%E6%83%B0%E6%80%A7%E8%A7%A3%E7%A0%81%E9%99%B7%E9%98%B1"><span class="pt-toc-inner-text">4.2 UIImage 的惰性解码陷阱</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#4-3-SDWebImage-%E7%9A%84%E8%A7%A3%E6%B3%95%EF%BC%9A%E5%AD%90%E7%BA%BF%E7%A8%8B%E5%BC%BA%E5%88%B6%E8%A7%A3%E7%A0%81"><span class="pt-toc-inner-text">4.3 SDWebImage 的解法：子线程强制解码</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#4-4-%E6%95%88%E6%9E%9C%E9%87%8F%E5%8C%96%E5%AF%B9%E6%AF%94"><span class="pt-toc-inner-text">4.4 效果量化对比</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#5-%E7%BC%93%E5%AD%98%E7%AD%96%E7%95%A5%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90"><span class="pt-toc-inner-text">5. 缓存策略深度剖析</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#5-1-%E4%BA%8C%E7%BA%A7%E7%BC%93%E5%AD%98%E6%9E%B6%E6%9E%84"><span class="pt-toc-inner-text">5.1 二级缓存架构</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#5-2-%E7%BC%93%E5%AD%98%E6%9F%A5%E8%AF%A2%E6%B5%81%E7%A8%8B"><span class="pt-toc-inner-text">5.2 缓存查询流程</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#5-3-%E7%BC%93%E5%AD%98-Key-%E7%AD%96%E7%95%A5"><span class="pt-toc-inner-text">5.3 缓存 Key 策略</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#5-4-%E8%BF%87%E6%9C%9F%E4%B8%8E%E6%B8%85%E7%90%86"><span class="pt-toc-inner-text">5.4 过期与清理</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#5-5-%E4%B8%8E-NSURLCache-%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="pt-toc-inner-text">5.5 与 NSURLCache 的对比</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#6-%E4%B8%8B%E8%BD%BD%E5%99%A8%E8%AE%BE%E8%AE%A1"><span class="pt-toc-inner-text">6. 下载器设计</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#6-1-%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6"><span class="pt-toc-inner-text">6.1 并发控制</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#6-2-URL-%E5%8E%BB%E9%87%8D-%E2%80%94%E2%80%94-%E6%9C%80%E7%B2%BE%E5%A6%99%E7%9A%84%E8%AE%BE%E8%AE%A1"><span class="pt-toc-inner-text">6.2 URL 去重 —— 最精妙的设计</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#6-3-LIFO-%E4%B8%8E-FIFO"><span class="pt-toc-inner-text">6.3 LIFO 与 FIFO</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#6-4-%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8"><span class="pt-toc-inner-text">6.4 线程安全</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#7-%E7%BC%96%E8%A7%A3%E7%A0%81%E4%BD%93%E7%B3%BB"><span class="pt-toc-inner-text">7. 编解码体系</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#7-1-%E5%8D%8F%E8%AE%AE%E5%8C%96%E8%AE%BE%E8%AE%A1%EF%BC%885-x-%E6%A0%B8%E5%BF%83%E5%8F%98%E5%8C%96%EF%BC%89"><span class="pt-toc-inner-text">7.1 协议化设计（5.x 核心变化）</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#7-2-%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F%EF%BC%9ASDImageCodersManager"><span class="pt-toc-inner-text">7.2 责任链模式：SDImageCodersManager</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#7-3-%E6%B8%90%E8%BF%9B%E5%BC%8F%E8%A7%A3%E7%A0%81%EF%BC%88Progressive-Decode%EF%BC%89"><span class="pt-toc-inner-text">7.3 渐进式解码（Progressive Decode）</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#7-4-%E5%8A%A8%E5%9B%BE%E4%BC%98%E5%8C%96"><span class="pt-toc-inner-text">7.4 动图优化</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#7-5-%E5%90%91%E4%B8%8B%E9%87%87%E6%A0%B7%EF%BC%88Downsampling%EF%BC%89%E9%98%B2-OOM"><span class="pt-toc-inner-text">7.5 向下采样（Downsampling）防 OOM</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#8-%E6%80%BB%E7%BB%93%EF%BC%9A%E9%9D%A2%E8%AF%95%E4%B8%AD%E5%A6%82%E4%BD%95%E4%BE%83%E4%BE%83%E8%80%8C%E8%B0%88"><span class="pt-toc-inner-text">8. 总结：面试中如何侃侃而谈</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#8-1-%E5%AE%8C%E6%95%B4%E9%93%BE%E8%B7%AF%E4%B8%80%E5%BC%A0%E5%9B%BE"><span class="pt-toc-inner-text">8.1 完整链路一张图</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#8-2-%E9%9D%A2%E8%AF%95%E5%9B%9E%E7%AD%94%E6%A1%86%E6%9E%B6"><span class="pt-toc-inner-text">8.2 面试回答框架</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#8-3-%E6%A0%B8%E5%BF%83%E8%AE%BE%E8%AE%A1%E7%90%86%E5%BF%B5"><span class="pt-toc-inner-text">8.3 核心设计理念</span></a></li></ol></li></ol></li></ol>
+    </aside>
+  
+
+
+    <div class="prose">
+      <h1 id="SDWebImage-深度剖析：从使用到原理"><a href="#SDWebImage-深度剖析：从使用到原理" class="headerlink" title="SDWebImage 深度剖析：从使用到原理"></a>SDWebImage 深度剖析：从使用到原理</h1><blockquote>
+<p>本文从日常使用出发，逐层深入 SDWebImage 的架构设计、缓存策略、下载调度、编解码原理，彻底搞懂它为什么是 iOS 图片加载的事实标准。</p>
+</blockquote>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">1. 概述</a></li>
+<li><a href="#2-%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8">2. 基本使用</a></li>
+<li><a href="#3-%E6%A0%B8%E5%BF%83%E6%9E%B6%E6%9E%84">3. 核心架构</a></li>
+<li><a href="#4-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%AF%94-uiimageview-%E5%BF%AB--%E5%9B%BE%E7%89%87%E6%B8%B2%E6%9F%93%E7%AE%A1%E7%BA%BF%E7%9A%84%E7%A7%98%E5%AF%86">4. 为什么比 UIImageView 快？—— 图片渲染管线的秘密</a></li>
+<li><a href="#5-%E7%BC%93%E5%AD%98%E7%AD%96%E7%95%A5%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90">5. 缓存策略深度剖析</a></li>
+<li><a href="#6-%E4%B8%8B%E8%BD%BD%E5%99%A8%E8%AE%BE%E8%AE%A1">6. 下载器设计</a></li>
+<li><a href="#7-%E7%BC%96%E8%A7%A3%E7%A0%81%E4%BD%93%E7%B3%BB">7. 编解码体系</a></li>
+<li><a href="#8-%E6%80%BB%E7%BB%93%E9%9D%A2%E8%AF%95%E4%B8%AD%E5%A6%82%E4%BD%95%E4%BE%83%E4%BE%83%E8%80%8C%E8%B0%88">8. 总结：面试中如何侃侃而谈</a></li>
+</ul>
+<hr>
+<h2 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h2><p><strong>SDWebImage</strong> 是 iOS 平台最流行的异步图片加载框架，GitHub 40k+ Star，被微信、QQ、抖音、淘宝等主流 App 广泛使用。</p>
+<p>它的核心能力只有一句话：<strong>异步下载图片 + 内存&#x2F;磁盘二级缓存 + 后台解码，最终在主线程显示。</strong></p>
+<p>但这句话背后，藏着大量精妙的设计。</p>
+<hr>
+<h2 id="2-基本使用"><a href="#2-基本使用" class="headerlink" title="2. 基本使用"></a>2. 基本使用</h2><h3 id="2-1-最简单的用法"><a href="#2-1-最简单的用法" class="headerlink" title="2.1 最简单的用法"></a>2.1 最简单的用法</h3><figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#import <span class="string">&lt;SDWebImage/UIImageView+WebCache.h&gt;</span></span></span><br><span class="line"></span><br><span class="line">[<span class="keyword">self</span>.imageView sd_setImageWithURL:[<span class="built_in">NSURL</span> URLWithString:<span class="string">@&quot;https://example.com/photo.png&quot;</span>]];</span><br></pre></td></tr></table></figure>
+
+<p>一行代码搞定异步下载 + 缓存 + 显示，这是 SDWebImage 最吸引人的地方。</p>
+<h3 id="2-2-带占位图和完成回调"><a href="#2-2-带占位图和完成回调" class="headerlink" title="2.2 带占位图和完成回调"></a>2.2 带占位图和完成回调</h3><figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[<span class="keyword">self</span>.imageView sd_setImageWithURL:url</span><br><span class="line">                  placeholderImage:[<span class="built_in">UIImage</span> imageNamed:<span class="string">@&quot;placeholder&quot;</span>]</span><br><span class="line">                         completed:^(<span class="built_in">UIImage</span> *image, <span class="built_in">NSError</span> *error, SDImageCacheType cacheType, <span class="built_in">NSURL</span> *imageURL) &#123;</span><br><span class="line">    <span class="keyword">if</span> (error) &#123;</span><br><span class="line">        <span class="built_in">NSLog</span>(<span class="string">@&quot;加载失败: %@&quot;</span>, error);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (cacheType == SDImageCacheTypeMemory) &#123;</span><br><span class="line">        <span class="built_in">NSLog</span>(<span class="string">@&quot;从内存缓存命中&quot;</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (cacheType == SDImageCacheTypeDisk) &#123;</span><br><span class="line">        <span class="built_in">NSLog</span>(<span class="string">@&quot;从磁盘缓存命中&quot;</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="built_in">NSLog</span>(<span class="string">@&quot;网络下载完成&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure>
+
+<p><code>SDImageCacheType</code> 枚举告诉你图片来源，方便做数据上报或性能分析。</p>
+<h3 id="2-3-常用-Options-组合"><a href="#2-3-常用-Options-组合" class="headerlink" title="2.3 常用 Options 组合"></a>2.3 常用 Options 组合</h3><figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[<span class="keyword">self</span>.imageView sd_setImageWithURL:url</span><br><span class="line">                  placeholderImage:placeholder</span><br><span class="line">                           options:SDWebImageRetryFailed          <span class="comment">// 失败后允许重试</span></span><br><span class="line">                                 | SDWebImageScaleDownLargeImages <span class="comment">// 大图自动缩放防 OOM</span></span><br><span class="line">                                 | SDWebImageProgressiveLoad      <span class="comment">// 渐进式显示</span></span><br><span class="line">                                 | SDWebImageRefreshCached        <span class="comment">// 刷新缓存（头像等会变化的图）</span></span><br><span class="line">];</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>SDWebImageRetryFailed</code></td>
+<td>失败 URL 不加入黑名单，允许下次重试</td>
+</tr>
+<tr>
+<td><code>SDWebImageLowPriority</code></td>
+<td>低优先级，scrollView 减速后才开始加载</td>
+</tr>
+<tr>
+<td><code>SDWebImageHighPriority</code></td>
+<td>高优先级，插到下载队列前端</td>
+</tr>
+<tr>
+<td><code>SDWebImageProgressiveLoad</code></td>
+<td>渐进式加载，边下边显示（像浏览器加载图片）</td>
+</tr>
+<tr>
+<td><code>SDWebImageRefreshCached</code></td>
+<td>即使命中缓存也重新请求（头像类场景）</td>
+</tr>
+<tr>
+<td><code>SDWebImageScaleDownLargeImages</code></td>
+<td>大图按设备内存预算缩放解码，防止 OOM</td>
+</tr>
+<tr>
+<td><code>SDWebImageDecodeFirstFrameOnly</code></td>
+<td>动图只解码首帧</td>
+</tr>
+<tr>
+<td><code>SDWebImageAvoidAutoSetImage</code></td>
+<td>不自动设置 image（配合自定义转场动画）</td>
+</tr>
+<tr>
+<td><code>SDWebImageDelayPlaceholder</code></td>
+<td>延迟显示占位图（等下载完成再决定是否显示）</td>
+</tr>
+</tbody></table>
+<h3 id="2-4-预加载"><a href="#2-4-预加载" class="headerlink" title="2.4 预加载"></a>2.4 预加载</h3><figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">SDWebImagePrefetcher *prefetcher = [SDWebImagePrefetcher sharedImagePrefetcher];</span><br><span class="line">prefetcher.maxConcurrentPrefetchCount = <span class="number">3</span>; <span class="comment">// 默认 3，比下载器的 6 更保守</span></span><br><span class="line"></span><br><span class="line">[prefetcher prefetchURLs:urls progress:^(<span class="built_in">NSUInteger</span> noOfFinishedUrls, <span class="built_in">NSUInteger</span> noOfTotalUrls) &#123;</span><br><span class="line">    <span class="comment">// 预加载进度</span></span><br><span class="line">&#125; completed:^(<span class="built_in">NSUInteger</span> noOfFinishedUrls, <span class="built_in">NSUInteger</span> noOfSkippedUrls) &#123;</span><br><span class="line">    <span class="comment">// 预加载完成</span></span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure>
+
+<p>预加载器内部复用同一个 <code>SDWebImageManager</code>，缓存是全局共享的。</p>
+<hr>
+<h2 id="3-核心架构"><a href="#3-核心架构" class="headerlink" title="3. 核心架构"></a>3. 核心架构</h2><p>SDWebImage 采用<strong>三层组件化架构</strong>，职责分明：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">flowchart TB</span><br><span class="line">    subgraph Top[&quot;应用层&quot;]</span><br><span class="line">        A[&quot;UIImageView+WebCache&lt;br/&gt;UIButton+WebCache&quot;]</span><br><span class="line">        B[&quot;SDWebImagePrefetcher&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    subgraph Core[&quot;核心调度层&quot;]</span><br><span class="line">        C[&quot;SDWebImageManager&lt;br/&gt;（调度中心）&quot;]</span><br><span class="line">        D[&quot;SDImageCache&lt;br/&gt;（缓存管理）&quot;]</span><br><span class="line">        E[&quot;SDWebImageDownloader&lt;br/&gt;（下载器）&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    subgraph Base[&quot;基础设施层&quot;]</span><br><span class="line">        F[&quot;SDImageCoder&lt;br/&gt;（编解码协议）&quot;]</span><br><span class="line">        G[&quot;SDImageTransformer&lt;br/&gt;（图片变换）&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    A --&gt; C</span><br><span class="line">    B --&gt; C</span><br><span class="line">    C --&gt; D</span><br><span class="line">    C --&gt; E</span><br><span class="line">    E --&gt; F</span><br><span class="line">    D --&gt; F</span><br><span class="line"></span><br><span class="line">    style Top fill:#4A90D9,stroke:#2E6BA4,color:#fff</span><br><span class="line">    style Core fill:#50C878,stroke:#3DA35D,color:#fff</span><br><span class="line">    style Base fill:#F5A623,stroke:#D4881E,color:#fff</span><br></pre></td></tr></table></figure>
+
+<p><strong>各组件职责</strong>：</p>
+<ul>
+<li><strong>UIImageView+WebCache</strong>：对外 API，隐藏内部复杂实现（外观模式）</li>
+<li><strong>SDWebImageManager</strong>：调度中心，协调缓存查询和下载操作</li>
+<li><strong>SDImageCache</strong>：内存（NSCache）+ 磁盘（文件系统）二级缓存</li>
+<li><strong>SDWebImageDownloader</strong>：封装 NSOperationQueue，管理并发下载</li>
+<li><strong>SDImageCoder</strong>：可插拔的编解码协议，支持 JPEG&#x2F;PNG&#x2F;GIF&#x2F;APNG&#x2F;WebP</li>
+</ul>
+<h3 id="3-1-主流程：从-URL-到屏幕的完整链路"><a href="#3-1-主流程：从-URL-到屏幕的完整链路" class="headerlink" title="3.1 主流程：从 URL 到屏幕的完整链路"></a>3.1 主流程：从 URL 到屏幕的完整链路</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">flowchart TD</span><br><span class="line">    A[&quot;① sd_setImageWithURL:&quot;] --&gt; B[&quot;② 取消旧任务 + 显示占位图&quot;]</span><br><span class="line">    B --&gt; C[&quot;③ SDWebImageManager 调度&quot;]</span><br><span class="line">    C --&gt; D&#123;&quot;④ 查内存缓存&lt;br/&gt;NSCache&quot;&#125;</span><br><span class="line">    D --&gt;|命中| Z[&quot;⑩ 主线程显示图片&quot;]</span><br><span class="line">    D --&gt;|未命中| E&#123;&quot;⑤ 查磁盘缓存&lt;br/&gt;File System&quot;&#125;</span><br><span class="line">    E --&gt;|命中| F[&quot;⑥ 子线程解码&quot;]</span><br><span class="line">    F --&gt; G[&quot;⑦ 回写内存缓存&quot;]</span><br><span class="line">    G --&gt; Z</span><br><span class="line">    E --&gt;|未命中| H[&quot;⑧ 网络下载&quot;]</span><br><span class="line">    H --&gt; I[&quot;⑨ 子线程解码 + 存入缓存&quot;]</span><br><span class="line">    I --&gt; Z</span><br><span class="line"></span><br><span class="line">    style D fill:#50C878,stroke:#3DA35D,color:#fff</span><br><span class="line">    style E fill:#F5A623,stroke:#D4881E,color:#fff</span><br><span class="line">    style H fill:#E74C3C,stroke:#C0392B,color:#fff</span><br><span class="line">    style Z fill:#9B59B6,stroke:#7D3C98,color:#fff</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="4-为什么比-UIImageView-快？——-图片渲染管线的秘密"><a href="#4-为什么比-UIImageView-快？——-图片渲染管线的秘密" class="headerlink" title="4. 为什么比 UIImageView 快？—— 图片渲染管线的秘密"></a>4. 为什么比 UIImageView 快？—— 图片渲染管线的秘密</h2><p>这是面试中的核心问题。要回答清楚，必须先理解图片从文件到屏幕的三个阶段。</p>
+<h3 id="4-1-三种-Buffer"><a href="#4-1-三种-Buffer" class="headerlink" title="4.1 三种 Buffer"></a>4.1 三种 Buffer</h3><table>
+<thead>
+<tr>
+<th>Buffer 类型</th>
+<th>存储位置</th>
+<th>内容</th>
+<th>举例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Data Buffer</strong></td>
+<td>内存</td>
+<td>压缩的图片数据（PNG&#x2F;JPEG）</td>
+<td>一张 500KB 的 JPEG 文件</td>
+</tr>
+<tr>
+<td><strong>Image Buffer</strong></td>
+<td>内存</td>
+<td>解码后的位图（每个像素 RGBA）</td>
+<td>2048×1536×4 &#x3D; <strong>12MB</strong></td>
+</tr>
+<tr>
+<td><strong>Frame Buffer</strong></td>
+<td>显存</td>
+<td>GPU 将要渲染的帧数据</td>
+<td>屏幕下一帧的内容</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-UIImage-的惰性解码陷阱"><a href="#4-2-UIImage-的惰性解码陷阱" class="headerlink" title="4.2 UIImage 的惰性解码陷阱"></a>4.2 UIImage 的惰性解码陷阱</h3><p>很多人以为 <code>UIImage(named:)</code> 或 <code>UIImage(data:)</code> 执行后就得到了一张可以立刻显示的图片。<strong>这是错误的。</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">    A[&quot;UIImage(named:)&lt;br/&gt;创建图片对象&quot;] --&gt; B[&quot;❌ 未解码&lt;br/&gt;仍为压缩数据&quot;]</span><br><span class="line">    B --&gt; C[&quot;imageView.image = image&lt;br/&gt;赋值给 UIImageView&quot;]</span><br><span class="line">    C --&gt; D[&quot;CATransaction&lt;br/&gt;捕获图层变化&quot;]</span><br><span class="line">    D --&gt; E[&quot;下一个 RunLoop&lt;br/&gt;Core Animation 提交事务&quot;]</span><br><span class="line">    E --&gt; F[&quot;🔴 主线程解码&lt;br/&gt;数据 → 位图（CPU 密集型）&quot;]</span><br><span class="line">    F --&gt; G[&quot;GPU 渲染到屏幕&quot;]</span><br><span class="line"></span><br><span class="line">    style F fill:#E74C3C,stroke:#C0392B,color:#fff</span><br></pre></td></tr></table></figure>
+
+<p><strong>真正的解码发生在图片首次提交渲染时，由 Core Animation 在主线程完成。</strong> 对于多张大图，这会在主线程消耗数百毫秒，直接造成滑动掉帧。</p>
+<h3 id="4-3-SDWebImage-的解法：子线程强制解码"><a href="#4-3-SDWebImage-的解法：子线程强制解码" class="headerlink" title="4.3 SDWebImage 的解法：子线程强制解码"></a>4.3 SDWebImage 的解法：子线程强制解码</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">    subgraph 系统做法</span><br><span class="line">        S1[&quot;主线程创建 UIImage&quot;] --&gt; S2[&quot;主线程赋值&quot;] --&gt; S3[&quot;🔴 主线程解码&lt;br/&gt;卡顿 300ms+&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    subgraph SDWebImage做法</span><br><span class="line">        D1[&quot;子线程下载&quot;] --&gt; D2[&quot;子线程强制解码&lt;br/&gt;CGBitmapContext&quot;] --&gt; D3[&quot;🟢 主线程仅显示&lt;br/&gt;耗时 &lt; 20ms&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    style S3 fill:#E74C3C,stroke:#C0392B,color:#fff</span><br><span class="line">    style D2 fill:#50C878,stroke:#3DA35D,color:#fff</span><br><span class="line">    style D3 fill:#50C878,stroke:#3DA35D,color:#fff</span><br></pre></td></tr></table></figure>
+
+<p>核心代码原理（简化版）：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">+ (<span class="built_in">UIImage</span> *)decodedImageWithImage:(<span class="built_in">UIImage</span> *)image &#123;</span><br><span class="line">    <span class="built_in">CGImageRef</span> imageRef = image.CGImage;</span><br><span class="line">    size_t width = <span class="built_in">CGImageGetWidth</span>(imageRef);</span><br><span class="line">    size_t height = <span class="built_in">CGImageGetHeight</span>(imageRef);</span><br><span class="line">    <span class="built_in">CGColorSpaceRef</span> colorSpace = <span class="built_in">CGColorSpaceCreateDeviceRGB</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建位图上下文 —— 分配解压后的内存空间</span></span><br><span class="line">    <span class="built_in">CGContextRef</span> context = <span class="built_in">CGBitmapContextCreate</span>(</span><br><span class="line">        <span class="literal">NULL</span>, width, height,</span><br><span class="line">        <span class="number">8</span>,           <span class="comment">// bitsPerComponent</span></span><br><span class="line">        <span class="number">4</span> * width,   <span class="comment">// bytesPerRow: 每行 4 字节 × 宽度</span></span><br><span class="line">        colorSpace,</span><br><span class="line">        kCGBitmapByteOrderDefault | kCGImageAlphaPremultipliedLast</span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将原始 CGImage 绘制到上下文中 —— 这一步触发真正的解码！</span></span><br><span class="line">    <span class="built_in">CGContextDrawImage</span>(context, <span class="built_in">CGRectMake</span>(<span class="number">0</span>, <span class="number">0</span>, width, height), imageRef);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 从上下文中取出已解码的位图</span></span><br><span class="line">    <span class="built_in">CGImageRef</span> decodedImageRef = <span class="built_in">CGBitmapContextCreateImage</span>(context);</span><br><span class="line">    <span class="built_in">UIImage</span> *decodedImage = [<span class="built_in">UIImage</span> imageWithCGImage:decodedImageRef</span><br><span class="line">                                                scale:image.scale</span><br><span class="line">                                          orientation:image.imageOrientation];</span><br><span class="line"></span><br><span class="line">    <span class="built_in">CGContextRelease</span>(context);</span><br><span class="line">    <span class="built_in">CGImageRelease</span>(decodedImageRef);</span><br><span class="line">    <span class="built_in">CGColorSpaceRelease</span>(colorSpace);</span><br><span class="line">    <span class="keyword">return</span> decodedImage;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这个操作在 SDWebImage 内部的<strong>后台串行队列</strong>上执行。解码完成后将位图存入 NSCache，下一次使用时直接取出，主线程零开销。</p>
+</blockquote>
+<h3 id="4-4-效果量化对比"><a href="#4-4-效果量化对比" class="headerlink" title="4.4 效果量化对比"></a>4.4 效果量化对比</h3><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>系统原生</th>
+<th>SDWebImage</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>主线程解码耗时</td>
+<td>300-500ms（大图）</td>
+<td><strong>&lt; 20ms</strong>（仅设置 image 属性）</td>
+</tr>
+<tr>
+<td>列表滑动帧率</td>
+<td>15-25 FPS</td>
+<td><strong>58-60 FPS</strong></td>
+</tr>
+<tr>
+<td>内存峰值（同图二次加载）</td>
+<td>每次重新解码，峰值高</td>
+<td>内存缓存命中，无额外峰值</td>
+</tr>
+<tr>
+<td>大图 OOM 风险</td>
+<td>高（解码全尺寸位图）</td>
+<td>低（可配合向下采样缩放）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>一句话总结：<strong>空间换时间</strong> — 在后台线程提前解码，把解码后的位图缓存在内存中，后续使用零解码开销。</p>
+</blockquote>
+<hr>
+<h2 id="5-缓存策略深度剖析"><a href="#5-缓存策略深度剖析" class="headerlink" title="5. 缓存策略深度剖析"></a>5. 缓存策略深度剖析</h2><h3 id="5-1-二级缓存架构"><a href="#5-1-二级缓存架构" class="headerlink" title="5.1 二级缓存架构"></a>5.1 二级缓存架构</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────┐</span><br><span class="line">│          Memory Cache (NSCache)      │</span><br><span class="line">│  · 存储：解码后的 UIImage（位图）       │</span><br><span class="line">│  · 淘汰：系统级 LRU + 内存压力自动清理   │</span><br><span class="line">│  · 查询：O(1)，零 I/O                 │</span><br><span class="line">│  · 生命周期：App 内存警告或进程结束     │</span><br><span class="line">├─────────────────────────────────────┤</span><br><span class="line">│          Disk Cache (文件系统)         │</span><br><span class="line">│  · 存储：原始压缩数据（NSData）        │</span><br><span class="line">│  · 淘汰：maxDiskAge（默认 1 周）+      │</span><br><span class="line">│           maxDiskSize（超出按 LRU 删）│</span><br><span class="line">│  · 查询：异步 I/O，串行队列            │</span><br><span class="line">│  · 生命周期：跨 App 启动               │</span><br><span class="line">└─────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么内存存位图、磁盘存原始数据？</strong></p>
+<ul>
+<li><strong>内存求快</strong>：缓存解码好的位图，拿即能用。如果存压缩数据，每次命中还要重新解码，等于没做缓存。</li>
+<li><strong>磁盘省空间</strong>：原始 JPEG 可能 200KB，解码后的位图是 12MB。磁盘存压缩数据省空间，读取时花几十毫秒解码完全可接受。</li>
+</ul>
+<p>这是 SDWebImage 在<strong>速度与空间之间做的最优权衡</strong>。</p>
+<h3 id="5-2-缓存查询流程"><a href="#5-2-缓存查询流程" class="headerlink" title="5.2 缓存查询流程"></a>5.2 缓存查询流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">flowchart TD</span><br><span class="line">    Start[&quot;查询图片&quot;] --&gt; Mem&#123;&quot;内存缓存&lt;br/&gt;NSCache?&quot;&#125;</span><br><span class="line">    Mem --&gt;|命中| Done[&quot;返回 UIImage&lt;br/&gt;（已解码，直接使用）&quot;]</span><br><span class="line">    Mem --&gt;|未命中| Disk&#123;&quot;磁盘缓存&lt;br/&gt;文件?&quot;&#125;</span><br><span class="line">    Disk --&gt;|命中| Decode[&quot;子线程解码&quot;]</span><br><span class="line">    Decode --&gt; MemWrite[&quot;回写内存缓存&quot;]</span><br><span class="line">    MemWrite --&gt; Done2[&quot;返回 UIImage&quot;]</span><br><span class="line">    Disk --&gt;|未命中| Network[&quot;发起网络下载&quot;]</span><br><span class="line">    Network --&gt; Store[&quot;解码后存入&lt;br/&gt;内存 + 磁盘&quot;]</span><br><span class="line">    Store --&gt; Done3[&quot;返回 UIImage&quot;]</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-缓存-Key-策略"><a href="#5-3-缓存-Key-策略" class="headerlink" title="5.3 缓存 Key 策略"></a>5.3 缓存 Key 策略</h3><figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 核心：URL 字符串作为缓存 Key</span></span><br><span class="line"><span class="built_in">NSString</span> *key = [<span class="keyword">self</span> cacheKeyForURL:url];</span><br><span class="line"></span><br><span class="line"><span class="comment">// 查询缓存</span></span><br><span class="line">[<span class="keyword">self</span>.imageCache queryImageForKey:key options:options context:context</span><br><span class="line">                       completion:^(<span class="built_in">UIImage</span> *image, <span class="built_in">NSData</span> *data, SDImageCacheType cacheType) &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure>
+
+<p>默认使用<strong>完整的 URL 字符串</strong>作为缓存 Key。也支持通过 <code>SDWebImageContextCacheKeyFilter</code> 自定义 Key 生成规则（比如去掉 URL 中的 token 参数）。</p>
+<h3 id="5-4-过期与清理"><a href="#5-4-过期与清理" class="headerlink" title="5.4 过期与清理"></a>5.4 过期与清理</h3><figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// SDImageCacheConfig 关键属性</span></span><br><span class="line">config.maxDiskAge = <span class="number">60</span> * <span class="number">60</span> * <span class="number">24</span> * <span class="number">7</span>; <span class="comment">// 1 周</span></span><br><span class="line">config.maxDiskSize = <span class="number">0</span>;               <span class="comment">// 0 = 不限制</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>被动清理</strong>：进入后台或被终止时自动触发</li>
+<li><strong>容量清理</strong>：总大小超过 <code>maxDiskSize</code> 时，按文件创建时间正序删除（最旧的先删）</li>
+<li><strong>内存警告</strong>：监听 <code>UIApplicationDidReceiveMemoryWarningNotification</code>，清空 NSCache</li>
+</ul>
+<h3 id="5-5-与-NSURLCache-的对比"><a href="#5-5-与-NSURLCache-的对比" class="headerlink" title="5.5 与 NSURLCache 的对比"></a>5.5 与 NSURLCache 的对比</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>NSURLCache</th>
+<th>SDWebImage</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>磁盘存什么</td>
+<td>HTTP 原始响应（含响应头）</td>
+<td>纯图片数据</td>
+</tr>
+<tr>
+<td>内存存什么</td>
+<td>无专门 UIImage 缓存</td>
+<td>NSCache 缓存已解码 UIImage</td>
+</tr>
+<tr>
+<td>命中后需要</td>
+<td>重新解析 HTTP → 重新解码</td>
+<td><strong>内存命中直接返回</strong></td>
+</tr>
+<tr>
+<td>缓存控制</td>
+<td>依赖 HTTP Cache-Control（常被 CDN 误配）</td>
+<td>完全自主控制</td>
+</tr>
+<tr>
+<td>清理策略</td>
+<td>系统级，不可控</td>
+<td>自定义过期时间和容量上限</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>NSURLCache 缓存的是”网络层”数据，SDWebImage 缓存的是”渲染就绪”数据。两者层次不同。</p>
+</blockquote>
+<hr>
+<h2 id="6-下载器设计"><a href="#6-下载器设计" class="headerlink" title="6. 下载器设计"></a>6. 下载器设计</h2><h3 id="6-1-并发控制"><a href="#6-1-并发控制" class="headerlink" title="6.1 并发控制"></a>6.1 并发控制</h3><figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">_downloadQueue = [<span class="built_in">NSOperationQueue</span> new];</span><br><span class="line">_downloadQueue.maxConcurrentOperationCount = <span class="number">6</span>; <span class="comment">// 默认 6 个并发</span></span><br><span class="line">_downloadQueue.name = <span class="string">@&quot;com.hackemist.SDWebImageDownloader&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>使用 <code>NSOperationQueue</code> 而非 GCD，因为需要：</p>
+<ul>
+<li><strong>取消</strong>单个下载任务（cell 复用场景）</li>
+<li><strong>设置依赖</strong>（LIFO 模式）</li>
+<li><strong>控制并发数</strong></li>
+</ul>
+<h3 id="6-2-URL-去重-——-最精妙的设计"><a href="#6-2-URL-去重-——-最精妙的设计" class="headerlink" title="6.2 URL 去重 —— 最精妙的设计"></a>6.2 URL 去重 —— 最精妙的设计</h3><p>如果界面上 3 个 cell 同时显示同一张图片，系统会发起 3 次网络请求吗？<strong>不会。</strong></p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// SDWebImageDownloader 内部</span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">strong</span>, <span class="keyword">nonatomic</span>) <span class="built_in">NSMutableDictionary</span>&lt;<span class="built_in">NSURL</span> *, <span class="built_in">NSMutableArray</span> *&gt; *URLCallbacks;</span><br></pre></td></tr></table></figure>
+
+<p><code>URLCallbacks</code> 是一个字典，<strong>Key &#x3D; URL，Value &#x3D; 回调数组</strong>。</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 简化逻辑</span></span><br><span class="line">dispatch_barrier_sync(<span class="keyword">self</span>.barrierQueue, ^&#123;</span><br><span class="line">    <span class="type">BOOL</span> first = <span class="literal">NO</span>;</span><br><span class="line">    <span class="keyword">if</span> (!<span class="keyword">self</span>.URLCallbacks[url]) &#123;</span><br><span class="line">        <span class="keyword">self</span>.URLCallbacks[url] = [<span class="built_in">NSMutableArray</span> new];</span><br><span class="line">        first = <span class="literal">YES</span>;  <span class="comment">// 此 URL 的首次请求</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 追加回调到已有数组</span></span><br><span class="line">    [<span class="keyword">self</span>.URLCallbacks[url] addObject:@&#123;</span><br><span class="line">        kProgressCallbackKey: [progressBlock <span class="keyword">copy</span>],</span><br><span class="line">        kCompletedCallbackKey: [completedBlock <span class="keyword">copy</span>]</span><br><span class="line">    &#125;];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (first) &#123;</span><br><span class="line">        createCallback();  <span class="comment">// 只有首次才创建真正的下载 Operation</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><strong>效果</strong>：同一个 URL 只会创建一个下载 Operation，但所有调用方的 progressBlock 和 completedBlock 都保存下来，下载完成时逐一回调。下载过程中，如果有新请求同一个 URL，直接追加回调数组，不发起新请求。</p>
+<h3 id="6-3-LIFO-与-FIFO"><a href="#6-3-LIFO-与-FIFO" class="headerlink" title="6.3 LIFO 与 FIFO"></a>6.3 LIFO 与 FIFO</h3><figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="built_in">NS_ENUM</span>(<span class="built_in">NSInteger</span>, SDWebImageDownloaderExecutionOrder) &#123;</span><br><span class="line">    SDWebImageDownloaderFIFOExecutionOrder, <span class="comment">// 先进先出（默认）</span></span><br><span class="line">    SDWebImageDownloaderLIFOExecutionOrder  <span class="comment">// 后进先出</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>LIFO 的实现</strong>不是修改队列的出队顺序，而是利用 <code>NSOperation</code> 的依赖机制：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (wself.executionOrder == SDWebImageDownloaderLIFOExecutionOrder) &#123;</span><br><span class="line">    <span class="comment">// 让上一个操作依赖新操作 → 新操作先执行</span></span><br><span class="line">    [wself.lastAddedOperation addDependency:operation];</span><br><span class="line">    wself.lastAddedOperation = operation;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>列表快速滑动时，LIFO 让当前可见 cell 的图片优先下载，远离屏幕的 cell 图片延后。</p>
+</blockquote>
+<h3 id="6-4-线程安全"><a href="#6-4-线程安全" class="headerlink" title="6.4 线程安全"></a>6.4 线程安全</h3><p>所有对 <code>URLCallbacks</code> 的读写操作通过<strong>栅栏函数</strong>保护：</p>
+<ul>
+<li><code>dispatch_barrier_sync</code>：写操作，阻塞所有并发操作直到完成</li>
+<li><code>dispatch_barrier_async</code>：写操作，异步但保证互斥</li>
+</ul>
+<p>实际效果等同于读写锁：并发读，互斥写。</p>
+<hr>
+<h2 id="7-编解码体系"><a href="#7-编解码体系" class="headerlink" title="7. 编解码体系"></a>7. 编解码体系</h2><h3 id="7-1-协议化设计（5-x-核心变化）"><a href="#7-1-协议化设计（5-x-核心变化）" class="headerlink" title="7.1 协议化设计（5.x 核心变化）"></a>7.1 协议化设计（5.x 核心变化）</h3><p>SDWebImage 4.x 时代，解码逻辑硬编码在内部。5.0 之后，全部<strong>协议化、可插拔</strong>：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@protocol</span> <span class="title">SDImageCoder</span> &lt;<span class="title">NSObject</span>&gt;</span></span><br><span class="line"><span class="keyword">@required</span></span><br><span class="line">- (<span class="type">BOOL</span>)canDecodeFromData:(<span class="keyword">nullable</span> <span class="built_in">NSData</span> *)data;</span><br><span class="line">- (<span class="keyword">nullable</span> <span class="built_in">UIImage</span> *)decodedImageWithData:(<span class="keyword">nullable</span> <span class="built_in">NSData</span> *)data</span><br><span class="line">                                   options:(<span class="keyword">nullable</span> SDImageCoderOptions *)options;</span><br><span class="line">- (<span class="type">BOOL</span>)canEncodeToFormat:(SDImageFormat)format;</span><br><span class="line">- (<span class="keyword">nullable</span> <span class="built_in">NSData</span> *)encodedDataWithImage:(<span class="keyword">nullable</span> <span class="built_in">UIImage</span> *)image</span><br><span class="line">                                   format:(SDImageFormat)format</span><br><span class="line">                                  options:(<span class="keyword">nullable</span> SDImageCoderOptions *)options;</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@protocol</span> <span class="title">SDProgressiveImageCoder</span> &lt;<span class="title">SDImageCoder</span>&gt;</span></span><br><span class="line"><span class="keyword">@required</span></span><br><span class="line">- (<span class="type">BOOL</span>)canIncrementalDecodeFromData:(<span class="keyword">nullable</span> <span class="built_in">NSData</span> *)data;</span><br><span class="line">- (<span class="keyword">nonnull</span> <span class="keyword">instancetype</span>)initIncrementalWithOptions:(<span class="keyword">nullable</span> SDImageCoderOptions *)options;</span><br><span class="line">- (<span class="type">void</span>)updateIncrementalData:(<span class="keyword">nullable</span> <span class="built_in">NSData</span> *)data finished:(<span class="type">BOOL</span>)finished;</span><br><span class="line">- (<span class="keyword">nullable</span> <span class="built_in">UIImage</span> *)incrementalDecodedImageWithOptions:(<span class="keyword">nullable</span> SDImageCoderOptions *)options;</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-责任链模式：SDImageCodersManager"><a href="#7-2-责任链模式：SDImageCodersManager" class="headerlink" title="7.2 责任链模式：SDImageCodersManager"></a>7.2 责任链模式：SDImageCodersManager</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">内置 Coder 链（按优先级从高到低）:</span><br><span class="line">  APNGCoder → GIFCoder → ImageIOCoder (兜底)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 注册自定义 Coder（WebP）</span></span><br><span class="line">[SDImageCodersManager.sharedManager addCoder:SDImageWebPCoder.sharedCoder];</span><br><span class="line"><span class="comment">// 现在：WebPCoder → APNGCoder → GIFCoder → ImageIOCoder</span></span><br></pre></td></tr></table></figure>
+
+<p>Manager 遍历 Coder 链，第一个 <code>canDecodeFromData:</code> 返回 YES 的负责解码。<strong>Chain of Responsibility</strong> 模式，灵活可扩展。</p>
+<h3 id="7-3-渐进式解码（Progressive-Decode）"><a href="#7-3-渐进式解码（Progressive-Decode）" class="headerlink" title="7.3 渐进式解码（Progressive Decode）"></a>7.3 渐进式解码（Progressive Decode）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">    A[&quot;第 1 块数据到达&quot;] --&gt; B[&quot;CGImageSourceUpdateData&lt;br/&gt;更新增量源&quot;]</span><br><span class="line">    B --&gt; C[&quot;CGImageSourceCreateImageAtIndex&lt;br/&gt;提取当前最佳图像&quot;]</span><br><span class="line">    C --&gt; D[&quot;显示模糊预览&quot;]</span><br><span class="line">    D --&gt; E[&quot;第 N 块数据到达&quot;]</span><br><span class="line">    E --&gt; F[&quot;更新 → 提取 → 更清晰的预览&quot;]</span><br><span class="line">    F --&gt; G[&quot;... 循环 ...&quot;]</span><br><span class="line">    G --&gt; H[&quot;数据完成 → 最终清晰图&quot;]</span><br></pre></td></tr></table></figure>
+
+<p>核心依赖 Apple ImageIO 的 <code>CGImageSourceCreateIncremental</code>：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1. 创建增量图像源</span></span><br><span class="line"><span class="built_in">CGImageSourceRef</span> imageSource = <span class="built_in">CGImageSourceCreateIncremental</span>(<span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 分批喂入数据</span></span><br><span class="line"><span class="built_in">CGImageSourceUpdateData</span>(imageSource, (__bridge <span class="built_in">CFDataRef</span>)partialData, finished == <span class="literal">NO</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 随时提取当前能解码出的最佳图像</span></span><br><span class="line"><span class="built_in">CGImageRef</span> imageRef = <span class="built_in">CGImageSourceCreateImageAtIndex</span>(imageSource, <span class="number">0</span>, <span class="literal">NULL</span>);</span><br></pre></td></tr></table></figure>
+
+<p><strong>每个下载任务创建独立的 Coder 实例</strong>（避免共享状态导致的并发问题），通过 <code>SDWebImageProgressiveLoad</code> 选项开启。</p>
+<h3 id="7-4-动图优化"><a href="#7-4-动图优化" class="headerlink" title="7.4 动图优化"></a>7.4 动图优化</h3><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>策略</th>
+<th>内存</th>
+<th>CPU</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>系统 UIImageView</td>
+<td>全量解码所有帧存内存</td>
+<td><strong>极高</strong></td>
+<td>低</td>
+</tr>
+<tr>
+<td>SDWebImage (SDAnimatedImageView)</td>
+<td>帧缓冲池，仅保留当前帧及前后几帧</td>
+<td><strong>可控</strong></td>
+<td>低</td>
+</tr>
+<tr>
+<td>YYImage</td>
+<td>每显示一帧解码一帧</td>
+<td>低</td>
+<td>高</td>
+</tr>
+</tbody></table>
+<p>SDWebImage 的动图方案是<strong>内存与 CPU 的折中</strong>：预解码若干帧存于缓冲池，播放时直接切换，不需要实时解码消耗 CPU，也不会像系统那样一次性解码所有帧撑爆内存。</p>
+<h3 id="7-5-向下采样（Downsampling）防-OOM"><a href="#7-5-向下采样（Downsampling）防-OOM" class="headerlink" title="7.5 向下采样（Downsampling）防 OOM"></a>7.5 向下采样（Downsampling）防 OOM</h3><p>一张 4096×4096 的图片解码后占 <strong>64MB</strong> 内存（4096×4096×4）。如果 ImageView 只显示 200×200，这就是浪费。</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 按设备内存预算自动计算缩放比例</span></span><br><span class="line">[<span class="keyword">self</span>.imageView sd_setImageWithURL:url</span><br><span class="line">                  placeholderImage:<span class="literal">nil</span></span><br><span class="line">                           options:SDWebImageScaleDownLargeImages];</span><br></pre></td></tr></table></figure>
+
+<p>解码时就完成缩放，内存占用从 64MB → 几 MB。</p>
+<hr>
+<h2 id="8-总结：面试中如何侃侃而谈"><a href="#8-总结：面试中如何侃侃而谈" class="headerlink" title="8. 总结：面试中如何侃侃而谈"></a>8. 总结：面试中如何侃侃而谈</h2><h3 id="8-1-完整链路一张图"><a href="#8-1-完整链路一张图" class="headerlink" title="8.1 完整链路一张图"></a>8.1 完整链路一张图</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">sd_setImageWithURL:</span><br><span class="line">    │</span><br><span class="line">    ├─ 1. 取消当前 view 的旧下载任务 (cell 复用场景)</span><br><span class="line">    ├─ 2. 设置占位图</span><br><span class="line">    │</span><br><span class="line">    └─ 3. SDWebImageManager 调度</span><br><span class="line">         │</span><br><span class="line">         ├─ 查 NSCache (已解码位图) ── 命中 → 主线程直接显示 ✓</span><br><span class="line">         │</span><br><span class="line">         ├─ 查磁盘 (原始压缩数据) ── 命中 → 子线程解码 → 回写 NSCache → 显示 ✓</span><br><span class="line">         │</span><br><span class="line">         └─ 均未命中 → SDWebImageDownloader 发起请求</span><br><span class="line">              │</span><br><span class="line">              ├─ URLCallbacks 字典去重 (同 URL 只下一次)</span><br><span class="line">              ├─ NSOperationQueue 并发控制 (默认 6)</span><br><span class="line">              ├─ LIFO/FIFO 顺序 (dependency 模拟)</span><br><span class="line">              ├─ 下载完成 → 子线程 CGBitmapContext 强制解码</span><br><span class="line">              ├─ 存入 NSCache (位图) + 磁盘 (原始数据)</span><br><span class="line">              └─ 主线程设置 image</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-2-面试回答框架"><a href="#8-2-面试回答框架" class="headerlink" title="8.2 面试回答框架"></a>8.2 面试回答框架</h3><p><strong>Q: 说说 SDWebImage 的原理？</strong></p>
+<blockquote>
+<p>从三个层面回答：</p>
+</blockquote>
+<ol>
+<li><p><strong>架构</strong>：三层组件化 — Category 外观层、Manager 调度层、Downloader&#x2F;Cache&#x2F;Coder 基础层。各组件协议化，可插拔替换。</p>
+</li>
+<li><p><strong>缓存</strong>：二级缓存，内存 NSCache 存解码位图（拿即能用），磁盘存原始压缩数据（省空间）。URL 作为 Key，有过期清理和容量控制。对比 NSURLCache 的差异在于：NSURLCache 缓存网络层 HTTP 响应，命中后仍需重新解码；SD 缓存的是渲染就绪数据。</p>
+</li>
+<li><p><strong>性能核心 — 子线程强制解码</strong>：UIImage 的惰性解码在主线程 CATransaction 提交时触发，大图会阻塞主线程。SD 在后台线程通过 CGBitmapContext 绘制提前完成解码，主线程仅做 <code>imageView.image = image</code> 的赋值。空间换时间，滑动帧率从 15-25 FPS 提升到 58-60 FPS。</p>
+</li>
+<li><p><strong>下载调度</strong>：NSOperationQueue 控制并发数，URLCallbacks 字典做 URL 去重合并回掉，LIFO 优先加载可见 cell。支持渐进式解码和动图帧缓冲池优化。</p>
+</li>
+</ol>
+<h3 id="8-3-核心设计理念"><a href="#8-3-核心设计理念" class="headerlink" title="8.3 核心设计理念"></a>8.3 核心设计理念</h3><table>
+<thead>
+<tr>
+<th>理念</th>
+<th>体现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>空间换时间</strong></td>
+<td>内存缓存已解码位图，避免重复解码</td>
+</tr>
+<tr>
+<td><strong>异步优先</strong></td>
+<td>所有耗时操作（网络、I&#x2F;O、解码）均在后台线程</td>
+</tr>
+<tr>
+<td><strong>单一职责</strong></td>
+<td>Manager 调度、Cache 缓存、Downloader 下载、Coder 编解码，各司其职</td>
+</tr>
+<tr>
+<td><strong>可插拔</strong></td>
+<td>5.x 全部协议化，缓存后端、Coder、Transformer 都可替换</td>
+</tr>
+<tr>
+<td><strong>URL 去重</strong></td>
+<td>同一 URL 多次请求合并为一次下载</td>
+</tr>
+<tr>
+<td><strong>分级回退</strong></td>
+<td>内存 → 磁盘 → 网络，逐级查询</td>
+</tr>
+</tbody></table>
+
+    </div>
+  </div>
+
+  
+    <nav class="art-end">
+      <span class="head-spacer"></span>
+      <div class="end-grid">
+        <span></span>
+        
+          <a href="/2026/05/07/%E7%A6%BB%E5%B1%8F%E6%B8%B2%E6%9F%93/" class="end">
+            <div class="lab">NEXT ►</div>
+            <div class="ti">离屏渲染</div>
+          </a>
+        
+      </div>
+    </nav>
+  
+
+  
+
+</article>
+
+</main>
+
+<footer class="f">
+  <div class="f-inner">
+    <span><span class="prompt">$ </span>echo "© Floki · Code Notes "</span>
+    
+    
+      <span id="busuanzi_container_site_pv">
+        <span class="prompt">★ </span>visitors × <span id="busuanzi_value_site_pv"></span>
+      </span>
+    
+  </div>
+</footer>
+
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+  <script>
+    window.PT_CAT_BUDDY = {"src":"/img/cat.png","size":100,"corner":"br","followMouse":true,"phrases":["MEOW.EXE","SUDO PURR","> PET ME","HP +1","RUA~","CTRL+M","PRESS A"]};
+  </script>
+  <script src="/js/cat-buddy.js" defer></script>
+
+
+
+<!-- 第三方库 -->
+
+  
+    <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
+
+<script src="/js/pixelterm.js"></script>
+
+  <script src="/js/toc.js" defer></script>
+
+
+
+  <script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      document.querySelectorAll('.prose').forEach(function(g){
+        if (typeof lightGallery !== 'function') return;
+        lightGallery(g, {
+          selector: 'img',
+          plugins: [
+            window.lgZoom,
+            window.lgThumbnail,
+            window.lgRotate,
+            window.lgFullscreen,
+            
+          ].filter(Boolean),
+          download: false
+        });
+      });
+    });
+  </script>
+
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/js/mermaid-init.js"></script>
+
+
+
+
+
+</body>
+</html>

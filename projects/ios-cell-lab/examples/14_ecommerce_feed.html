@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>14. 电商首页 — 淘宝/京东/小红书</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/shared.css">
+<script src="../assets/theme.js"></script>
+<style>
+  body { background: #f5f6fa; font-family: -apple-system, "PingFang SC", sans-serif; margin: 0; padding: 24px; color: #2d3748; }
+  .nav { max-width: 1000px; margin: 0 auto 16px; display: flex; justify-content: space-between; font-size: 13px; }
+  .nav a { color: #4facfe; text-decoration: none; }
+  .container { max-width: 1000px; margin: 0 auto; }
+  .header { background: linear-gradient(135deg, #ff9966 0%, #ff5e62 100%); color: white; padding: 28px; border-radius: 14px; margin-bottom: 20px; }
+  .header h1 { margin: 0 0 8px; font-size: 22px; }
+  .header p { margin: 0; opacity: 0.95; font-size: 14px; line-height: 1.7; }
+
+  /* 分屏对比 */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .phone { background: #fff; border-radius: 22px; padding: 8px; box-shadow: 0 8px 28px rgba(0,0,0,0.15); overflow: hidden; }
+  .screen { background: #f5f6fa; height: 540px; border-radius: 16px; overflow-y: auto; position: relative; }
+  .phone-label { text-align: center; font-size: 12px; font-weight: 600; padding: 8px 0 4px; color: #1a1a2e; }
+  .phone-sub { text-align: center; font-size: 10px; color: #6c7293; padding-bottom: 8px; }
+
+  /* 淘宝式 */
+  .tb-search-bar { padding: 8px 12px; display: flex; gap: 8px; align-items: center; background: linear-gradient(180deg, #ff5e62 0%, #ff9966 100%); }
+  .tb-search { flex: 1; height: 30px; border-radius: 15px; background: white; padding: 0 12px; font-size: 12px; display: flex; align-items: center; color: #6c7293; }
+  .tb-search .lens { color: #ff5e62; margin-right: 6px; }
+  .tb-icons { display: flex; gap: 10px; color: white; font-size: 16px; }
+  .tb-banner { margin: 8px; height: 100px; border-radius: 8px; background: linear-gradient(135deg, #ffecd2, #fcb69f); display: flex; align-items: center; justify-content: center; font-size: 32px; }
+  .tb-quick { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 6px 8px; }
+  .tb-quick .q { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 9px; color: #2d3748; }
+  .tb-quick .ico { width: 36px; height: 36px; border-radius: 18px; background: linear-gradient(135deg, #fa709a, #fee140); display: flex; align-items: center; justify-content: center; font-size: 18px; color: white; }
+  .tb-section-tab { display: flex; gap: 18px; padding: 8px 12px; border-bottom: 1px solid #f0f1f5; font-size: 13px; color: #6c7293; background: white; position: sticky; top: 0; z-index: 10; }
+  .tb-section-tab .t.active { color: #ff5e62; font-weight: 600; position: relative; }
+  .tb-section-tab .t.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -8px; height: 2px; background: #ff5e62; border-radius: 1px; }
+  /* 双列商品 */
+  .tb-products { padding: 4px; column-count: 2; column-gap: 4px; }
+  .tb-product { break-inside: avoid; margin-bottom: 4px; background: white; border-radius: 8px; overflow: hidden; }
+  .tb-product .img { aspect-ratio: 1; background-size: cover; background-position: center; }
+  .tb-product.h2 .img { aspect-ratio: 0.75; }
+  .tb-product .info { padding: 6px 8px; }
+  .tb-product .title { font-size: 11px; line-height: 1.4; color: #1a1a2e; margin-bottom: 4px; max-height: 30px; overflow: hidden; }
+  .tb-product .price { font-size: 13px; color: #ff5e62; font-weight: 700; }
+  .tb-product .price small { font-size: 9px; }
+  .tb-product .sales { font-size: 9px; color: #999; }
+  .img-1 { background: linear-gradient(135deg, #fa709a, #fee140); }
+  .img-2 { background: linear-gradient(135deg, #667eea, #764ba2); }
+  .img-3 { background: linear-gradient(135deg, #11998e, #38ef7d); }
+  .img-4 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+  .img-5 { background: linear-gradient(135deg, #f093fb, #f5576c); }
+  .img-6 { background: linear-gradient(135deg, #ffecd2, #fcb69f); }
+
+  /* 小红书式 */
+  .xhs-top-tab { display: flex; gap: 18px; padding: 12px 16px 8px; font-size: 14px; color: #6c7293; background: white; }
+  .xhs-top-tab .t.active { color: #1a1a2e; font-weight: 700; font-size: 16px; }
+  .xhs-search { padding: 4px 16px 8px; }
+  .xhs-search .bar { background: #f5f6fa; border-radius: 16px; padding: 6px 12px; font-size: 11px; color: #999; display: flex; align-items: center; gap: 6px; }
+  .xhs-feed { padding: 4px; column-count: 2; column-gap: 4px; }
+  .xhs-card { break-inside: avoid; margin-bottom: 4px; background: white; border-radius: 10px; overflow: hidden; }
+  .xhs-card .img { width: 100%; }
+  .xhs-card.h-1 .img { aspect-ratio: 0.7; }
+  .xhs-card.h-2 .img { aspect-ratio: 1; }
+  .xhs-card.h-3 .img { aspect-ratio: 1.3; }
+  .xhs-card .info { padding: 6px 8px 8px; }
+  .xhs-card .title { font-size: 11px; line-height: 1.4; color: #1a1a2e; margin-bottom: 6px; }
+  .xhs-card .author { display: flex; align-items: center; justify-content: space-between; }
+  .xhs-card .author .a { display: flex; align-items: center; gap: 4px; font-size: 9px; color: #6c7293; }
+  .xhs-card .author .av { width: 14px; height: 14px; border-radius: 7px; background: linear-gradient(135deg, #667eea, #764ba2); }
+  .xhs-card .like { font-size: 9px; color: #6c7293; display: flex; align-items: center; gap: 2px; }
+
+  /* 共性 + 差异 */
+  table.metrics { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+  table.metrics th, table.metrics td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ecedf1; vertical-align: top; }
+  table.metrics th { background: #f5f6fa; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="../index.html">← 返回主菜单</a>
+  <span>
+    <a href="13_tabbar_patterns.html">← 上一个</a> &nbsp;|&nbsp;
+    <a href="15_douyin_feed.html">下一个 →</a>
+  </span>
+</div>
+
+<div class="container">
+
+  <div class="header">
+    <h1>🛒 电商首页 — 淘宝 vs 小红书 双列流</h1>
+    <p>同样是双列流，<b>淘宝</b>追求"信息密度 + 转化"，<b>小红书</b>追求"内容感 + 探索"。元素一样（图 + 标题 + 数据），<b>排序逻辑、视觉权重、留白</b>完全不同。</p>
+  </div>
+
+  <!-- 双屏对比 -->
+  <div class="section-block">
+    <h2>🎨 双屏并排对比</h2>
+    <div class="split">
+
+      <!-- 淘宝式 -->
+      <div>
+        <div class="phone">
+          <div class="screen">
+            <!-- 渐变搜索栏 -->
+            <div class="tb-search-bar">
+              <div class="tb-search"><span class="lens">🔍</span>羽绒服 女</div>
+              <div class="tb-icons">📱</div>
+            </div>
+            <!-- Banner -->
+            <div class="tb-banner">🎁</div>
+            <!-- 金刚区 -->
+            <div class="tb-quick">
+              <div class="q"><div class="ico">👕</div>女装</div>
+              <div class="q"><div class="ico">👞</div>男鞋</div>
+              <div class="q"><div class="ico">📱</div>数码</div>
+              <div class="q"><div class="ico">🛋</div>家居</div>
+              <div class="q"><div class="ico">🍔</div>美食</div>
+            </div>
+            <!-- 顶部分类 sticky -->
+            <div class="tb-section-tab">
+              <span class="t active">猜你喜欢</span>
+              <span class="t">直播</span>
+              <span class="t">视频</span>
+              <span class="t">榜单</span>
+            </div>
+            <!-- 双列商品 -->
+            <div class="tb-products">
+              <div class="tb-product"><div class="img img-1"></div><div class="info"><div class="title">优衣库联名 牛仔外套男女款</div><div class="price">¥<small></small>199<small> </small><span class="sales">已售2.3万</span></div></div></div>
+              <div class="tb-product h2"><div class="img img-2"></div><div class="info"><div class="title">2024 新款羽绒服 加厚保暖</div><div class="price">¥199 <span class="sales">已售8万+</span></div></div></div>
+              <div class="tb-product h2"><div class="img img-3"></div><div class="info"><div class="title">户外冲锋衣 三合一</div><div class="price">¥499 <span class="sales">已售3千</span></div></div></div>
+              <div class="tb-product"><div class="img img-4"></div><div class="info"><div class="title">韩版宽松卫衣</div><div class="price">¥89 <span class="sales">已售5万</span></div></div></div>
+              <div class="tb-product"><div class="img img-5"></div><div class="info"><div class="title">秋冬针织连衣裙</div><div class="price">¥159 <span class="sales">已售2千</span></div></div></div>
+              <div class="tb-product h2"><div class="img img-6"></div><div class="info"><div class="title">小香风毛呢外套</div><div class="price">¥298 <span class="sales">已售1万</span></div></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">淘宝式 · 转化导向</div>
+        <div class="phone-sub">渐变头 + 金刚区 + 价格突出</div>
+      </div>
+
+      <!-- 小红书式 -->
+      <div>
+        <div class="phone">
+          <div class="screen" style="background: white;">
+            <!-- 顶部 Tab -->
+            <div class="xhs-top-tab">
+              <span class="t">关注</span>
+              <span class="t active">发现</span>
+              <span class="t">附近</span>
+            </div>
+            <!-- 搜索框 -->
+            <div class="xhs-search">
+              <div class="bar">🔍 大家都在搜：通勤穿搭</div>
+            </div>
+            <!-- 双列瀑布 -->
+            <div class="xhs-feed">
+              <div class="xhs-card h-1"><div class="img img-2"></div><div class="info"><div class="title">通勤穿搭｜极简主义博主的5件单品</div><div class="author"><div class="a"><div class="av"></div>糖糖</div><div class="like">❤️ 12.3w</div></div></div></div>
+              <div class="xhs-card h-3"><div class="img img-1"></div><div class="info"><div class="title">秋冬必备 5种围巾系法</div><div class="author"><div class="a"><div class="av"></div>小红</div><div class="like">❤️ 5.8w</div></div></div></div>
+              <div class="xhs-card h-2"><div class="img img-5"></div><div class="info"><div class="title">东京 7 日游攻略</div><div class="author"><div class="a"><div class="av"></div>旅行家</div><div class="like">❤️ 3.2w</div></div></div></div>
+              <div class="xhs-card h-1"><div class="img img-3"></div><div class="info"><div class="title">学生党平价护肤品 闭眼入</div><div class="author"><div class="a"><div class="av"></div>美妆达人</div><div class="like">❤️ 8.9w</div></div></div></div>
+              <div class="xhs-card h-3"><div class="img img-4"></div><div class="info"><div class="title">在家就能做的米其林</div><div class="author"><div class="a"><div class="av"></div>厨房小白</div><div class="like">❤️ 1.2w</div></div></div></div>
+              <div class="xhs-card h-2"><div class="img img-6"></div><div class="info"><div class="title">极简家居改造记</div><div class="author"><div class="a"><div class="av"></div>家居博主</div><div class="like">❤️ 6.1w</div></div></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">小红书式 · 探索导向</div>
+        <div class="phone-sub">白底 + 内容卡 + 点赞数突出</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 设计哲学 -->
+  <div class="section-block">
+    <h2>🧠 同样是"双列流"，设计哲学完全不同</h2>
+    <table class="metrics">
+      <tr>
+        <th>维度</th><th>淘宝（转化导向）</th><th>小红书（探索导向）</th>
+      </tr>
+      <tr>
+        <td><b>头部颜色</b></td>
+        <td>橙红渐变（品牌 + 制造紧迫感）</td>
+        <td>白色（让内容主导）</td>
+      </tr>
+      <tr>
+        <td><b>顶部信息</b></td>
+        <td>搜索框 + 金刚区（10+ 入口）</td>
+        <td>关注/发现/附近 3 Tab</td>
+      </tr>
+      <tr>
+        <td><b>商品图比例</b></td>
+        <td>正方形为主（标准化、便于对比）</td>
+        <td>不固定（瀑布流，鼓励停留）</td>
+      </tr>
+      <tr>
+        <td><b>视觉重点</b></td>
+        <td><b>价格</b>（红色加粗大字）</td>
+        <td><b>标题 + 点赞数</b>（社交证据）</td>
+      </tr>
+      <tr>
+        <td><b>数据展示</b></td>
+        <td>已售 N 件（购买决策）</td>
+        <td>❤️ N 万（口碑决策）</td>
+      </tr>
+      <tr>
+        <td><b>排序逻辑</b></td>
+        <td>千人千面 + 转化率最高</td>
+        <td>千人千面 + 互动率最高</td>
+      </tr>
+      <tr>
+        <td><b>留白</b></td>
+        <td>极少（信息密度极高）</td>
+        <td>较多（呼吸感）</td>
+      </tr>
+      <tr>
+        <td><b>点击进入后</b></td>
+        <td>商品详情（直接转化）</td>
+        <td>笔记沉浸阅读</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 完整代码 -->
+  <div class="section-block">
+    <h2>📦 实现核心 — Sticky Header + 双列流</h2>
+    <div class="section-subtitle">这是淘宝/京东首页的标准结构：上层是滚动 Banner/金刚区，中部是粘性分类 Tab，下方是双列瀑布流</div>
+
+    <h3 style="margin-top:18px;font-size:14px;">1️⃣ 整体布局：UICollectionView + Compositional Layout</h3>
+<div class="code-block"><span class="comm">// 三段式 section</span>
+<span class="kw">- (UICollectionViewLayout *)</span><span class="meth">makeLayout</span> {
+    <span class="kw">return</span> [<span class="type">UICollectionViewCompositionalLayout</span>
+        <span class="meth">layoutWithSectionProvider:</span>^<span class="type">NSCollectionLayoutSection</span> *(<span class="type">NSInteger</span> sectionIdx,
+                                                <span class="type">id</span>&lt;<span class="type">NSCollectionLayoutEnvironment</span>&gt; env) {
+        <span class="kw">switch</span> (sectionIdx) {
+            <span class="kw">case</span> <span class="num">0</span>: <span class="kw">return</span> [<span class="kw">self</span> <span class="meth">bannerSection</span>];
+            <span class="kw">case</span> <span class="num">1</span>: <span class="kw">return</span> [<span class="kw">self</span> <span class="meth">quickEntrySection</span>];     <span class="comm">// 金刚区</span>
+            <span class="kw">case</span> <span class="num">2</span>: <span class="kw">return</span> [<span class="kw">self</span> <span class="meth">productGridSection</span>];   <span class="comm">// 双列商品</span>
+            <span class="kw">default</span>: <span class="kw">return</span> <span class="kw">nil</span>;
+        }
+    }];
+}
+
+<span class="comm">// ⭐ 双列商品 section（带 sticky header）</span>
+<span class="kw">- (NSCollectionLayoutSection *)</span><span class="meth">productGridSection</span> {
+    <span class="comm">// item: 占一半宽度</span>
+    <span class="type">NSCollectionLayoutItem</span> *item = [<span class="type">NSCollectionLayoutItem</span> <span class="meth">itemWithLayoutSize:</span>
+        [<span class="type">NSCollectionLayoutSize</span> <span class="meth">sizeWithWidthDimension:</span>
+            [<span class="type">NSCollectionLayoutDimension</span> fractionalWidthDimension:<span class="num">0.5</span>]
+                                                  <span class="meth">heightDimension:</span>
+            [<span class="type">NSCollectionLayoutDimension</span> estimatedDimension:<span class="num">280</span>]]];
+    item.contentInsets = <span class="type">NSDirectionalEdgeInsetsMake</span>(<span class="num">2</span>, <span class="num">2</span>, <span class="num">2</span>, <span class="num">2</span>);
+
+    <span class="comm">// group: 一行 2 个</span>
+    <span class="type">NSCollectionLayoutGroup</span> *group = [<span class="type">NSCollectionLayoutGroup</span>
+        <span class="meth">horizontalGroupWithLayoutSize:</span>
+            [<span class="type">NSCollectionLayoutSize</span> <span class="meth">sizeWithWidthDimension:</span>
+                [<span class="type">NSCollectionLayoutDimension</span> fractionalWidthDimension:<span class="num">1.0</span>]
+                                                      <span class="meth">heightDimension:</span>
+                [<span class="type">NSCollectionLayoutDimension</span> estimatedDimension:<span class="num">280</span>]]
+                                  <span class="meth">subitem:</span>item count:<span class="num">2</span>];
+
+    <span class="type">NSCollectionLayoutSection</span> *section = [<span class="type">NSCollectionLayoutSection</span> sectionWithGroup:group];
+
+    <span class="comm">// ⭐ 关键：sticky header（猜你喜欢 / 直播 / 视频 Tab 栏）</span>
+    <span class="type">NSCollectionLayoutBoundarySupplementaryItem</span> *header =
+        [<span class="type">NSCollectionLayoutBoundarySupplementaryItem</span> <span class="meth">boundarySupplementaryItemWithLayoutSize:</span>
+            [<span class="type">NSCollectionLayoutSize</span> <span class="meth">sizeWithWidthDimension:</span>
+                [<span class="type">NSCollectionLayoutDimension</span> fractionalWidthDimension:<span class="num">1.0</span>]
+                                                      <span class="meth">heightDimension:</span>
+                [<span class="type">NSCollectionLayoutDimension</span> absoluteDimension:<span class="num">44</span>]]
+                                                <span class="meth">elementKind:</span><span class="type">UICollectionElementKindSectionHeader</span>
+                                                  <span class="meth">alignment:</span><span class="type">NSRectAlignmentTop</span>];
+    header.pinToVisibleBounds = <span class="type">YES</span>;   <span class="comm">// ⭐ 滚动时贴顶</span>
+    section.boundarySupplementaryItems = @[header];
+
+    <span class="kw">return</span> section;
+}</div>
+
+    <div class="explain success">
+      <span class="h">关键巧思：pinToVisibleBounds = YES</span><br>
+      让 section header 在滚出 viewport 时贴顶，是淘宝/京东"猜你喜欢" Tab 永远在顶的实现方式。比自己监听 contentOffset 模拟优雅 100 倍。
+    </div>
+
+    <h3 style="margin-top:24px;font-size:14px;">2️⃣ 渐变导航栏 — 上滑才显示</h3>
+<div class="code-block"><span class="comm">// 跟随 contentOffset 渐变（淘宝/京东标准实现）</span>
+<span class="kw">- (void)</span><span class="meth">scrollViewDidScroll:</span>(<span class="type">UIScrollView</span> *)scrollView {
+    <span class="type">CGFloat</span> offset = scrollView.contentOffset.y;
+    <span class="type">CGFloat</span> threshold = <span class="num">100</span>;
+
+    <span class="comm">// 0~100 之间 alpha 从 0 到 1</span>
+    <span class="type">CGFloat</span> alpha = <span class="type">MAX</span>(<span class="num">0</span>, <span class="type">MIN</span>(<span class="num">1</span>, offset / threshold));
+
+    <span class="comm">// ⭐ 用 setBackgroundImage 的 fix 比改 alpha 更稳（NavBar 内部子视图复杂）</span>
+    [<span class="kw">self</span>.navigationController.navigationBar
+        <span class="meth">setBackgroundImage:</span>[<span class="kw">self</span> <span class="meth">imageWithColor:</span>
+            [[<span class="type">UIColor</span> systemRedColor] colorWithAlphaComponent:alpha]]
+                     <span class="meth">forBarMetrics:</span><span class="type">UIBarMetricsDefault</span>];
+}</div>
+  </div>
+
+  <!-- 视觉权重对比 -->
+  <div class="section-block">
+    <h2>🎨 视觉权重的对比技巧</h2>
+
+    <div class="explain">
+      <span class="h">淘宝商品卡的视觉层次（从重到轻）：</span><br>
+      1. <b>价格</b>（红色 / 大号 / 加粗）—— 决策核心<br>
+      2. <b>主图</b>（占 60% 面积）—— 吸引点击<br>
+      3. <b>已售数量</b>（灰色 / 小字）—— 社会证明<br>
+      4. <b>标题</b>（黑色 / 中号 / 2 行截断）—— 辅助理解
+    </div>
+
+    <div class="explain">
+      <span class="h">小红书笔记卡的视觉层次：</span><br>
+      1. <b>图片</b>（占 70%+ 面积）—— 内容本身<br>
+      2. <b>标题</b>（黑色 / 中号 / 2 行）—— 内容预览<br>
+      3. <b>作者头像 + 名字</b>（小尺寸）—— 关注转化<br>
+      4. <b>点赞数</b>（小字 + 心形）—— 社交证据<br>
+      <b>价格在哪？</b>—— 没有！点进笔记后才出现「商品卡片」，避免商业感破坏内容氛围。
+    </div>
+  </div>
+
+  <!-- 学习建议 -->
+  <div class="section-block">
+    <h2>🎓 横向学习总结（可借鉴的设计）</h2>
+    <div class="explain success">
+      <span class="h">借鉴 1：双列流的 ASPECT RATIO 选择</span><br>
+      · <b>固定比例</b>（淘宝、京东商品图正方形）= 整齐、便于横向对比<br>
+      · <b>不固定比例</b>（小红书瀑布）= 内容感、鼓励探索<br>
+      根据业务目的选：要"对比"用固定，要"沉浸"用瀑布。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 2：金刚区的"5 个" magic number</span><br>
+      淘宝、美团、京东都用 5 个 / 行 × 2 行 = 10 个金刚区入口。手机宽度下 5 个图标视觉舒适，超过 5 个会显得拥挤。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 3：Sticky Tab 的 Apple 推荐做法</span><br>
+      用 <code>UICollectionViewCompositionalLayout</code> + <code>pinToVisibleBounds = YES</code>。比自己监听 contentOffset 切换 view 简洁、性能更好。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 4：底部"看了又看"</span><br>
+      详情页底部接一个相似商品流，用户向下滚到底自然进入下一个商品。淘宝、亚马逊、京东都用，能让用户停留时长 +40%。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 5：双击商品图 = 收藏</span><br>
+      Instagram 发明、TikTok 沿用、淘宝也加了。「<b>从不教用户的隐藏快捷操作</b>」让重度用户感到"懂行"，是产品归属感的来源。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

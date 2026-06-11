@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>08. SwipeActions — 左滑/右滑菜单</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/shared.css">
+<script src="../assets/theme.js"></script>
+<style>
+  body { background: #f5f6fa; font-family: -apple-system, "PingFang SC", sans-serif; margin: 0; padding: 24px; color: #2d3748; }
+  .nav { max-width: 880px; margin: 0 auto 16px; display: flex; justify-content: space-between; font-size: 13px; }
+  .nav a { color: #4facfe; text-decoration: none; }
+  .container { max-width: 880px; margin: 0 auto; }
+  .header { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; padding: 28px; border-radius: 14px; margin-bottom: 20px; }
+  .header h1 { margin: 0 0 8px; font-size: 22px; }
+  .header p { margin: 0; opacity: 0.95; font-size: 14px; line-height: 1.7; }
+
+  .phone { width: 360px; margin: 0 auto; background: #fff; border-radius: 28px; padding: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.18); overflow: hidden; }
+  .status { height: 28px; display: flex; justify-content: space-between; padding: 0 18px; font-size: 12px; font-weight: 600; align-items: center; }
+  .nav-bar { padding: 12px 16px; font-size: 16px; font-weight: 600; border-bottom: 1px solid #f0f1f5; }
+
+  /* 滑动 cell 演示 */
+  .swipe-row { position: relative; height: 72px; border-bottom: 1px solid #f5f6fa; overflow: hidden; }
+  .swipe-actions { position: absolute; right: 0; top: 0; bottom: 0; display: flex; }
+  .swipe-action { width: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; font-size: 12px; gap: 4px; cursor: pointer; }
+  .swipe-action .icon { font-size: 20px; }
+  .action-mute { background: #ff9500; }
+  .action-pin  { background: #34c759; }
+  .action-del  { background: #ff3b30; }
+  .action-archive { background: #007aff; }
+
+  .swipe-content { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background: white; padding: 14px 16px; display: flex; gap: 12px; align-items: center; transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); cursor: grab; }
+  .swipe-content.swiped-1 { transform: translateX(-72px); }
+  .swipe-content.swiped-2 { transform: translateX(-144px); }
+  .swipe-content.swiped-3 { transform: translateX(-216px); }
+
+  .av { width: 44px; height: 44px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; flex-shrink: 0; }
+  .av-1 { background: linear-gradient(135deg, #667eea, #764ba2); }
+  .av-2 { background: linear-gradient(135deg, #f093fb, #f5576c); }
+  .av-3 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+  .info { flex: 1; min-width: 0; }
+  .info .n { font-size: 14px; font-weight: 600; color: #1a1a2e; margin-bottom: 4px; }
+  .info .m { font-size: 12px; color: #6c7293; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .demo-tip { text-align: center; font-size: 11px; color: #6c7293; padding: 12px; background: #f9faff; }
+  .ctrl { display: flex; gap: 8px; padding: 12px; justify-content: center; background: #fafbff; }
+  .ctrl button { background: #4facfe; color: white; border: none; padding: 6px 12px; font-size: 11px; border-radius: 12px; cursor: pointer; }
+
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .compare-card { background: #f9fafc; border-radius: 10px; padding: 14px; }
+  .compare-card.bad { border-top: 3px solid #ef5350; }
+  .compare-card.good { border-top: 3px solid #4caf50; }
+
+  table.metrics { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+  table.metrics th, table.metrics td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ecedf1; }
+  table.metrics th { background: #f5f6fa; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="../index.html">← 返回主菜单</a>
+  <span>
+    <a href="07_skeleton_cell.html">← 上一个</a> &nbsp;|&nbsp;
+    <a href="09_expandable_cell.html">下一个 →</a>
+  </span>
+</div>
+
+<div class="container">
+
+  <div class="header">
+    <h1>👈 SwipeActions — 左滑/右滑多按钮菜单</h1>
+    <p>iOS 11 起 Apple 提供了 <code>UISwipeActionsConfiguration</code>，无需自己 hack <code>panGesture</code>，原生体验、自动 haptic、支持长滑触发。微信、邮件、短信都用这套。</p>
+  </div>
+
+  <!-- 视觉演示 -->
+  <div class="section-block">
+    <h2>🎨 视觉演示（点击下方按钮模拟左滑）</h2>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>● ● ●</span></div>
+      <div class="nav-bar">消息</div>
+
+      <div class="swipe-row">
+        <div class="swipe-actions">
+          <div class="swipe-action action-mute"><div class="icon">🔕</div>静音</div>
+          <div class="swipe-action action-pin"><div class="icon">📌</div>置顶</div>
+          <div class="swipe-action action-del"><div class="icon">🗑</div>删除</div>
+        </div>
+        <div class="swipe-content swiped-3" id="row1">
+          <div class="av av-1">张</div>
+          <div class="info">
+            <div class="n">张三</div>
+            <div class="m">明天下午 3 点开会</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="swipe-row">
+        <div class="swipe-actions">
+          <div class="swipe-action action-archive"><div class="icon">📥</div>归档</div>
+          <div class="swipe-action action-del"><div class="icon">🗑</div>删除</div>
+        </div>
+        <div class="swipe-content swiped-2" id="row2">
+          <div class="av av-2">李</div>
+          <div class="info">
+            <div class="n">李四</div>
+            <div class="m">[图片] [图片] [图片]</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="swipe-row">
+        <div class="swipe-actions">
+          <div class="swipe-action action-del"><div class="icon">🗑</div>删除</div>
+        </div>
+        <div class="swipe-content" id="row3">
+          <div class="av av-3">王</div>
+          <div class="info">
+            <div class="n">王五</div>
+            <div class="m">收到，谢谢</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ctrl">
+        <button onclick="toggleAll(0)">收起全部</button>
+        <button onclick="toggleAll(1)">全部左滑1档</button>
+        <button onclick="toggleAll(2)">全部左滑2档</button>
+        <button onclick="toggleAll(3)">全部左滑3档</button>
+      </div>
+      <div class="demo-tip">真机用手指左滑，松手时 iOS 自动判断停在哪个档位</div>
+    </div>
+
+    <script>
+      function toggleAll(level) {
+        document.querySelectorAll('.swipe-content').forEach((el, i) => {
+          el.className = 'swipe-content';
+          if (level >= 1) el.classList.add('swiped-' + Math.min(level, [3,2,1][i]));
+        });
+      }
+    </script>
+  </div>
+
+  <!-- 完整代码 -->
+  <div class="section-block">
+    <h2>📦 完整代码 —— 现代 API（iOS 11+）</h2>
+    <div class="section-subtitle">所有 swipe 按钮、动画、长滑触发都由系统处理，开发者只写"按下后做什么"</div>
+
+    <h3 style="margin-top:18px;font-size:14px;">1️⃣ 右滑菜单（trailing — 从右往左滑出）</h3>
+<div class="code-block"><span class="comm">// UITableViewDelegate</span>
+<span class="kw">- (UISwipeActionsConfiguration *)</span><span class="meth">tableView:</span>(<span class="type">UITableView</span> *)tableView
+   <span class="meth">trailingSwipeActionsConfigurationForRowAtIndexPath:</span>(<span class="type">NSIndexPath</span> *)indexPath {
+
+    <span class="type">Message</span> *msg = <span class="kw">self</span>.messages[indexPath.row];
+
+    <span class="comm">// ⭐ 删除 —— destructive 风格自动变红</span>
+    <span class="type">UIContextualAction</span> *del = [<span class="type">UIContextualAction</span>
+        <span class="meth">contextualActionWithStyle:</span><span class="type">UIContextualActionStyleDestructive</span>
+                            <span class="meth">title:</span><span class="str">@"删除"</span>
+                          <span class="meth">handler:</span>^(<span class="type">UIContextualAction</span> *action,
+                                    <span class="type">UIView</span> *sourceView,
+                                    <span class="kw">void</span> (^completion)(<span class="type">BOOL</span>)) {
+        [<span class="kw">self</span> <span class="meth">deleteMessage:</span>msg atIndex:indexPath.row];
+        <span class="meth">completion</span>(<span class="type">YES</span>);   <span class="comm">// ⭐ 必须调用，告诉系统操作完成</span>
+    }];
+    del.image = [<span class="type">UIImage</span> <span class="meth">systemImageNamed:</span><span class="str">@"trash.fill"</span>];
+    del.backgroundColor = [<span class="type">UIColor</span> systemRedColor];
+
+    <span class="comm">// ⭐ 置顶 —— normal 风格</span>
+    <span class="type">UIContextualAction</span> *pin = [<span class="type">UIContextualAction</span>
+        <span class="meth">contextualActionWithStyle:</span><span class="type">UIContextualActionStyleNormal</span>
+                            <span class="meth">title:</span>(msg.isPinned ? <span class="str">@"取消置顶"</span> : <span class="str">@"置顶"</span>)
+                          <span class="meth">handler:</span>^(<span class="type">UIContextualAction</span> *action,
+                                    <span class="type">UIView</span> *sourceView,
+                                    <span class="kw">void</span> (^completion)(<span class="type">BOOL</span>)) {
+        [<span class="kw">self</span> <span class="meth">togglePin:</span>msg];
+        <span class="meth">completion</span>(<span class="type">YES</span>);
+    }];
+    pin.image = [<span class="type">UIImage</span> <span class="meth">systemImageNamed:</span><span class="str">@"pin.fill"</span>];
+    pin.backgroundColor = [<span class="type">UIColor</span> systemGreenColor];
+
+    <span class="comm">// ⭐ 静音</span>
+    <span class="type">UIContextualAction</span> *mute = [<span class="type">UIContextualAction</span>
+        <span class="meth">contextualActionWithStyle:</span><span class="type">UIContextualActionStyleNormal</span>
+                            <span class="meth">title:</span><span class="str">@"静音"</span>
+                          <span class="meth">handler:</span>^(<span class="type">UIContextualAction</span> *action,
+                                    <span class="type">UIView</span> *sourceView,
+                                    <span class="kw">void</span> (^completion)(<span class="type">BOOL</span>)) {
+        [<span class="kw">self</span> <span class="meth">muteMessage:</span>msg];
+        <span class="meth">completion</span>(<span class="type">YES</span>);
+    }];
+    mute.image = [<span class="type">UIImage</span> <span class="meth">systemImageNamed:</span><span class="str">@"bell.slash.fill"</span>];
+    mute.backgroundColor = [<span class="type">UIColor</span> systemOrangeColor];
+
+    <span class="comm">// ⭐ 数组顺序 = 从右往左</span>
+    <span class="type">UISwipeActionsConfiguration</span> *cfg =
+        [<span class="type">UISwipeActionsConfiguration</span> <span class="meth">configurationWithActions:</span>@[del, pin, mute]];
+
+    <span class="comm">// ⭐ 是否允许"长滑直接触发第一个"（默认 YES）</span>
+    cfg.performsFirstActionWithFullSwipe = <span class="type">YES</span>;
+
+    <span class="kw">return</span> cfg;
+}</div>
+
+    <div class="explain">
+      <span class="h">关键 API 详解：</span>
+      <br>· <code>UIContextualActionStyleDestructive</code> —— 系统自动变红，长滑触发时有删除动画
+      <br>· <code>UIContextualActionStyleNormal</code> —— 普通按钮，颜色自定义
+      <br>· <code>completion(YES)</code> —— 告诉系统按钮逻辑已执行，可以收回菜单
+      <br>· <code>completion(NO)</code> —— 操作失败，菜单保持展开（比如二次确认）
+      <br>· <code>performsFirstActionWithFullSwipe</code> —— 长滑越过阈值自动触发第一个按钮（邮件 App 删除手感）
+    </div>
+
+    <h3 style="margin-top:24px;font-size:14px;">2️⃣ 左滑菜单（leading — 从左往右滑出）</h3>
+<div class="code-block"><span class="kw">- (UISwipeActionsConfiguration *)</span><span class="meth">tableView:</span>(<span class="type">UITableView</span> *)tableView
+   <span class="meth">leadingSwipeActionsConfigurationForRowAtIndexPath:</span>(<span class="type">NSIndexPath</span> *)indexPath {
+
+    <span class="type">Message</span> *msg = <span class="kw">self</span>.messages[indexPath.row];
+
+    <span class="type">UIContextualAction</span> *read = [<span class="type">UIContextualAction</span>
+        <span class="meth">contextualActionWithStyle:</span><span class="type">UIContextualActionStyleNormal</span>
+                            <span class="meth">title:</span>(msg.isRead ? <span class="str">@"标为未读"</span> : <span class="str">@"标为已读"</span>)
+                          <span class="meth">handler:</span>^(<span class="type">UIContextualAction</span> *action,
+                                    <span class="type">UIView</span> *sourceView,
+                                    <span class="kw">void</span> (^completion)(<span class="type">BOOL</span>)) {
+        msg.isRead = !msg.isRead;
+        <span class="meth">completion</span>(<span class="type">YES</span>);
+    }];
+    read.backgroundColor = [<span class="type">UIColor</span> systemBlueColor];
+    read.image = [<span class="type">UIImage</span> <span class="meth">systemImageNamed:</span><span class="str">@"envelope.open.fill"</span>];
+
+    <span class="kw">return</span> [<span class="type">UISwipeActionsConfiguration</span>
+              <span class="meth">configurationWithActions:</span>@[read]];
+}</div>
+
+    <h3 style="margin-top:24px;font-size:14px;">3️⃣ 删除时的 cell 退场动画（重要！）</h3>
+<div class="code-block"><span class="kw">- (void)</span><span class="meth">deleteMessage:</span>(<span class="type">Message</span> *)msg <span class="meth">atIndex:</span>(<span class="type">NSInteger</span>)idx {
+    <span class="comm">// ⭐ 数据源和 UI 必须在同一个事务里更新，否则会崩溃</span>
+    [<span class="kw">self</span>.messages removeObjectAtIndex:idx];
+    [<span class="kw">self</span>.tableView <span class="meth">deleteRowsAtIndexPaths:</span>@[[<span class="type">NSIndexPath</span> indexPathForRow:idx inSection:<span class="num">0</span>]]
+                          <span class="meth">withRowAnimation:</span><span class="type">UITableViewRowAnimationLeft</span>];
+
+    <span class="comm">// 后台请求异步删除</span>
+    [<span class="type">API</span> <span class="meth">deleteMessageWithId:</span>msg.identifier completion:^(<span class="type">NSError</span> *err) {
+        <span class="kw">if</span> (err) {
+            <span class="comm">// 失败回滚：插回去</span>
+            [<span class="kw">self</span>.messages insertObject:msg atIndex:idx];
+            [<span class="kw">self</span>.tableView <span class="meth">insertRowsAtIndexPaths:</span>@[[<span class="type">NSIndexPath</span> indexPathForRow:idx inSection:<span class="num">0</span>]]
+                                  <span class="meth">withRowAnimation:</span><span class="type">UITableViewRowAnimationFade</span>];
+            [<span class="kw">self</span> <span class="meth">showToast:</span><span class="str">@"删除失败"</span>];
+        }
+    }];
+}</div>
+  </div>
+
+  <!-- 反例对比 -->
+  <div class="section-block">
+    <h2>⚖️ 反例 vs 正例</h2>
+    <div class="compare-grid">
+      <div class="compare-card bad">
+        <h4>❌ 反例：自己 hack PanGesture</h4>
+<div class="code-block" style="font-size:11.5px;"><span class="comm">// 在 cell 上加 UIPanGestureRecognizer，手动算 transform</span>
+<span class="kw">- (void)</span><span class="meth">handlePan:</span>(<span class="type">UIPanGestureRecognizer</span> *)pan {
+    <span class="type">CGPoint</span> t = [pan translationInView:<span class="kw">self</span>];
+    <span class="kw">self</span>.contentView.transform =
+        <span class="type">CGAffineTransformMakeTranslation</span>(t.x, <span class="num">0</span>);
+    <span class="comm">// ❌ 没有橡皮筋、没有 haptic、不能多按钮</span>
+    <span class="comm">// ❌ 同时多个 cell 滑出无法协调</span>
+    <span class="comm">// ❌ 长滑触发要自己写阈值判断</span>
+}</div>
+      </div>
+
+      <div class="compare-card good">
+        <h4>✅ 正例：UISwipeActionsConfiguration</h4>
+<div class="code-block" style="font-size:11.5px;"><span class="kw">- (UISwipeActionsConfiguration *)</span><span class="meth">tableView:</span>...
+   <span class="meth">trailingSwipeActionsConfigurationFor</span>... {
+    <span class="type">UIContextualAction</span> *del = ...;
+    <span class="kw">return</span> [<span class="type">UISwipeActionsConfiguration</span>
+              <span class="meth">configurationWithActions:</span>@[del]];
+}
+<span class="comm">// ✅ 系统全包：橡皮筋、haptic、长滑、互斥</span>
+<span class="comm">// ✅ 自适应深色模式</span>
+<span class="comm">// ✅ Voice Over 无障碍自动支持</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 进阶 -->
+  <div class="section-block">
+    <h2>🚀 进阶：CollectionView 的等价 API（iOS 14+）</h2>
+    <div class="explain">
+      <span class="h">UICollectionView 用 UICollectionLayoutListConfiguration：</span>
+    </div>
+<div class="code-block"><span class="type">UICollectionLayoutListConfiguration</span> *cfg =
+    [[<span class="type">UICollectionLayoutListConfiguration</span> alloc] initWithAppearance:<span class="type">UICollectionLayoutListAppearancePlain</span>];
+
+cfg.trailingSwipeActionsConfigurationProvider = ^<span class="type">UISwipeActionsConfiguration</span> *(<span class="type">NSIndexPath</span> *ip) {
+    <span class="type">UIContextualAction</span> *del = [<span class="type">UIContextualAction</span>
+        <span class="meth">contextualActionWithStyle:</span><span class="type">UIContextualActionStyleDestructive</span>
+                            <span class="meth">title:</span><span class="str">@"删除"</span> handler:^...];
+    <span class="kw">return</span> [<span class="type">UISwipeActionsConfiguration</span> <span class="meth">configurationWithActions:</span>@[del]];
+};
+
+<span class="type">UICollectionViewLayout</span> *layout =
+    [<span class="type">UICollectionViewCompositionalLayout</span> <span class="meth">layoutWithListConfiguration:</span>cfg];</div>
+  </div>
+
+  <!-- 易错点 -->
+  <div class="section-block">
+    <h2>⚠️ 实战易错点</h2>
+    <div class="explain danger">
+      <span class="h">坑 1：忘记调 completion</span><br>
+      <code>completion(YES)</code> 必须调用，否则按钮一直 highlight，菜单收不回。
+    </div>
+    <div class="explain danger">
+      <span class="h">坑 2：删除时数据源和 UI 不同步</span><br>
+      正确顺序：<b>先改数据源 → 再 deleteRowsAtIndexPaths</b>。反过来必崩。
+    </div>
+    <div class="explain warn">
+      <span class="h">坑 3：自定义按钮颜色在 Dark Mode 下变形</span><br>
+      用 <code>systemRedColor</code>、<code>systemBlueColor</code> 这些 dynamic color，不要写死 RGB。
+    </div>
+    <div class="explain warn">
+      <span class="h">坑 4：长滑误触发删除</span><br>
+      如果第一个按钮是删除（destructive），<code>performsFirstActionWithFullSwipe = YES</code> 会让用户长滑直接删，要么改顺序、要么关闭这个开关、要么加二次确认。
+    </div>
+    <div class="explain success">
+      <span class="h">最佳实践：危险操作做二次确认</span><br>
+      destructive handler 里弹 <code>UIAlertController</code>，确认后才真删。<code>completion(NO)</code> 让菜单保持展开，给用户"反悔"的视觉提示。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

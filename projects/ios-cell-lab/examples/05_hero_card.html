@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>5. HeroCard - 光栅化的真实有效场景</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/shared.css">
+<script src="../assets/theme.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "PingFang SC", sans-serif; background: #fafafa; padding: 20px; }
+  .nav { max-width: 760px; margin: 0 auto 20px; display: flex; gap: 10px; }
+  .nav a { padding: 6px 12px; background: white; color: #333; text-decoration: none; border-radius: 6px; font-size: 13px; border: 1px solid #ddd; }
+  .nav a:hover { background: #1a1a2e; color: white; }
+  .container { max-width: 760px; margin: 0 auto; }
+  .header { background: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; }
+  .header h1 { font-size: 24px; color: #1a1a2e; margin-bottom: 12px; }
+
+  /* 动画演示舞台 */
+  .stage {
+    background: white; border-radius: 12px; padding: 30px; margin-bottom: 20px;
+  }
+  .stage-title { font-size: 14px; color: #999; text-align: center; margin-bottom: 20px; }
+  .stage-area {
+    width: 100%; height: 320px; background: #f8f9fa; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;
+  }
+  .hero {
+    width: 320px; height: 200px;
+    background: linear-gradient(135deg, #FF6B6B, #FFE66D, #4ECDC4);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    color: white; padding: 24px; position: relative; overflow: hidden;
+    transform: scale(0.1); opacity: 0;
+  }
+  .hero.playing {
+    animation: spring 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+  .hero::before {
+    content: ''; position: absolute; width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.3), transparent);
+    top: -50px; right: -50px; border-radius: 50%;
+  }
+  .hero::after {
+    content: ''; position: absolute; width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(255,255,255,0.2), transparent);
+    bottom: -40px; left: 30px; border-radius: 50%;
+  }
+  @keyframes spring {
+    0% { transform: scale(0.1); opacity: 0; }
+    60% { transform: scale(1.08); opacity: 1; }
+    80% { transform: scale(0.96); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .hero-content { position: relative; z-index: 1; }
+  .hero-label { font-size: 13px; opacity: 0.9; background: rgba(255,255,255,0.2); padding: 3px 10px; border-radius: 4px; display: inline-block; }
+  .hero-price { font-size: 40px; font-weight: 700; margin-top: 12px; }
+  .hero-desc { font-size: 13px; opacity: 0.9; margin-top: 4px; }
+
+  .replay-btn {
+    display: block; margin: 20px auto 0; padding: 10px 24px;
+    background: #1a1a2e; color: white; border: none; border-radius: 8px;
+    font-size: 14px; cursor: pointer; font-weight: 500;
+  }
+  .replay-btn:hover { background: #4a4a6a; }
+
+  /* 时间线 */
+  .timeline-item {
+    display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px;
+  }
+  .timeline-dot {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #4caf50; color: white; display: flex;
+    align-items: center; justify-content: center; font-size: 12px; font-weight: 600;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .timeline-dot.warn { background: #ff9800; }
+  .timeline-dot.danger { background: #f44336; }
+  .timeline-content { flex: 1; font-size: 13px; line-height: 1.6; color: #2d3748; }
+  .timeline-content code {
+    background: #f0f3f8; padding: 1px 5px; border-radius: 3px;
+    color: #d63384; font-family: "SF Mono", monospace; font-size: 12px;
+  }
+</style>
+</head>
+<body>
+  <div class="nav">
+    <a href="../index.html">← 返回主菜单</a>
+    <a href="04_ad_cell.html">← 上一个</a>
+    <a href="06_comparison.html">下一个：对比演示 →</a>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <h1>5️⃣ HeroCard 动画 ⭐ 光栅化的<b>唯一真实有效</b>场景</h1>
+      <p style="color:#6c7293;font-size:14px;line-height:1.6;">
+        前面 4 个 cell 都<b>没用光栅化</b>，因为 cell 复用场景下光栅化是反向优化。
+        那光栅化到底什么时候用？答案是：<b>「复杂静态 view + transform 动画」</b>。
+        本节用商品详情页的 Hero 卡片入场动画演示。
+      </p>
+    </div>
+
+    <!-- 动画演示 -->
+    <div class="section-block">
+      <h2>🎬 动画效果演示</h2>
+      <div class="section-subtitle">点击重播按钮反复观察弹簧动画</div>
+      <div class="stage">
+        <div class="stage-title">商品详情页顶部 HeroCard 入场动画 ↓</div>
+        <div class="stage-area">
+          <div class="hero playing" id="hero">
+            <div class="hero-content">
+              <span class="hero-label">⏰ 限时秒杀</span>
+              <div class="hero-price">¥99</div>
+              <div class="hero-desc">原价 ¥299 · 仅剩 2 小时</div>
+            </div>
+          </div>
+        </div>
+        <button class="replay-btn" onclick="replay()">🔄 重播动画</button>
+      </div>
+    </div>
+
+    <!-- 为什么这个场景适合 -->
+    <div class="section-block">
+      <h2>🎯 为什么这个场景适合光栅化？</h2>
+
+      <div class="step">
+        <div class="step-num good">1</div>
+        <div class="step-content">
+          <b>渲染代价高</b>：渐变背景 + 复杂阴影（shadowRadius=32）+ 2 个装饰圆光晕 + 多层 subview
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num good">2</div>
+        <div class="step-content">
+          <b>动画期间内容静态</b>：动画过程中 layer 的 text/color/image 完全不变，只有 transform 在变
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num good">3</div>
+        <div class="step-content">
+          <b>transform 不让缓存失效</b>：缩放 / 位移 / 透明度变化在合成阶段处理，<b>缓存命中率 100%</b>
+        </div>
+      </div>
+
+      <div class="explain success">
+        <span class="h">🎯 三项全 ✅，光栅化才值得开。</b>
+        cell 三项全 ❌（内容会变、复用频繁、不是 transform 动画），所以 cell 永远不开。
+      </div>
+    </div>
+
+    <!-- 时间线 -->
+    <div class="section-block">
+      <h2>⏱️ 光栅化的时间线</h2>
+
+      <div class="timeline-item">
+        <div class="timeline-dot">1</div>
+        <div class="timeline-content">
+          <b>动画开始前</b>：开启光栅化<br>
+          <code>self.layer.shouldRasterize = YES</code><br>
+          <code>self.layer.rasterizationScale = UIScreen.mainScreen.scale</code>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot warn">2</div>
+        <div class="timeline-content">
+          <b>第 1 帧</b>：GPU 完整画一遍卡片（渐变 + 阴影 + 装饰）<br>
+          → 把结果存进缓存（这一帧是<b>"投资"</b>）
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">3</div>
+        <div class="timeline-content">
+          <b>第 2 ~ N 帧（动画过程）</b>：transform 不断变化，layer 内容不变<br>
+          → <b>缓存全部命中</b>，GPU 只贴缓存图，省去重画 = <b>动画丝滑</b>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot danger">4</div>
+        <div class="timeline-content">
+          <b>动画结束</b>：<b>立刻关闭光栅化</b><br>
+          <code>self.layer.shouldRasterize = NO</code><br>
+          ⚠️ 不关掉的话，后续如果文字变了 / 价格变了，缓存会反复失效，反而拖慢
+        </div>
+      </div>
+    </div>
+
+    <!-- 完整代码 -->
+    <div class="section-block">
+      <h2>📦 HeroCardView.m 完整实现</h2>
+
+<pre class="code-block"><span class="kw">@implementation</span> <span class="type">HeroCardView</span>
+
+- (<span class="type">instancetype</span>)<span class="meth">initWithFrame:</span>(<span class="type">CGRect</span>)frame {
+  <span class="kw">if</span> (<span class="kw">self</span> = [<span class="kw">super</span> <span class="meth">initWithFrame:</span>frame]) {
+    <span class="selector">self</span>.backgroundColor = [<span class="type">UIColor</span> whiteColor];
+    <span class="selector">self</span>.opaque = <span class="kw">YES</span>;
+
+    <span class="comm">// ✅ 圆角用 cornerCurve，不 clip</span>
+    <span class="selector">self</span>.layer.cornerRadius = <span class="num">16</span>;
+    <span class="selector">self</span>.layer.cornerCurve = kCACornerCurveContinuous;
+
+    <span class="comm">// ✅ 阴影用 shadowPath</span>
+    <span class="selector">self</span>.layer.shadowColor = [<span class="type">UIColor</span> blackColor].CGColor;
+    <span class="selector">self</span>.layer.shadowOpacity = <span class="num">0.18</span>;
+    <span class="selector">self</span>.layer.shadowOffset = CGSizeMake(<span class="num">0</span>, <span class="num">8</span>);
+    <span class="selector">self</span>.layer.shadowRadius = <span class="num">32</span>;
+
+    <span class="comm">// 复杂内容：渐变层 + 装饰圆 + 多层 subview</span>
+    [<span class="kw">self</span> <span class="meth">setupComplexSubviews</span>];
+  }
+  <span class="kw">return</span> <span class="kw">self</span>;
+}
+
+- (<span class="kw">void</span>)<span class="meth">layoutSubviews</span> {
+  [<span class="kw">super</span> <span class="meth">layoutSubviews</span>];
+  <span class="comm">// shadowPath 必须在 layoutSubviews 里更新</span>
+  <span class="selector">self</span>.layer.shadowPath = [<span class="type">UIBezierPath</span>
+    <span class="meth">bezierPathWithRoundedRect:</span><span class="selector">self</span>.bounds
+                <span class="meth">cornerRadius:</span><span class="num">16</span>].CGPath;
+}
+
+<span class="comm">// ⭐ 真实有效的光栅化用法</span>
+- (<span class="kw">void</span>)<span class="meth">playEntranceAnimation</span> {
+  <span class="comm">// 1️⃣ 动画前：开启光栅化</span>
+  <span class="comm">// （此时 layer 内容已稳定，第 1 帧画完就可以缓存）</span>
+  <span class="selector">self</span>.layer.<span class="star">shouldRasterize</span> = <span class="kw">YES</span>;
+  <span class="selector">self</span>.layer.<span class="star">rasterizationScale</span> = [<span class="type">UIScreen</span> mainScreen].scale;
+  <span class="comm">// ⚠️ rasterizationScale 必须设，否则 @2x/@3x 屏会模糊</span>
+
+  <span class="comm">// 2️⃣ 起始状态：缩放为 0.1</span>
+  <span class="selector">self</span>.transform = CGAffineTransformMakeScale(<span class="num">0.1</span>, <span class="num">0.1</span>);
+
+  <span class="comm">// 3️⃣ 弹簧动画</span>
+  [<span class="type">UIView</span> <span class="meth">animateWithDuration:</span><span class="num">0.6</span>
+                          <span class="meth">delay:</span><span class="num">0</span>
+         <span class="meth">usingSpringWithDamping:</span><span class="num">0.6</span>
+          <span class="meth">initialSpringVelocity:</span><span class="num">0.5</span>
+                        <span class="meth">options:</span><span class="type">UIViewAnimationOptionCurveEaseOut</span>
+                     <span class="meth">animations:</span>^{
+    <span class="selector">self</span>.transform = CGAffineTransformIdentity;
+  } <span class="meth">completion:</span>^(<span class="type">BOOL</span> finished) {
+    <span class="comm">// 4️⃣ ⭐ 动画结束立刻关闭光栅化（关键礼仪）</span>
+    <span class="comm">// 因为后续可能要响应交互（点击、内容更新），</span>
+    <span class="comm">// 保持光栅化只会让缓存反复失效</span>
+    <span class="selector">self</span>.layer.<span class="star">shouldRasterize</span> = <span class="kw">NO</span>;
+  }];
+}
+
+<span class="kw">@end</span></pre>
+    </div>
+
+    <!-- Swift 版本 -->
+    <div class="section-block">
+      <h2>🦋 Swift 版本</h2>
+
+<pre class="code-block"><span class="kw">extension</span> HeroCardView {
+  <span class="kw">func</span> <span class="meth">playEntranceAnimation</span>() {
+    <span class="comm">// 1️⃣ 开启光栅化</span>
+    layer.<span class="star">shouldRasterize</span> = <span class="kw">true</span>
+    layer.<span class="star">rasterizationScale</span> = UIScreen.main.scale
+
+    <span class="comm">// 2️⃣ 起始状态</span>
+    transform = CGAffineTransform(scaleX: <span class="num">0.1</span>, y: <span class="num">0.1</span>)
+
+    <span class="comm">// 3️⃣ 弹簧动画</span>
+    UIView.animate(
+      withDuration: <span class="num">0.6</span>, delay: <span class="num">0</span>,
+      usingSpringWithDamping: <span class="num">0.6</span>,
+      initialSpringVelocity: <span class="num">0.5</span>,
+      options: .curveEaseOut
+    ) {
+      <span class="selector">self</span>.transform = .identity
+    } completion: { _ <span class="kw">in</span>
+      <span class="comm">// 4️⃣ ⭐ 动画结束立刻关</span>
+      <span class="selector">self</span>.layer.<span class="star">shouldRasterize</span> = <span class="kw">false</span>
+    }
+  }
+}</pre>
+    </div>
+
+    <!-- 验证 -->
+    <div class="section-block">
+      <h2>🔬 怎么验证光栅化生效了？</h2>
+      <div class="section-subtitle">用 Simulator 的 Color Hits Green and Misses Red</div>
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          打开 Simulator → Debug → <b>Color Hits Green and Misses Red</b>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          重播动画，观察 HeroCard 区域：<br>
+          • <b>第 1 帧</b>：可能闪一下红色（缓存 miss，正在写入）<br>
+          • <b>之后整个动画过程</b>：<b>绿色</b>（缓存全部命中）✅
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          如果你看到大片红色（持续 miss）→ 说明 layer 内容在变，<b>不该开光栅化</b>
+        </div>
+      </div>
+
+      <div class="explain warn">
+        <span class="h">🎯 黄金标准：</span>
+        <b>「绿多 = 留」「红多 = 关」</b>。永远用工具验证，不要凭感觉决定。
+      </div>
+    </div>
+
+    <!-- Checklist -->
+    <div class="section-block">
+      <h2>✅ 光栅化使用 Checklist</h2>
+      <div class="section-subtitle">三项全 ✅ 才值得开</div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot">✓</div>
+        <div class="timeline-content">layer 内容是<b>静态</b>的（动画期间不会变 text/color/image）</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">✓</div>
+        <div class="timeline-content">渲染代价<b>高</b>（多层叠加、复杂阴影、渐变）</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">✓</div>
+        <div class="timeline-content">主要做 <b>transform / 位移 / 透明度</b> 动画</div>
+      </div>
+
+      <p style="margin-top: 14px; padding: 12px; background: #ffebee; border-radius: 6px; color: #c62828; font-weight: 500; font-size: 13px;">
+        ⚠️ 任何一项 ❌，都不要开。<b>cell 三项全 ❌ → cell 永远不要开光栅化</b>。
+      </p>
+    </div>
+
+    <div class="nav" style="margin-top: 24px;">
+      <a href="../index.html">← 返回主菜单</a>
+      <a href="04_ad_cell.html">← 上一个</a>
+      <a href="06_comparison.html">下一个：对比演示 →</a>
+    </div>
+  </div>
+
+  <script>
+    function replay() {
+      const hero = document.getElementById('hero');
+      hero.classList.remove('playing');
+      void hero.offsetWidth;
+      hero.classList.add('playing');
+    }
+  </script>
+</body>
+</html>

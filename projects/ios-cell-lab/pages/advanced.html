@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>常用组件 — 业务里大概率用得上</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/category.css">
+<script src="../assets/theme.js"></script>
+</head>
+<body>
+
+<div class="frame">
+  <main class="main">
+
+    <div class="meta-bar">
+      <span class="dot">●</span>
+      <span><a href="../index.html">ios-list-lab</a></span>
+      <span>/</span>
+      <span style="color:var(--accent);">advanced</span>
+      <span class="right"><a href="../index.html">home</a> · <a href="basics.html">basics</a> · <a href="advanced.html" class="active">advanced</a> · <a href="patterns.html">patterns</a></span>
+    </div>
+
+    <section class="cat-hero">
+      <div class="breadcrumb"><a href="../index.html">~</a> / level 02 · advanced</div>
+      <h1>常用组件 <em>— 业务高频</em></h1>
+      <p>骨架屏、左滑菜单、展开折叠、视差头图、瀑布流、下拉刷新。这 6 个里至少有一两个，你做过的项目里现在就有。</p>
+    </section>
+
+    <div class="ascii-box">
+advanced/
+├── <span class="red">07</span>  skeleton_cell      骨架屏
+├── <span class="red">08</span>  swipe_actions      左滑菜单
+├── <span class="red">09</span>  expandable_cell    展开折叠
+├── <span class="red">10</span>  parallax_header    视差头图
+├── <span class="red">11</span>  waterfall_layout   瀑布流
+└── <span class="red">12</span>  pull_refresh       下拉刷新
+    </div>
+
+    <section class="exam-grid">
+
+      <a class="exam" href="../examples/07_skeleton_cell.html">
+        <div class="exam-num"><span class="id">07</span>advanced</div>
+        <div class="exam-body">
+          <div class="exam-title">SkeletonCell · 骨架屏</div>
+          <p class="exam-desc">那种灰条占位 + 一道光来回扫的加载效果。比菊花体验好多了，现在主流 App 几乎都换了。</p>
+          <ul class="exam-points">
+            <li>用 CAGradientLayer + CABasicAnimation 做光带，比序列帧轻很多</li>
+            <li>SkeletonView 和 SkeletonMessageCell 的完整代码</li>
+            <li>cell 离屏自动停动画，不要常驻浪费电</li>
+            <li>切回真实数据时用 reloadSections + Fade，避免突兀</li>
+          </ul>
+          <div class="exam-tags"><span class="hi">CAGradientLayer</span><span>不需要图片资源</span></div>
+        </div>
+        <div class="exam-arrow">→</div>
+      </a>
+
+      <a class="exam" href="../examples/08_swipe_actions.html">
+        <div class="exam-num"><span class="id">08</span>advanced</div>
+        <div class="exam-body">
+          <div class="exam-title">SwipeActions · 左滑菜单</div>
+          <p class="exam-desc">微信、邮件、订单都有的左滑出按钮。iOS 11 起 Apple 给了原生 API，别再自己撸 PanGesture 了。</p>
+          <ul class="exam-points">
+            <li>UIContextualAction 的 destructive 和 normal 两种风格</li>
+            <li>左滑、右滑都支持，姿势对称</li>
+            <li>haptic 反馈系统自带，不用手动 trigger</li>
+            <li>删除请求失败怎么把 cell 滑回来 + toast 提示</li>
+          </ul>
+          <div class="exam-tags"><span class="hi">UIContextualAction</span><span>系统原生</span></div>
+        </div>
+        <div class="exam-arrow">→</div>
+      </a>
+
+      <a class="exam" href="../examples/09_expandable_cell.html">
+        <div class="exam-num"><span class="id">09</span>advanced</div>
+        <div class="exam-body">
+          <div class="exam-title">ExpandableCell · 展开折叠</div>
+          <p class="exam-desc">FAQ 那种点一下展开看详情。新老两套写法都给了 — 看你项目支持什么版本。</p>
+          <ul class="exam-points">
+            <li>老办法：beginUpdates / endUpdates 配合 cellForRow</li>
+            <li>新办法：iOS 13+ 用 Diffable + OutlineSnapshot 一行搞定</li>
+            <li>chevron 旋转 + 内容淡入两个动画并行跑</li>
+            <li>高度算过一次就缓存，别重复算</li>
+          </ul>
+          <div class="exam-tags"><span class="hi">Diffable Outline</span><span>高度缓存</span></div>
+        </div>
+        <div class="exam-arrow">→</div>
+      </a>
+
+      <a class="exam" href="../examples/10_parallax_header.html">
+        <div class="exam-num"><span class="id">10</span>advanced</div>
+        <div class="exam-body">
+          <div class="exam-title">ParallaxHeader · 视差头图</div>
+          <p class="exam-desc">个人主页那种顶部一张大图，往上滑慢慢被导航栏盖住。Spotify 是这套的早期玩家。</p>
+          <ul class="exam-points">
+            <li>contentOffset 联动 transform，别动 frame，会触发布局</li>
+            <li>下拉时头图反向放大，松手回弹</li>
+            <li>导航栏背景跟着 scroll 做模糊渐变</li>
+            <li>状态栏样式也要跟着切，不然过渡会突兀</li>
+          </ul>
+          <div class="exam-tags"><span class="hi">视差动画</span><span>contentInset</span></div>
+        </div>
+        <div class="exam-arrow">→</div>
+      </a>
+
+      <a class="exam" href="../examples/11_waterfall_layout.html">
+        <div class="exam-num"><span class="id">11</span>advanced</div>
+        <div class="exam-body">
+          <div class="exam-title">WaterfallLayout · 瀑布流</div>
+          <p class="exam-desc">小红书、Pinterest 那种两列高度不一的卡片流。系统的 FlowLayout 不支持，得自己写一个。</p>
+          <ul class="exam-points">
+            <li>"哪一列短就放哪"的算法图解</li>
+            <li>prepareLayout 一次性算好所有 item 位置</li>
+            <li>滚动时用二分查找定位可见 item，O(N) 优化到 O(log N)</li>
+            <li>用 delegate 让业务方决定每个 item 的高度</li>
+          </ul>
+          <div class="exam-tags"><span class="hi">自定义 Layout</span><span>O(log N)</span></div>
+        </div>
+        <div class="exam-arrow">→</div>
+      </a>
+
+      <a class="exam" href="../examples/12_pull_refresh.html">
+        <div class="exam-num"><span class="id">12</span>advanced</div>
+        <div class="exam-body">
+          <div class="exam-title">PullRefresh · 下拉刷新</div>
+          <p class="exam-desc">系统的 UIRefreshControl 长得太死板，多数 App 都自己做了一个。其实背后的状态机很简单。</p>
+          <ul class="exam-points">
+            <li>用 CAShapeLayer 画进度环，跟手指走</li>
+            <li>idle / pulling / ready / refreshing 四个状态怎么切</li>
+            <li>KVO 监听 contentOffset 是关键</li>
+            <li>拉到位时震一下，UIImpactFeedbackGenerator 调用一行</li>
+          </ul>
+          <div class="exam-tags"><span class="hi">CAShapeLayer</span><span>状态机</span></div>
+        </div>
+        <div class="exam-arrow">→</div>
+      </a>
+
+    </section>
+
+    <section class="path-section">
+      <div class="sec-title">
+        <span class="num">02</span>
+        <span class="h">怎么挑</span>
+      </div>
+      <p class="sub">这一组没有先后关系，按你手头项目挑。如果都用不上，至少看 07 和 12 这两个最常见的。</p>
+
+      <ul class="path-list">
+        <li class="path-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h5>必看：07 SkeletonCell</h5>
+            <p>所有列表都该有的加载效果。掌握了 CAGradientLayer 之后，骨架屏只是它的一个用法。</p>
+          </div>
+        </li>
+        <li class="path-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h5>必看：12 PullRefresh</h5>
+            <p>下拉刷新看着简单，但用到 KVO、状态机、CAAnimation、contentInset 调整 — 几个核心知识全在里面。</p>
+          </div>
+        </li>
+        <li class="path-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h5>按业务挑：08~11</h5>
+            <p>· 做 IM、邮件 → 08 SwipeActions<br>· 做 FAQ、订单详情 → 09 ExpandableCell<br>· 做个人主页、商品详情 → 10 ParallaxHeader<br>· 做发现、Pinterest 类 → 11 WaterfallLayout</p>
+          </div>
+        </li>
+        <li class="path-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h5>下一组 → 头部 App 怎么做</h5>
+            <p>组件会写了，可以看头部 App 是怎么把这些组件拼成一个有产品感的设计的。</p>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <footer>
+      <div class="left">EOF · level 02 · advanced</div>
+      <div>
+        <a href="basics.html">← prev: basics</a> ·
+        <a href="../index.html">home</a> ·
+        <a href="patterns.html">next: patterns →</a>
+      </div>
+    </footer>
+
+  </main>
+</div>
+
+</body>
+</html>

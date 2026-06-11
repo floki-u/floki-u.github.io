@@ -1,0 +1,241 @@
+/* ============================================================================
+ * pixelterm 主题 — 移动端适配增强（mobile patch）
+ * 目的：在不修改主样式 pixelterm.css 的前提下，集中修复手机端体验问题。
+ * 断点：≤900 平板 / ≤640 手机 / ≤420 小屏手机（iPhone SE 等）
+ * ========================================================================== */
+
+/* 全局：禁止 iOS Safari 在横屏旋转时自动放大字号 */
+html { -webkit-text-size-adjust: 100%; }
+
+/* 全局：long word / URL / 行内代码在窄屏自动换行，避免横向溢出 */
+@media (max-width: 900px) {
+  .prose, .prose p, .prose li, .prose td, .prose th,
+  .feat-card p, .ac-desc, .archive-head p {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+  .prose code { word-break: break-all; }
+}
+
+/* ============================================================================
+ * 1. titlebar：顶部终端栏在手机上挤爆
+ *    手机端不再 sticky 吸顶，随内容滚走，节省首屏高度
+ * ========================================================================== */
+@media (max-width: 900px) {
+  .titlebar {
+    position: static;      /* 取消 sticky，随滚动离开视口 */
+    gap: 8px;
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    font-size: 11px;
+  }
+  .titlebar .path {
+    font-size: 11px;
+    flex: 1 1 100%;
+    order: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .titlebar .right { gap: 10px; margin-left: auto; }
+}
+@media (max-width: 640px) {
+  .titlebar { padding: 6px 10px; }
+  .titlebar .dots i { width: 10px; height: 10px; }
+  /* 隐藏面包屑路径，节省空间 */
+  .titlebar .path { display: none; }
+  .titlebar .right { width: 100%; justify-content: space-between; gap: 8px; }
+  .titlebar .clock { font-size: 10px; }
+  .menu { flex-wrap: wrap; gap: 2px; }
+  .menu a { padding: 5px 7px; font-size: 8px; }
+  .theme-toggle { width: 50px; height: 22px; }
+  .theme-toggle .knob { width: 16px; height: 14px; }
+  [data-theme="light"] .theme-toggle .knob { transform: translateX(26px); }
+  .theme-toggle .icon { font-size: 10px; }
+  .theme-toggle .icon.moon { left: 6px; }
+  .theme-toggle .icon.sun  { right: 6px; }
+}
+
+/* ============================================================================
+ * 2. Hero 首屏：大字 + 像素按钮挤压
+ * ========================================================================== */
+@media (max-width: 640px) {
+  .hero { padding: 24px 0 32px; }
+  .hero h1 { font-size: clamp(16px, 6vw, 22px); line-height: 1.6; margin-bottom: 18px; text-shadow: 2px 2px 0 var(--bg-2); }
+  .hero p  { font-size: 15px; line-height: 1.7; margin-bottom: 18px; }
+  .boot { font-size: 12px; line-height: 1.7; min-height: 0; margin-bottom: 20px; }
+  .hero-actions { gap: 10px; }
+  .pix-btn { padding: 11px 14px; font-size: 10px; border-width: 2px; box-shadow: 4px 4px 0 var(--shadow); }
+  .pix-btn:hover  { box-shadow: 2px 2px 0 var(--shadow); }
+  .pix-btn:active { box-shadow: 0 0 0 var(--shadow); }
+  .cat-window { box-shadow: 4px 4px 0 var(--shadow); }
+  .cat-window .pix-cat { width: 120px; height: 120px; }
+}
+
+/* ============================================================================
+ * 3. 区块标题
+ * ========================================================================== */
+@media (max-width: 640px) {
+  .sec-title { padding-bottom: 10px; margin-bottom: 16px; gap: 8px; }
+  .sec-title h2 { font-size: 13px; gap: 6px; }
+  .sec-title .meta { font-size: 8px; }
+}
+
+/* ============================================================================
+ * 4. 文章页：去掉 6px 投影、缩小内边距、控制字号
+ * ========================================================================== */
+@media (max-width: 900px) {
+  .article { padding: 20px 0; }
+  /* TOC 卡片在窄屏：彻底取消 sticky、取消限高，作为正文前的普通区块展示，
+     随页面滚动自然滚出屏幕（不悬浮、不吸顶、不挡内容） */
+  .toc-card {
+    position: static !important;
+    top: auto !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+    margin-bottom: 20px;
+    padding: 14px;
+    box-shadow: 3px 3px 0 var(--shadow);
+  }
+  .toc-card h5 { font-size: 8px; margin-bottom: 8px; }
+  .toc-card a  { padding: 4px 0 4px 10px; font-size: 12px; }
+}
+@media (max-width: 640px) {
+  .art-head { margin-bottom: 16px; }
+  .art-head .head-inner { padding: 16px 14px; border-width: 2px; box-shadow: 3px 3px 0 var(--shadow); }
+  .art-head .head-inner::before { left: 14px; font-size: 10px; padding: 2px 8px; max-width: calc(100% - 28px); }
+  .art-title { font-size: clamp(13px, 4.5vw, 18px); line-height: 1.55; margin-bottom: 12px; }
+  .art-meta { font-size: 11px; gap: 10px; }
+  .art-tag { font-size: 8px; padding: 3px 8px; margin-bottom: 10px; }
+
+  .prose {
+    padding: 18px 14px;
+    font-size: 15px;
+    line-height: 1.8;
+    border-width: 2px;
+    box-shadow: 3px 3px 0 var(--shadow);
+  }
+  .prose h1 { font-size: 15px; margin: 22px 0 12px; }
+  .prose h2 { font-size: 13px; margin: 20px 0 10px; }
+  .prose h3 { font-size: 12px; margin: 18px 0 8px; }
+  .prose h4 { font-size: 11px; margin: 16px 0 6px; }
+  .prose p  { margin-bottom: 14px; }
+  .prose blockquote { margin: 16px 0; padding: 10px 12px; font-size: 14px; }
+  .prose ul, .prose ol { margin: 10px 0 14px 18px; padding-left: 4px; }
+  .prose img { margin: 12px auto; }
+
+  /* ----- 代码块：避免横向滚出可视区，强制 -webkit 平滑滚动 ----- */
+  .prose pre,
+  .prose figure.highlight,
+  .prose .highlight {
+    font-size: 12px;
+    line-height: 1.6;
+    -webkit-overflow-scrolling: touch;
+  }
+  .prose pre code { padding: 12px 14px; }
+  .prose figure.highlight .gutter pre,
+  .prose .highlight .gutter pre { padding: 10px 8px; font-size: 11px; }
+  .prose figure.highlight .code pre,
+  .prose .highlight .code pre   { padding: 10px 12px; }
+  .prose figure.highlight figcaption { padding: 6px 10px; font-size: 10px; }
+
+  /* ----- 表格：横向滚动而不撑破布局 ----- */
+  .prose table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; font-size: 13px; }
+  .prose th, .prose td { padding: 6px 10px; }
+
+  /* ----- 上一篇/下一篇：单列 ----- */
+  .art-end { margin-top: 32px; }
+  .art-end .end-grid { grid-template-columns: 1fr; gap: 10px; }
+  .art-end a { padding: 12px; box-shadow: 3px 3px 0 var(--shadow); }
+}
+
+/* ============================================================================
+ * 5. 列表/卡片：feat-grid（首页摘要卡）+ archive
+ * ========================================================================== */
+@media (max-width: 640px) {
+  .feat-grid { gap: 12px; margin-bottom: 32px; }
+  .feat-card { padding: 14px; box-shadow: 3px 3px 0 var(--shadow); border-width: 2px; }
+  .feat-card h3 { font-size: 10px; margin-bottom: 10px; }
+  .feat-card p  { font-size: 13px; margin-bottom: 10px; }
+  .feat-card .meta { font-size: 10px; }
+
+  /* 表格化 archive（.tbl）的字号缩小 */
+  .tbl td { padding: 10px 10px; font-size: 13px; }
+  .tbl td.date { font-size: 11px; width: 90px; }
+  .tbl td.tag  { font-size: 10px; width: auto; }
+
+  /* archive 标题区 */
+  .archive-head { padding: 24px 0 16px; }
+  .archive-head p { font-size: 14px; }
+  .year-pill { padding: 6px 10px; font-size: 9px; margin: 22px 0 12px; box-shadow: 3px 3px 0 var(--shadow); }
+}
+
+/* ============================================================================
+ * 6. About 页 + 分类/标签页
+ * ========================================================================== */
+@media (max-width: 640px) {
+  .about-intro { padding: 14px 16px; font-size: 13px; }
+  .about-card { box-shadow: 4px 4px 0 var(--shadow); border-width: 2px; }
+  .ac-title { font-size: 12px; }
+  .ac-subtitle { font-size: 12px; }
+  .ac-desc { font-size: 13px; }
+
+  .taxo-list { grid-template-columns: 1fr; gap: 8px; }
+  .taxo-link { padding: 10px 12px; box-shadow: 3px 3px 0 var(--shadow); border-width: 2px; }
+  .taxo-link .name { font-size: 14px; }
+
+  .tag-cloud { gap: 6px; }
+  .tag-chip { padding: 5px 9px; }
+}
+
+/* ============================================================================
+ * 7. 分页器 + Footer
+ * ========================================================================== */
+@media (max-width: 640px) {
+  .pt-pager { gap: 4px; margin: 24px 0; font-size: 9px; }
+  .pt-pager a, .pt-pager span { padding: 6px 10px; box-shadow: 2px 2px 0 var(--shadow); }
+  footer.f { margin-top: 32px; padding: 18px 0; }
+  .f-inner { padding: 0 16px; gap: 8px; font-size: 11px; flex-direction: column; align-items: flex-start; }
+}
+
+/* ============================================================================
+ * 8. CRT 扫描线 / 网格背景：手机上变弱以减轻视觉噪声、提高可读性
+ * ========================================================================== */
+@media (max-width: 640px) {
+  body::before { background: repeating-linear-gradient(0deg, var(--crt-line) 0, var(--crt-line) 1px, transparent 1px, transparent 4px); opacity: .5; }
+  body::after  { opacity: .6; }
+  .pix-grid    { opacity: .5; background-size: 12px 12px; }
+}
+
+/* ============================================================================
+ * 9. iPhone SE / 小屏 (≤420)
+ * ========================================================================== */
+@media (max-width: 420px) {
+  .shell { padding: 0 12px; }
+  .titlebar .clock { display: none; }    /* 极小屏隐藏时钟，避免和菜单挤 */
+  .menu a { padding: 4px 6px; font-size: 7px; }
+  .hero h1 { font-size: 16px; }
+  .prose { padding: 14px 12px; font-size: 14.5px; }
+  .feat-card { padding: 12px; }
+}
+
+/* ============================================================================
+ * 10. 触摸设备：禁用 hover 偏移（避免在长按时位置跳动）
+ * ========================================================================== */
+@media (hover: none) {
+  .pix-btn:hover,
+  .feat-card:hover,
+  .about-card:hover,
+  .art-end a:hover,
+  .taxo-link:hover { transform: none; }
+}
+
+/* ============================================================================
+ * 11. 减少动画偏好：尊重系统级 prefers-reduced-motion
+ * ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  body::after { animation: none; }
+  .cursor, .ac-cta .cur { animation: none; }
+  .cat-window .pix-cat { animation: none; }
+  .cloud { animation: none; }
+}

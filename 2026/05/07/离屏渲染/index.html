@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hexo + pixelterm v1.0.0">
+<meta name="description" content="一个写作爱好者的在线笔记本">
+<meta name="author" content="floki">
+<meta name="theme-color" content="#0b0f14">
+
+<title>离屏渲染 · Floki</title>
+
+<link rel="icon" type="image/png" href="/img/cat.png">
+
+<!-- 字体（与设计稿一致） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css">
+
+<!-- 主题样式 -->
+<link rel="stylesheet" href="/css/pixelterm.css">
+<!-- 移动端适配增强（必须放在 pixelterm.css 之后） -->
+<link rel="stylesheet" href="/css/mobile.css">
+
+  <link rel="stylesheet" href="/css/mermaid.css">
+
+
+  <link rel="stylesheet" href="/css/lightgallery.min.css">
+
+
+<!-- 代码高亮（内置 IDE 风格：暗色 One Dark / 亮色 GitHub Light，跟随主题切换） -->
+<link rel="stylesheet" href="/css/highlight.css">
+
+<!-- 自定义 CSS 注入 -->
+
+
+
+<!-- 主题模式优先注入（避免闪屏） -->
+<script>
+(function(){
+  var def = 'auto';
+  var t;
+  try { t = localStorage.getItem('pt-theme'); } catch(e){}
+  if(!t){
+    t = (def === 'auto')
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : def;
+  }
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+
+<body class="layout-post">
+
+<!-- 全屏背景层（CSS pseudos 提供 CRT 扫描线/vignette；下面是 canvas + grid） -->
+
+  <canvas id="rain" aria-hidden="true"></canvas>
+
+<div class="pix-grid" aria-hidden="true"></div>
+
+<div class="titlebar">
+  <div class="dots"><i></i><i></i><i></i></div>
+  <div class="path">— <b>floki@pixelterm</b>: <span>~/离屏渲染</span> — zsh — </div>
+  <div class="right">
+    <span class="clock" data-clock>00:00:00</span>
+    <div class="menu">
+      
+        <a href="/" class="">HOME</a>
+      
+        <a href="/list/" class="">POSTS</a>
+      
+        <a href="/categories/" class="">CATEGORIES</a>
+      
+        <a href="/tags/" class="">TAGS</a>
+      
+        <a href="/about/" class="">ABOUT</a>
+      
+    </div>
+    
+      <button class="theme-toggle" data-theme-toggle aria-label="toggle theme">
+        <span class="icon moon">☾</span>
+        <span class="icon sun">☀</span>
+        <span class="knob"></span>
+      </button>
+    
+  </div>
+</div>
+
+
+<main class="shell">
+  
+<article class="article ">
+  <header class="art-head fade">
+    <span class="head-spacer"></span>
+    <div class="head-inner" data-vim="离屏渲染.md   --  2026/05/07">
+      <span class="art-tag">IOS</span>
+      
+        <span class="art-tag cyan">技术</span>
+      
+      <h1 class="art-title">离屏渲染</h1>
+      <div class="art-meta">
+  
+    <span>2026-05-07</span>
+  
+  
+    <span>updated <b>2026-06-11</b></span>
+  
+  
+    <span><b>4.1k</b> words</span>
+  
+  
+    <span>▶ <b>18</b> min</span>
+  
+  
+    <span id="busuanzi_container_page_pv">views <b><span id="busuanzi_value_page_pv"></span></b></span>
+  
+  
+    <span>in
+      
+        <a href="/categories/%E6%8A%80%E6%9C%AF/">技术</a>
+      
+    </span>
+  
+  
+    <span>tags
+      
+        <a href="/tags/iOS/">#iOS</a>
+      
+    </span>
+  
+</div>
+
+    </div>
+  </header>
+
+  <div class="art-body">
+    
+
+  
+    <aside class="toc-card" data-toc>
+      <h5>QUEST LOG</h5>
+      <ol class="pt-toc-inner"><li class="pt-toc-inner-item pt-toc-inner-level-1"><a class="pt-toc-inner-link" href="#%E7%A6%BB%E5%B1%8F%E6%B8%B2%E6%9F%93%EF%BC%88Off-Screen-Rendering%EF%BC%89%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90"><span class="pt-toc-inner-text">离屏渲染（Off-Screen Rendering）深度剖析</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E7%9B%AE%E5%BD%95"><span class="pt-toc-inner-text">目录</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E7%A6%BB%E5%B1%8F%E6%B8%B2%E6%9F%93"><span class="pt-toc-inner-text">1. 什么是离屏渲染</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#1-1-%E6%AD%A3%E5%B8%B8%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B%EF%BC%88On-Screen-Rendering%EF%BC%89"><span class="pt-toc-inner-text">1.1 正常渲染流程（On-Screen Rendering）</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#1-2-%E7%A6%BB%E5%B1%8F%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B%EF%BC%88Off-Screen-Rendering%EF%BC%89"><span class="pt-toc-inner-text">1.2 离屏渲染流程（Off-Screen Rendering）</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E7%A6%BB%E5%B1%8F%E6%B8%B2%E6%9F%93%E6%85%A2-%E2%80%94%E2%80%94-%E4%B8%89%E5%A4%A7%E6%A0%B9%E5%9B%A0"><span class="pt-toc-inner-text">2. 为什么离屏渲染慢 —— 三大根因</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#2-1-%E6%A0%B9%E5%9B%A0%E4%B8%80%EF%BC%9AGPU-%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2%EF%BC%88Context-Switch%EF%BC%89"><span class="pt-toc-inner-text">2.1 根因一：GPU 上下文切换（Context Switch）</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#2-2-%E6%A0%B9%E5%9B%A0%E4%BA%8C%EF%BC%9A%E9%A2%9D%E5%A4%96%E7%9A%84%E5%86%85%E5%AD%98%E5%BC%80%E9%94%80%E5%92%8C%E5%B8%A6%E5%AE%BD%E6%B6%88%E8%80%97"><span class="pt-toc-inner-text">2.2 根因二：额外的内存开销和带宽消耗</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#2-3-%E6%A0%B9%E5%9B%A0%E4%B8%89%EF%BC%9A%E7%A0%B4%E5%9D%8F-TBDR-%E4%BC%98%E5%8C%96%EF%BC%88iOS-%E7%89%B9%E6%9C%89%EF%BC%8C%E5%BD%B1%E5%93%8D%E6%9C%80%E5%A4%A7%EF%BC%81%EF%BC%89"><span class="pt-toc-inner-text">2.3 根因三：破坏 TBDR 优化（iOS 特有，影响最大！）</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#3-%E5%93%AA%E4%BA%9B%E6%93%8D%E4%BD%9C%E8%A7%A6%E5%8F%91%E7%A6%BB%E5%B1%8F%E6%B8%B2%E6%9F%93"><span class="pt-toc-inner-text">3. 哪些操作触发离屏渲染</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#3-1-%E8%A7%A6%E5%8F%91%E6%9D%A1%E4%BB%B6%E6%80%BB%E8%A7%88"><span class="pt-toc-inner-text">3.1 触发条件总览</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#3-2-cornerRadius-masksToBounds-%E2%80%94%E2%80%94-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E7%A6%BB%E5%B1%8F"><span class="pt-toc-inner-text">3.2 cornerRadius + masksToBounds —— 为什么需要离屏</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#3-3-shadow%EF%BC%88%E6%97%A0-shadowPath%EF%BC%89"><span class="pt-toc-inner-text">3.3 shadow（无 shadowPath）</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#3-4-group-opacity%EF%BC%88%E7%BB%84%E9%80%8F%E6%98%8E%E5%BA%A6%EF%BC%89"><span class="pt-toc-inner-text">3.4 group opacity（组透明度）</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#3-5-mask%EF%BC%88%E9%81%AE%E7%BD%A9%EF%BC%89"><span class="pt-toc-inner-text">3.5 mask（遮罩）</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#4-GPU-%E6%B8%B2%E6%9F%93%E7%AE%A1%E7%BA%BF%E5%AE%8C%E6%95%B4%E5%AF%B9%E6%AF%94"><span class="pt-toc-inner-text">4. GPU 渲染管线完整对比</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E6%AD%A3%E5%B8%B8%E6%B8%B2%E6%9F%93%E7%AE%A1%E7%BA%BF"><span class="pt-toc-inner-text">正常渲染管线</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E7%A6%BB%E5%B1%8F%E6%B8%B2%E6%9F%93%E7%AE%A1%E7%BA%BF"><span class="pt-toc-inner-text">离屏渲染管线</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#5-%E9%87%8F%E5%8C%96%EF%BC%9A%E7%A6%BB%E5%B1%8F%E6%B8%B2%E6%9F%93%E5%88%B0%E5%BA%95%E6%85%A2%E5%A4%9A%E5%B0%91"><span class="pt-toc-inner-text">5. 量化：离屏渲染到底慢多少</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#6-shouldRasterize-%E7%9A%84%E7%89%B9%E6%AE%8A%E6%83%85%E5%86%B5"><span class="pt-toc-inner-text">6. shouldRasterize 的特殊情况</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E7%BC%93%E5%AD%98%E5%A4%B1%E6%95%88%E6%9D%A1%E4%BB%B6"><span class="pt-toc-inner-text">缓存失效条件</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E9%80%82%E7%94%A8-vs-%E4%B8%8D%E9%80%82%E7%94%A8"><span class="pt-toc-inner-text">适用 vs 不适用</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#7-%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88%E6%B1%87%E6%80%BB"><span class="pt-toc-inner-text">7. 优化方案汇总</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#7-1-%E5%9C%86%E8%A7%92%E4%BC%98%E5%8C%96"><span class="pt-toc-inner-text">7.1 圆角优化</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#7-2-%E9%98%B4%E5%BD%B1%E4%BC%98%E5%8C%96"><span class="pt-toc-inner-text">7.2 阴影优化</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#7-3-%E4%BC%98%E5%8C%96%E5%86%B3%E7%AD%96%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="pt-toc-inner-text">7.3 优化决策速查表</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#8-%E6%80%BB%E7%BB%93"><span class="pt-toc-inner-text">8. 总结</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E7%A6%BB%E5%B1%8F%E6%B8%B2%E6%9F%93%E6%85%A2%E7%9A%84%E4%B8%89%E5%A4%A7%E6%A0%B8%E5%BF%83%E5%8E%9F%E5%9B%A0"><span class="pt-toc-inner-text">离屏渲染慢的三大核心原因</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E6%A0%B8%E5%BF%83%E7%BB%93%E8%AE%BA"><span class="pt-toc-inner-text">核心结论</span></a></li></ol></li></ol></li></ol>
+    </aside>
+  
+
+
+    <div class="prose">
+      <h1 id="离屏渲染（Off-Screen-Rendering）深度剖析"><a href="#离屏渲染（Off-Screen-Rendering）深度剖析" class="headerlink" title="离屏渲染（Off-Screen Rendering）深度剖析"></a>离屏渲染（Off-Screen Rendering）深度剖析</h1><blockquote>
+<p>本文从 GPU 渲染管线出发，深度剖析离屏渲染的本质、慢的根因、触发条件以及优化方案。</p>
+</blockquote>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E7%A6%BB%E5%B1%8F%E6%B8%B2%E6%9F%93">1. 什么是离屏渲染</a></li>
+<li><a href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E7%A6%BB%E5%B1%8F%E6%B8%B2%E6%9F%93%E6%85%A2--%E4%B8%89%E5%A4%A7%E6%A0%B9%E5%9B%A0">2. 为什么离屏渲染慢 —— 三大根因</a></li>
+<li><a href="#3-%E5%93%AA%E4%BA%9B%E6%93%8D%E4%BD%9C%E8%A7%A6%E5%8F%91%E7%A6%BB%E5%B1%8F%E6%B8%B2%E6%9F%93">3. 哪些操作触发离屏渲染</a></li>
+<li><a href="#4-gpu-%E6%B8%B2%E6%9F%93%E7%AE%A1%E7%BA%BF%E5%AE%8C%E6%95%B4%E5%AF%B9%E6%AF%94">4. GPU 渲染管线完整对比</a></li>
+<li><a href="#5-%E9%87%8F%E5%8C%96%E7%A6%BB%E5%B1%8F%E6%B8%B2%E6%9F%93%E5%88%B0%E5%BA%95%E6%85%A2%E5%A4%9A%E5%B0%91">5. 量化：离屏渲染到底慢多少</a></li>
+<li><a href="#6-shouldrasterize-%E7%9A%84%E7%89%B9%E6%AE%8A%E6%83%85%E5%86%B5">6. shouldRasterize 的特殊情况</a></li>
+<li><a href="#7-%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88%E6%B1%87%E6%80%BB">7. 优化方案汇总</a></li>
+<li><a href="#8-%E6%80%BB%E7%BB%93">8. 总结</a></li>
+</ul>
+<hr>
+<h2 id="1-什么是离屏渲染"><a href="#1-什么是离屏渲染" class="headerlink" title="1. 什么是离屏渲染"></a>1. 什么是离屏渲染</h2><h3 id="1-1-正常渲染流程（On-Screen-Rendering）"><a href="#1-1-正常渲染流程（On-Screen-Rendering）" class="headerlink" title="1.1 正常渲染流程（On-Screen Rendering）"></a>1.1 正常渲染流程（On-Screen Rendering）</h3><p>在正常渲染中，GPU 接收渲染指令后，<strong>直接将结果写入帧缓冲区（Frame Buffer）</strong>，整个过程是单向的”一笔画完”。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">    A[&quot;🖥 CPU&lt;br/&gt;计算布局/内容&quot;] --&gt; B[&quot;⚡ GPU&lt;br/&gt;执行渲染指令&quot;]</span><br><span class="line">    B --&gt; C[&quot;📦 帧缓冲区&lt;br/&gt;Frame Buffer&quot;]</span><br><span class="line">    C --&gt; D[&quot;📱 屏幕显示&quot;]</span><br><span class="line"></span><br><span class="line">    style A fill:#4A90D9,stroke:#2E6BA4,color:#fff</span><br><span class="line">    style B fill:#50C878,stroke:#3DA35D,color:#fff</span><br><span class="line">    style C fill:#F5A623,stroke:#D4881E,color:#fff</span><br><span class="line">    style D fill:#9B59B6,stroke:#7D3C98,color:#fff</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>✅ <strong>关键特征</strong>：GPU 只操作一个缓冲区，数据单向流动，无需回读。</p>
+</blockquote>
+<h3 id="1-2-离屏渲染流程（Off-Screen-Rendering）"><a href="#1-2-离屏渲染流程（Off-Screen-Rendering）" class="headerlink" title="1.2 离屏渲染流程（Off-Screen Rendering）"></a>1.2 离屏渲染流程（Off-Screen Rendering）</h3><p>当 GPU 发现某些效果<strong>无法在一个 Pass 中完成</strong>时（例如需要对所有子图层合成后再做裁剪），就必须先在一个**独立的离屏缓冲区（Offscreen Buffer）**中渲染中间结果，然后再合成回帧缓冲区。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">flowchart TD</span><br><span class="line">    A[&quot;🖥 CPU 计算布局/内容&quot;] --&gt; B[&quot;⚡ GPU 接收渲染指令&quot;]</span><br><span class="line">    B --&gt; C&#123;&quot;能一笔画完？&quot;&#125;</span><br><span class="line">    C -- &quot;✅ 是&quot; --&gt; D[&quot;📦 帧缓冲区&quot;]</span><br><span class="line">    C -- &quot;❌ 否&quot; --&gt; E[&quot;🔄 创建离屏缓冲区&quot;]</span><br><span class="line">    E --&gt; F[&quot;✏️ 切换目标 → 离屏缓冲区&lt;br/&gt;渲染中间结果&quot;]</span><br><span class="line">    F --&gt; G[&quot;🔄 切换目标 → 帧缓冲区&lt;br/&gt;合成最终结果&quot;]</span><br><span class="line">    G --&gt; D</span><br><span class="line">    D --&gt; H[&quot;📱 屏幕显示&quot;]</span><br><span class="line"></span><br><span class="line">    style A fill:#4A90D9,stroke:#2E6BA4,color:#fff</span><br><span class="line">    style B fill:#50C878,stroke:#3DA35D,color:#fff</span><br><span class="line">    style C fill:#E8E8E8,stroke:#999</span><br><span class="line">    style D fill:#F5A623,stroke:#D4881E,color:#fff</span><br><span class="line">    style E fill:#E74C3C,stroke:#C0392B,color:#fff</span><br><span class="line">    style F fill:#E74C3C,stroke:#C0392B,color:#fff</span><br><span class="line">    style G fill:#E74C3C,stroke:#C0392B,color:#fff</span><br><span class="line">    style H fill:#9B59B6,stroke:#7D3C98,color:#fff</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>⚠️ <strong>红色部分就是离屏渲染的额外开销</strong>：创建缓冲区 → 上下文切换 → 渲染 → 切回 → 合成。</p>
+</blockquote>
+<hr>
+<h2 id="2-为什么离屏渲染慢-——-三大根因"><a href="#2-为什么离屏渲染慢-——-三大根因" class="headerlink" title="2. 为什么离屏渲染慢 —— 三大根因"></a>2. 为什么离屏渲染慢 —— 三大根因</h2><h3 id="2-1-根因一：GPU-上下文切换（Context-Switch）"><a href="#2-1-根因一：GPU-上下文切换（Context-Switch）" class="headerlink" title="2.1 根因一：GPU 上下文切换（Context Switch）"></a>2.1 根因一：GPU 上下文切换（Context Switch）</h3><p>GPU 在渲染时有一个”当前渲染目标”（Render Target）的概念，类似于 CPU 的线程上下文。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">sequenceDiagram</span><br><span class="line">    participant FB as 帧缓冲区</span><br><span class="line">    participant GPU as GPU 渲染管线</span><br><span class="line">    participant OB as 离屏缓冲区</span><br><span class="line"></span><br><span class="line">    Note over GPU: 正在渲染其他图层...</span><br><span class="line">    GPU-&gt;&gt;FB: 正常渲染中 ✅</span><br><span class="line"></span><br><span class="line">    rect rgb(255, 230, 230)</span><br><span class="line">        Note over GPU: ⚠️ 遇到需要离屏渲染的图层</span><br><span class="line">        GPU-&gt;&gt;GPU: ① 保存当前管线状态&lt;br/&gt;（寄存器、纹理绑定等）</span><br><span class="line">        GPU-&gt;&gt;GPU: ② Flush 渲染管线&lt;br/&gt;（等待之前指令完成）</span><br><span class="line">        GPU-&gt;&gt;OB: ③ 切换目标 → 离屏缓冲区</span><br><span class="line">        GPU-&gt;&gt;OB: ④ 渲染中间内容</span><br><span class="line">        GPU-&gt;&gt;GPU: ⑤ 保存离屏状态</span><br><span class="line">        GPU-&gt;&gt;GPU: ⑥ 恢复帧缓冲区状态</span><br><span class="line">        GPU-&gt;&gt;FB: ⑦ 切回 → 帧缓冲区</span><br><span class="line">        GPU-&gt;&gt;FB: ⑧ 合成离屏结果到帧缓冲区</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    Note over GPU: 继续渲染下一个图层...</span><br></pre></td></tr></table></figure>
+
+<p><strong>类比理解 🎨</strong>：</p>
+<blockquote>
+<p>想象你在画一幅画（正常渲染），突然需要在<strong>另一张纸</strong>上先画一个部件，画完再剪下来贴回原画（离屏渲染）。你需要：</p>
+<ol>
+<li>放下当前画笔和颜料（<strong>保存状态</strong>）</li>
+<li>拿出新纸铺好（<strong>创建离屏缓冲区</strong>）</li>
+<li>画完部件（<strong>离屏渲染</strong>）</li>
+<li>收起新纸，重新铺好原来的画（<strong>恢复状态</strong>）</li>
+<li>把部件贴上去（<strong>合成</strong>）</li>
+</ol>
+<p>每一步”收拾桌子”的动作就是 <strong>上下文切换</strong> 的开销。</p>
+</blockquote>
+<h3 id="2-2-根因二：额外的内存开销和带宽消耗"><a href="#2-2-根因二：额外的内存开销和带宽消耗" class="headerlink" title="2.2 根因二：额外的内存开销和带宽消耗"></a>2.2 根因二：额外的内存开销和带宽消耗</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">    subgraph normal[&quot;✅ 正常渲染&quot;]</span><br><span class="line">        direction LR</span><br><span class="line">        G1[&quot;GPU&quot;] -- &quot;写入 ×1&quot; --&gt; F1[&quot;Frame Buffer&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    subgraph offscreen[&quot;❌ 离屏渲染&quot;]</span><br><span class="line">        direction LR</span><br><span class="line">        G2[&quot;GPU&quot;] -- &quot;① 写入&quot; --&gt; O2[&quot;Offscreen Buffer&quot;]</span><br><span class="line">        O2 -- &quot;② 读回&quot; --&gt; G3[&quot;GPU&quot;]</span><br><span class="line">        G3 -- &quot;③ 写入&quot; --&gt; F2[&quot;Frame Buffer&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    style normal fill:#E8F5E9,stroke:#4CAF50</span><br><span class="line">    style offscreen fill:#FFEBEE,stroke:#F44336</span><br><span class="line">    style G1 fill:#50C878,stroke:#3DA35D,color:#fff</span><br><span class="line">    style F1 fill:#F5A623,stroke:#D4881E,color:#fff</span><br><span class="line">    style G2 fill:#50C878,stroke:#3DA35D,color:#fff</span><br><span class="line">    style O2 fill:#E74C3C,stroke:#C0392B,color:#fff</span><br><span class="line">    style G3 fill:#50C878,stroke:#3DA35D,color:#fff</span><br><span class="line">    style F2 fill:#F5A623,stroke:#D4881E,color:#fff</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>正常渲染</th>
+<th>离屏渲染</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>内存写入次数</td>
+<td><strong>1 次</strong></td>
+<td><strong>2 次</strong>（写 Offscreen + 写 Frame）</td>
+</tr>
+<tr>
+<td>内存读取次数</td>
+<td><strong>0 次</strong></td>
+<td><strong>1 次</strong>（读回 Offscreen）</td>
+</tr>
+<tr>
+<td>额外内存占用</td>
+<td>无</td>
+<td>Offscreen Buffer（最大屏幕像素 × 2.5）</td>
+</tr>
+<tr>
+<td>总带宽消耗</td>
+<td>1W</td>
+<td><strong>2W + 1R &#x3D; 3 倍</strong></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>⚠️ <strong>iOS 设备的 GPU 和 CPU 共享内存带宽</strong>，带宽资源非常宝贵！额外的读写操作会严重挤占其他渲染任务的带宽。</p>
+</blockquote>
+<h3 id="2-3-根因三：破坏-TBDR-优化（iOS-特有，影响最大！）"><a href="#2-3-根因三：破坏-TBDR-优化（iOS-特有，影响最大！）" class="headerlink" title="2.3 根因三：破坏 TBDR 优化（iOS 特有，影响最大！）"></a>2.3 根因三：破坏 TBDR 优化（iOS 特有，影响最大！）</h3><p>Apple GPU 采用 <strong>Tile-Based Deferred Rendering（TBDR）</strong> 架构，这是理解离屏渲染在 iOS 上为何特别慢的关键：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">flowchart TD</span><br><span class="line">    subgraph tbdr[&quot;🟢 TBDR 架构工作方式&quot;]</span><br><span class="line">        direction TB</span><br><span class="line">        S1[&quot;屏幕被切分成 Tiles&lt;br/&gt;（如 32×32 像素）&quot;]</span><br><span class="line">        S2[&quot;每个 Tile 在 GPU 片上高速缓存&lt;br/&gt;（On-Chip SRAM）中完成渲染&quot;]</span><br><span class="line">        S3[&quot;渲染完毕后一次性&lt;br/&gt;写回主内存（DRAM）&quot;]</span><br><span class="line">        S1 --&gt; S2 --&gt; S3</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    subgraph tiles[&quot;🖥 屏幕 Tile 划分&quot;]</span><br><span class="line">        direction LR</span><br><span class="line">        T[&quot;┌───┬───┬───┬───┐&lt;br/&gt;│ T1│ T2│ T3│ T4│&lt;br/&gt;├───┼───┼───┼───┤&lt;br/&gt;│ T5│ T6│ T7│ T8│&lt;br/&gt;├───┼───┼───┼───┤&lt;br/&gt;│ T9│T10│T11│T12│&lt;br/&gt;└───┴───┴───┴───┘&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    style tbdr fill:#E8F5E9,stroke:#4CAF50</span><br><span class="line">    style tiles fill:#F3F4F6,stroke:#999</span><br><span class="line">    style S1 fill:#4A90D9,stroke:#2E6BA4,color:#fff</span><br><span class="line">    style S2 fill:#50C878,stroke:#3DA35D,color:#fff</span><br><span class="line">    style S3 fill:#F5A623,stroke:#D4881E,color:#fff</span><br></pre></td></tr></table></figure>
+
+<p><strong>TBDR 的核心优势</strong>：渲染在 GPU 的<strong>片上 SRAM</strong> 中完成，SRAM 的速度比主内存 DRAM <strong>快 10~100 倍</strong>，而且极大减少对主内存的读写（省电、省带宽）。</p>
+<p><strong>离屏渲染如何打破这一优势</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">    subgraph normal[&quot;✅ 正常渲染 — 享受 TBDR&quot;]</span><br><span class="line">        direction TB</span><br><span class="line">        N1[&quot;GPU 对每个 Tile：&quot;]</span><br><span class="line">        N2[&quot;在片上 SRAM 中完成&lt;br/&gt;所有图层混合&quot;]</span><br><span class="line">        N3[&quot;一次性写回 DRAM&quot;]</span><br><span class="line">        N1 --&gt; N2 --&gt; N3</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    subgraph offscreen[&quot;❌ 离屏渲染 — 绕过 TBDR&quot;]</span><br><span class="line">        direction TB</span><br><span class="line">        O1[&quot;Offscreen Buffer 在 DRAM 中&quot;]</span><br><span class="line">        O2[&quot;每个像素读写都是&lt;br/&gt;慢速 DRAM 访问 🐌&quot;]</span><br><span class="line">        O3[&quot;无法利用 Tile 的&lt;br/&gt;片上 SRAM 缓存！&quot;]</span><br><span class="line">        O4[&quot;还需从 DRAM 读回&lt;br/&gt;并合成到 Frame Buffer&quot;]</span><br><span class="line">        O1 --&gt; O2 --&gt; O3 --&gt; O4</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    style normal fill:#E8F5E9,stroke:#4CAF50</span><br><span class="line">    style offscreen fill:#FFEBEE,stroke:#F44336</span><br><span class="line">    style N1 fill:#50C878,stroke:#3DA35D,color:#fff</span><br><span class="line">    style N2 fill:#50C878,stroke:#3DA35D,color:#fff</span><br><span class="line">    style N3 fill:#50C878,stroke:#3DA35D,color:#fff</span><br><span class="line">    style O1 fill:#E74C3C,stroke:#C0392B,color:#fff</span><br><span class="line">    style O2 fill:#E74C3C,stroke:#C0392B,color:#fff</span><br><span class="line">    style O3 fill:#E74C3C,stroke:#C0392B,color:#fff</span><br><span class="line">    style O4 fill:#E74C3C,stroke:#C0392B,color:#fff</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>💡 <strong>一句话总结</strong>：离屏渲染迫使 GPU 绕过高效的 TBDR 管线，从”在超快的片上缓存工作”退化为”直接操作慢速主内存”，效率大幅下降。</p>
+</blockquote>
+<hr>
+<h2 id="3-哪些操作触发离屏渲染"><a href="#3-哪些操作触发离屏渲染" class="headerlink" title="3. 哪些操作触发离屏渲染"></a>3. 哪些操作触发离屏渲染</h2><h3 id="3-1-触发条件总览"><a href="#3-1-触发条件总览" class="headerlink" title="3.1 触发条件总览"></a>3.1 触发条件总览</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">mindmap</span><br><span class="line">  root((&quot;🔴 触发离屏渲染&lt;br/&gt;的操作&quot;))</span><br><span class="line">    cornerRadius</span><br><span class="line">      + masksToBounds/clipsToBounds</span><br><span class="line">      圆角裁剪需要对&lt;br/&gt;所有子层合成后操作</span><br><span class="line">    shadow</span><br><span class="line">      无 shadowPath 时</span><br><span class="line">      GPU 需要先知道&lt;br/&gt;最终渲染轮廓</span><br><span class="line">    group opacity</span><br><span class="line">      allowsGroupOpacity = YES</span><br><span class="line">      透明度需要应用到&lt;br/&gt;合成后的结果</span><br><span class="line">    mask</span><br><span class="line">      CALayer.mask</span><br><span class="line">      需要两个图层&lt;br/&gt;逐像素 alpha 混合</span><br><span class="line">    shouldRasterize</span><br><span class="line">      layer.shouldRasterize = YES</span><br><span class="line">      主动触发离屏渲染&lt;br/&gt;但结果会被缓存</span><br><span class="line">    blur effects</span><br><span class="line">      UIBlurEffect</span><br><span class="line">      UIVisualEffectView</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-cornerRadius-masksToBounds-——-为什么需要离屏"><a href="#3-2-cornerRadius-masksToBounds-——-为什么需要离屏" class="headerlink" title="3.2 cornerRadius + masksToBounds —— 为什么需要离屏"></a>3.2 cornerRadius + masksToBounds —— 为什么需要离屏</h3><p>CALayer 的渲染是<strong>分层</strong>进行的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">block-beta</span><br><span class="line">    columns 1</span><br><span class="line">    block:layers[&quot;CALayer 的三个子层&quot;]</span><br><span class="line">        A[&quot;① backgroundColor&quot;]</span><br><span class="line">        B[&quot;② contents（图片/内容）&quot;]</span><br><span class="line">        C[&quot;③ border&quot;]</span><br><span class="line">    end</span><br><span class="line">    block:problem[&quot;问题&quot;]</span><br><span class="line">        D[&quot;masksToBounds 要求：&lt;br/&gt;对所有层的「合成结果」做裁剪&lt;br/&gt;→ GPU 无法逐层单独裁剪&lt;br/&gt;→ 必须先离屏渲染所有层&lt;br/&gt;→ 再对合成结果统一做圆角裁剪&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    style layers fill:#E3F2FD,stroke:#1E88E5</span><br><span class="line">    style problem fill:#FFEBEE,stroke:#E53935</span><br><span class="line">    style A fill:#90CAF9,stroke:#42A5F5,color:#000</span><br><span class="line">    style B fill:#64B5F6,stroke:#1E88E5,color:#000</span><br><span class="line">    style C fill:#42A5F5,stroke:#1565C0,color:#fff</span><br><span class="line">    style D fill:#EF9A9A,stroke:#E53935,color:#000</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">正常渲染中，GPU 逐层渲染（画完一层丢弃，画下一层）。</span><br><span class="line">但 masksToBounds 要求对所有层的&quot;合成结果&quot;做裁剪：</span><br><span class="line">→ GPU 无法在画每一层时单独裁剪（因为不知道最终合成效果）</span><br><span class="line">→ 必须先把所有层渲染到 Offscreen Buffer</span><br><span class="line">→ 然后对合成结果统一做圆角裁剪</span><br><span class="line">→ 最后写回 Frame Buffer</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>💡 这就是 <strong>“需要等所有子内容全部渲染完，才能做最终操作”</strong> 的典型场景。</p>
+</blockquote>
+<h3 id="3-3-shadow（无-shadowPath）"><a href="#3-3-shadow（无-shadowPath）" class="headerlink" title="3.3 shadow（无 shadowPath）"></a>3.3 shadow（无 shadowPath）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">阴影是根据 layer 内容的&quot;轮廓&quot;生成的</span><br><span class="line">→ GPU 需要先知道 layer 及其所有子 layer 的最终渲染结果</span><br><span class="line">→ 才能计算出准确的阴影形状</span><br><span class="line">→ 所以必须先离屏渲染所有内容 → 计算轮廓 → 画阴影</span><br><span class="line"></span><br><span class="line">✅ 指定 shadowPath 后：</span><br><span class="line">→ 告诉 GPU &quot;阴影就是这个形状，不用你去计算了&quot;</span><br><span class="line">→ GPU 可以直接画阴影，无需离屏</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-4-group-opacity（组透明度）"><a href="#3-4-group-opacity（组透明度）" class="headerlink" title="3.4 group opacity（组透明度）"></a>3.4 group opacity（组透明度）</h3><p>当 <code>layer.allowsGroupOpacity = YES</code> 时，父 layer 的透明度需要应用到”所有子 layer 合成后”的结果上。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">如果逐层单独应用透明度：</span><br><span class="line">  子layer1 × opacity + 子layer2 × opacity ≠ (子layer1 + 子layer2) × opacity</span><br><span class="line"></span><br><span class="line">数学上不等价！所以必须：</span><br><span class="line">→ 先把所有子 layer 渲染到 Offscreen Buffer（不带透明度）</span><br><span class="line">→ 对合成结果整体应用 opacity</span><br><span class="line">→ 写回 Frame Buffer</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-5-mask（遮罩）"><a href="#3-5-mask（遮罩）" class="headerlink" title="3.5 mask（遮罩）"></a>3.5 mask（遮罩）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mask 是一个独立的 layer，它的 alpha 通道决定原 layer 的可见区域</span><br><span class="line">→ 需要先渲染原 layer 的完整内容</span><br><span class="line">→ 再用 mask layer 做逐像素的 alpha 混合</span><br><span class="line">→ 两个独立图层的合成操作，必须在离屏缓冲区完成</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="4-GPU-渲染管线完整对比"><a href="#4-GPU-渲染管线完整对比" class="headerlink" title="4. GPU 渲染管线完整对比"></a>4. GPU 渲染管线完整对比</h2><h3 id="正常渲染管线"><a href="#正常渲染管线" class="headerlink" title="正常渲染管线"></a>正常渲染管线</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">    V[&quot;顶点处理&quot;] --&gt; R[&quot;光栅化&quot;] --&gt; F[&quot;片段着色&quot;] --&gt; W[&quot;写入&lt;br/&gt;Frame Buffer&quot;]</span><br><span class="line"></span><br><span class="line">    subgraph sram[&quot;🟢 在 Tile SRAM 中完成&quot;]</span><br><span class="line">        V</span><br><span class="line">        R</span><br><span class="line">        F</span><br><span class="line">    end</span><br><span class="line">    subgraph dram[&quot;写入 DRAM&quot;]</span><br><span class="line">        W</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    style sram fill:#E8F5E9,stroke:#4CAF50</span><br><span class="line">    style dram fill:#FFF3E0,stroke:#FF9800</span><br><span class="line">    style V fill:#66BB6A,stroke:#43A047,color:#fff</span><br><span class="line">    style R fill:#66BB6A,stroke:#43A047,color:#fff</span><br><span class="line">    style F fill:#66BB6A,stroke:#43A047,color:#fff</span><br><span class="line">    style W fill:#FFA726,stroke:#FB8C00,color:#fff</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>特点</strong>：单向流水线，1 个渲染 Pass，数据不回读。</p>
+</blockquote>
+<h3 id="离屏渲染管线"><a href="#离屏渲染管线" class="headerlink" title="离屏渲染管线"></a>离屏渲染管线</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">    subgraph pass1[&quot;Pass 1：渲染到 Offscreen Buffer&quot;]</span><br><span class="line">        V1[&quot;顶点处理&quot;] --&gt; R1[&quot;光栅化&quot;] --&gt; F1[&quot;片段着色&quot;] --&gt; W1[&quot;写入&lt;br/&gt;Offscreen Buffer&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    W1 --&gt; CS[&quot;⚡ Context Switch&lt;br/&gt;上下文切换&lt;br/&gt;清空管线&quot;]</span><br><span class="line"></span><br><span class="line">    subgraph pass2[&quot;Pass 2：合成到 Frame Buffer&quot;]</span><br><span class="line">        RD[&quot;读取&lt;br/&gt;Offscreen Buffer&quot;] --&gt; MIX[&quot;混合/裁剪&lt;br/&gt;/变换&quot;] --&gt; W2[&quot;写入&lt;br/&gt;Frame Buffer&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    CS --&gt; RD</span><br><span class="line"></span><br><span class="line">    style pass1 fill:#FFEBEE,stroke:#F44336</span><br><span class="line">    style pass2 fill:#FFEBEE,stroke:#F44336</span><br><span class="line">    style V1 fill:#EF5350,stroke:#E53935,color:#fff</span><br><span class="line">    style R1 fill:#EF5350,stroke:#E53935,color:#fff</span><br><span class="line">    style F1 fill:#EF5350,stroke:#E53935,color:#fff</span><br><span class="line">    style W1 fill:#EF5350,stroke:#E53935,color:#fff</span><br><span class="line">    style CS fill:#FF6F00,stroke:#E65100,color:#fff</span><br><span class="line">    style RD fill:#EF5350,stroke:#E53935,color:#fff</span><br><span class="line">    style MIX fill:#EF5350,stroke:#E53935,color:#fff</span><br><span class="line">    style W2 fill:#EF5350,stroke:#E53935,color:#fff</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>特点</strong>：多 Pass、需要回读数据、有上下文切换。延迟 &#x3D; 2+ 个渲染 Pass + 切换开销。</p>
+</blockquote>
+<hr>
+<h2 id="5-量化：离屏渲染到底慢多少"><a href="#5-量化：离屏渲染到底慢多少" class="headerlink" title="5. 量化：离屏渲染到底慢多少"></a>5. 量化：离屏渲染到底慢多少</h2><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>额外 GPU 时间</th>
+<th>影响</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>单个圆角 View</td>
+<td>~1-2ms</td>
+<td>基本无感</td>
+</tr>
+<tr>
+<td>Cell 中 5 个圆角 ImageView</td>
+<td>~5-10ms&#x2F;Cell</td>
+<td>轻微卡顿</td>
+</tr>
+<tr>
+<td>快速滑动（同时 8-10 个 Cell）</td>
+<td><strong>40-100ms</strong></td>
+<td>🔴 <strong>严重掉帧</strong></td>
+</tr>
+<tr>
+<td>16.67ms 帧预算</td>
+<td>—</td>
+<td>60fps 的单帧时间上限</td>
+</tr>
+</tbody></table>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">gantt</span><br><span class="line">    title 帧时间预算 vs 离屏渲染开销</span><br><span class="line">    dateFormat X</span><br><span class="line">    axisFormat %s ms</span><br><span class="line"></span><br><span class="line">    section 60fps 帧预算</span><br><span class="line">    16.67ms 帧预算          :done, 0, 16</span><br><span class="line"></span><br><span class="line">    section 正常渲染</span><br><span class="line">    GPU 渲染 (~5ms)         :active, 0, 5</span><br><span class="line"></span><br><span class="line">    section 单个离屏</span><br><span class="line">    GPU 渲染 + 离屏 (~7ms)  :active, 0, 7</span><br><span class="line"></span><br><span class="line">    section 列表滚动 (10个Cell × 5个圆角)</span><br><span class="line">    GPU 渲染 + 离屏 (~60ms) :crit, 0, 60</span><br></pre></td></tr></table></figure>
+
+<p><strong>特别严重的场景</strong>：</p>
+<ul>
+<li>📋 UITableView &#x2F; UICollectionView 中<strong>大量圆角头像</strong></li>
+<li>🃏 带阴影的<strong>卡片列表</strong></li>
+<li>🎭 复杂<strong>遮罩动画</strong></li>
+</ul>
+<p><strong>检测工具</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Instruments → Core Animation → 勾选 &quot;Color Offscreen-Rendered Yellow&quot;</span><br><span class="line">→ 离屏渲染区域将被高亮为黄色 🟡</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="6-shouldRasterize-的特殊情况"><a href="#6-shouldRasterize-的特殊情况" class="headerlink" title="6. shouldRasterize 的特殊情况"></a>6. shouldRasterize 的特殊情况</h2><figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">layer.shouldRasterize = <span class="literal">YES</span>;</span><br><span class="line">layer.rasterizationScale = [<span class="built_in">UIScreen</span> mainScreen].scale;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">flowchart TD</span><br><span class="line">    A[&quot;设置 shouldRasterize = YES&quot;] --&gt; B[&quot;第一帧：触发离屏渲染 🔴&quot;]</span><br><span class="line">    B --&gt; C[&quot;结果被 GPU 缓存为位图（bitmap）&quot;]</span><br><span class="line">    C --&gt; D&#123;&quot;后续帧：&lt;br/&gt;缓存命中？&quot;&#125;</span><br><span class="line">    D -- &quot;✅ 命中&quot; --&gt; E[&quot;直接使用缓存位图&lt;br/&gt;性能接近正常渲染 🟢&quot;]</span><br><span class="line">    D -- &quot;❌ 未命中&quot; --&gt; F[&quot;重新离屏渲染 🔴&quot;]</span><br><span class="line">    F --&gt; C</span><br><span class="line"></span><br><span class="line">    style A fill:#4A90D9,stroke:#2E6BA4,color:#fff</span><br><span class="line">    style B fill:#E74C3C,stroke:#C0392B,color:#fff</span><br><span class="line">    style C fill:#F5A623,stroke:#D4881E,color:#fff</span><br><span class="line">    style D fill:#E8E8E8,stroke:#999</span><br><span class="line">    style E fill:#50C878,stroke:#3DA35D,color:#fff</span><br><span class="line">    style F fill:#E74C3C,stroke:#C0392B,color:#fff</span><br></pre></td></tr></table></figure>
+
+<h3 id="缓存失效条件"><a href="#缓存失效条件" class="headerlink" title="缓存失效条件"></a>缓存失效条件</h3><table>
+<thead>
+<tr>
+<th>条件</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>layer 内容变化</td>
+<td>任何属性改变都会导致缓存失效</td>
+</tr>
+<tr>
+<td>超过 100ms 未使用</td>
+<td>缓存会被自动清除</td>
+</tr>
+<tr>
+<td>缓存尺寸超限</td>
+<td>超过屏幕像素 × 2.5 倍</td>
+</tr>
+</tbody></table>
+<h3 id="适用-vs-不适用"><a href="#适用-vs-不适用" class="headerlink" title="适用 vs 不适用"></a>适用 vs 不适用</h3><table>
+<thead>
+<tr>
+<th>✅ 适用场景</th>
+<th>❌ 不适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>内容不变的复杂视图</td>
+<td>内容频繁变化的视图</td>
+</tr>
+<tr>
+<td>静态圆角卡片</td>
+<td>动画中的视图</td>
+</tr>
+<tr>
+<td>固定阴影效果</td>
+<td>Cell 快速滚动（每帧内容不同）</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="7-优化方案汇总"><a href="#7-优化方案汇总" class="headerlink" title="7. 优化方案汇总"></a>7. 优化方案汇总</h2><h3 id="7-1-圆角优化"><a href="#7-1-圆角优化" class="headerlink" title="7.1 圆角优化"></a>7.1 圆角优化</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">flowchart TD</span><br><span class="line">    A[&quot;需要圆角效果&quot;] --&gt; B&#123;&quot;是否有子内容&lt;br/&gt;需要裁剪？&quot;&#125;</span><br><span class="line">    B -- &quot;否：仅背景色圆角&quot; --&gt; C[&quot;✅ 直接设置 cornerRadius&lt;br/&gt;不设 masksToBounds&quot;]</span><br><span class="line">    B -- &quot;是&quot; --&gt; D&#123;&quot;性能敏感？&quot;&#125;</span><br><span class="line">    D -- &quot;否&quot; --&gt; E[&quot;可接受离屏渲染&quot;]</span><br><span class="line">    D -- &quot;是&quot; --&gt; F[&quot;方案选择&quot;]</span><br><span class="line">    F --&gt; G[&quot;① 预处理圆角图片&lt;br/&gt;（后台线程绘制）&quot;]</span><br><span class="line">    F --&gt; H[&quot;② 覆盖圆角遮罩图层&lt;br/&gt;（用同背景色的遮罩盖住四角）&quot;]</span><br><span class="line">    F --&gt; I[&quot;③ CoreGraphics 绘制&lt;br/&gt;drawRect / UIBezierPath&quot;]</span><br><span class="line"></span><br><span class="line">    style C fill:#50C878,stroke:#3DA35D,color:#fff</span><br><span class="line">    style G fill:#50C878,stroke:#3DA35D,color:#fff</span><br><span class="line">    style H fill:#50C878,stroke:#3DA35D,color:#fff</span><br><span class="line">    style I fill:#50C878,stroke:#3DA35D,color:#fff</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ✅ 方案一：仅设 cornerRadius，不裁剪内容（不触发离屏）</span></span><br><span class="line">view.layer.cornerRadius = <span class="number">8</span>;</span><br><span class="line"><span class="comment">// 不设置 masksToBounds = YES</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 方案二：后台线程预处理圆角图片</span></span><br><span class="line"><span class="built_in">dispatch_async</span>(dispatch_get_global_queue(<span class="number">0</span>, <span class="number">0</span>), ^&#123;</span><br><span class="line">    <span class="built_in">UIGraphicsBeginImageContextWithOptions</span>(size, <span class="literal">NO</span>, scale);</span><br><span class="line">    <span class="built_in">UIBezierPath</span> *path = [<span class="built_in">UIBezierPath</span> bezierPathWithRoundedRect:rect</span><br><span class="line">                                                    cornerRadius:radius];</span><br><span class="line">    [path addClip];</span><br><span class="line">    [image drawInRect:rect];</span><br><span class="line">    <span class="built_in">UIImage</span> *roundedImage = <span class="built_in">UIGraphicsGetImageFromCurrentImageContext</span>();</span><br><span class="line">    <span class="built_in">UIGraphicsEndImageContext</span>();</span><br><span class="line"></span><br><span class="line">    <span class="built_in">dispatch_async</span>(dispatch_get_main_queue(), ^&#123;</span><br><span class="line">        imageView.image = roundedImage;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-阴影优化"><a href="#7-2-阴影优化" class="headerlink" title="7.2 阴影优化"></a>7.2 阴影优化</h3><figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 触发离屏渲染</span></span><br><span class="line">view.layer.shadowColor = [<span class="built_in">UIColor</span> blackColor].CGColor;</span><br><span class="line">view.layer.shadowOffset = <span class="built_in">CGSizeMake</span>(<span class="number">0</span>, <span class="number">2</span>);</span><br><span class="line">view.layer.shadowOpacity = <span class="number">0.3</span>;</span><br><span class="line">view.layer.shadowRadius = <span class="number">4</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 指定 shadowPath，避免离屏渲染</span></span><br><span class="line">view.layer.shadowPath = [<span class="built_in">UIBezierPath</span> bezierPathWithRoundedRect:view.bounds</span><br><span class="line">                                                   cornerRadius:<span class="number">8</span>].CGPath;</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-3-优化决策速查表"><a href="#7-3-优化决策速查表" class="headerlink" title="7.3 优化决策速查表"></a>7.3 优化决策速查表</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>问题</th>
+<th>优化方案</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>圆角 + 裁剪</td>
+<td>离屏渲染</td>
+<td>预处理圆角图 &#x2F; 覆盖遮罩</td>
+<td>✅ 消除离屏</td>
+</tr>
+<tr>
+<td>阴影</td>
+<td>离屏渲染</td>
+<td>指定 <code>shadowPath</code></td>
+<td>✅ 消除离屏</td>
+</tr>
+<tr>
+<td>组透明度</td>
+<td>离屏渲染</td>
+<td>关闭 <code>allowsGroupOpacity</code></td>
+<td>✅ 消除离屏</td>
+</tr>
+<tr>
+<td>遮罩</td>
+<td>离屏渲染</td>
+<td>用不透明视图替代 mask</td>
+<td>✅ 消除离屏</td>
+</tr>
+<tr>
+<td>静态复杂视图</td>
+<td>重复离屏</td>
+<td><code>shouldRasterize = YES</code></td>
+<td>✅ 缓存优化</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="8-总结"><a href="#8-总结" class="headerlink" title="8. 总结"></a>8. 总结</h2><h3 id="离屏渲染慢的三大核心原因"><a href="#离屏渲染慢的三大核心原因" class="headerlink" title="离屏渲染慢的三大核心原因"></a>离屏渲染慢的三大核心原因</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">    subgraph root[&quot;🔴 离屏渲染为什么慢？&quot;]</span><br><span class="line">        direction TB</span><br><span class="line">        A[&quot;1️⃣ GPU 上下文切换&lt;br/&gt;保存/恢复渲染管线状态&lt;br/&gt;+ flush 管线&lt;br/&gt;每次切换约微秒级延迟&quot;]</span><br><span class="line">        B[&quot;2️⃣ 额外内存 + 带宽&lt;br/&gt;Offscreen Buffer 占用显存&lt;br/&gt;数据 写入→读回→再写入&lt;br/&gt;iOS 共享内存带宽宝贵&quot;]</span><br><span class="line">        C[&quot;3️⃣ 破坏 TBDR 优化&lt;br/&gt;正常渲染在片上 SRAM 完成&lt;br/&gt;离屏被迫使用慢速 DRAM&lt;br/&gt;速度差距 10~100 倍&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    style root fill:#FFEBEE,stroke:#F44336</span><br><span class="line">    style A fill:#EF5350,stroke:#E53935,color:#fff</span><br><span class="line">    style B fill:#EF5350,stroke:#E53935,color:#fff</span><br><span class="line">    style C fill:#EF5350,stroke:#E53935,color:#fff</span><br></pre></td></tr></table></figure>
+
+<h3 id="核心结论"><a href="#核心结论" class="headerlink" title="核心结论"></a>核心结论</h3><blockquote>
+<ol>
+<li><strong>离屏渲染的本质</strong>：GPU 无法在一个 Pass 中完成某些复合效果，不得不借助额外的缓冲区做多步合成。</li>
+<li><strong>慢的根因</strong>：上下文切换 + 额外带宽 + 破坏 TBDR（iOS 上影响最大）。</li>
+<li><strong>单个离屏渲染可能不明显</strong>，但在列表滚动等高频场景下大量触发时，帧时间轻松超过 16.67ms，造成<strong>肉眼可见的卡顿</strong>。</li>
+<li><strong>优化原则</strong>：能避免就避免，避不开就用 <code>shouldRasterize</code> 缓存，或在 CPU 端预处理。</li>
+</ol>
+</blockquote>
+<hr>
+
+    </div>
+  </div>
+
+  
+    <nav class="art-end">
+      <span class="head-spacer"></span>
+      <div class="end-grid">
+        
+          <a href="/2026/05/18/SDWebImage%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90/">
+            <div class="lab">◄ PREV</div>
+            <div class="ti">SDWebImage 深度剖析</div>
+          </a>
+        
+        
+          <a href="/2026/04/13/OpenSpec%E6%96%87%E6%A1%A3%E8%AF%A6%E8%A7%A3/" class="end">
+            <div class="lab">NEXT ►</div>
+            <div class="ti">OpenSpec 文档体系与归档机制详解</div>
+          </a>
+        
+      </div>
+    </nav>
+  
+
+  
+
+</article>
+
+</main>
+
+<footer class="f">
+  <div class="f-inner">
+    <span><span class="prompt">$ </span>echo "© Floki · Code Notes "</span>
+    
+    
+      <span id="busuanzi_container_site_pv">
+        <span class="prompt">★ </span>visitors × <span id="busuanzi_value_site_pv"></span>
+      </span>
+    
+  </div>
+</footer>
+
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+  <script>
+    window.PT_CAT_BUDDY = {"src":"/img/cat.png","size":100,"corner":"br","followMouse":true,"phrases":["MEOW.EXE","SUDO PURR","> PET ME","HP +1","RUA~","CTRL+M","PRESS A"]};
+  </script>
+  <script src="/js/cat-buddy.js" defer></script>
+
+
+
+<!-- 第三方库 -->
+
+  
+    <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
+
+<script src="/js/pixelterm.js"></script>
+
+  <script src="/js/toc.js" defer></script>
+
+
+
+  <script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      document.querySelectorAll('.prose').forEach(function(g){
+        if (typeof lightGallery !== 'function') return;
+        lightGallery(g, {
+          selector: 'img',
+          plugins: [
+            window.lgZoom,
+            window.lgThumbnail,
+            window.lgRotate,
+            window.lgFullscreen,
+            
+          ].filter(Boolean),
+          download: false
+        });
+      });
+    });
+  </script>
+
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/js/mermaid-init.js"></script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>13. TabBar 演化 — 微信/抖音/小红书</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/shared.css">
+<script src="../assets/theme.js"></script>
+<style>
+  body { background: #f5f6fa; font-family: -apple-system, "PingFang SC", sans-serif; margin: 0; padding: 24px; color: #2d3748; }
+  .nav { max-width: 1000px; margin: 0 auto 16px; display: flex; justify-content: space-between; font-size: 13px; }
+  .nav a { color: #4facfe; text-decoration: none; }
+  .container { max-width: 1000px; margin: 0 auto; }
+  .header { background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%); color: white; padding: 28px; border-radius: 14px; margin-bottom: 20px; }
+  .header h1 { margin: 0 0 8px; font-size: 22px; }
+  .header p { margin: 0; opacity: 0.95; font-size: 14px; line-height: 1.7; }
+
+  /* 三种 TabBar 横向并排 */
+  .phones { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 14px; }
+  .phone { background: #fff; border-radius: 22px; padding: 8px; box-shadow: 0 8px 28px rgba(0,0,0,0.15); overflow: hidden; }
+  .phone-screen { background: #f5f6fa; height: 320px; border-radius: 16px; position: relative; overflow: hidden; }
+  .phone-label { text-align: center; font-size: 12px; font-weight: 600; padding: 8px 0 6px; color: #1a1a2e; }
+  .phone-sub { text-align: center; font-size: 10px; color: #6c7293; padding-bottom: 8px; }
+
+  /* 通用 TabBar 底部样式 */
+  .tabbar { position: absolute; left: 0; right: 0; bottom: 0; height: 56px; background: white; border-top: 1px solid #f0f1f5; display: flex; }
+  .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 9px; color: #999; cursor: pointer; }
+  .tab-item.active { color: #1a1a2e; font-weight: 600; }
+  .tab-item .ico { font-size: 18px; }
+
+  /* 微信式：上下结构 */
+  .wx .tab-item.active { color: #07c160; }
+
+  /* 抖音式：黑底白字 + 中间发布按钮 */
+  .douyin .tabbar { background: #000; border-top: none; }
+  .douyin .tab-item { color: #999; }
+  .douyin .tab-item.active { color: white; }
+  .douyin .center-btn {
+    width: 38px; height: 26px; border-radius: 6px;
+    background: linear-gradient(90deg, #ff0050, #00e0d0);
+    margin: auto;
+    position: relative;
+  }
+  .douyin .center-btn::before, .douyin .center-btn::after {
+    content: ''; position: absolute; width: 6px; height: 26px; border-radius: 6px; top: 0;
+  }
+  .douyin .center-btn::before { background: #25f4ee; left: -3px; }
+  .douyin .center-btn::after  { background: #fe2c55; right: -3px; }
+  .douyin .center-btn .plus {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: black; font-size: 18px; font-weight: 700; line-height: 1;
+  }
+
+  /* 小红书式：凸起圆按钮 */
+  .xhs .center-btn {
+    width: 44px; height: 28px; border-radius: 14px;
+    background: #ff2442; color: white; display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700;
+    margin: auto;
+    box-shadow: 0 2px 8px rgba(255,36,66,0.4);
+  }
+  .xhs .tab-item.active { color: #ff2442; }
+
+  /* 徽标 */
+  .badge {
+    position: absolute; background: #ff3b30; color: white;
+    font-size: 9px; font-weight: 600; min-width: 14px; height: 14px;
+    border-radius: 7px; display: flex; align-items: center; justify-content: center;
+    top: 2px; right: 8px; padding: 0 4px; line-height: 1;
+  }
+  .red-dot {
+    position: absolute; width: 6px; height: 6px; background: #ff3b30;
+    border-radius: 3px; top: 8px; right: 14px;
+  }
+
+  /* 设计要点表 */
+  table.metrics { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+  table.metrics th, table.metrics td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ecedf1; vertical-align: top; }
+  table.metrics th { background: #f5f6fa; }
+  table.metrics tr:nth-child(2) td { background: #fffbf0; }
+
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .compare-card { background: #f9fafc; border-radius: 10px; padding: 14px; }
+  .compare-card.bad { border-top: 3px solid #ef5350; }
+  .compare-card.good { border-top: 3px solid #4caf50; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="../index.html">← 返回主菜单</a>
+  <span>
+    <a href="12_pull_refresh.html">← 上一个</a> &nbsp;|&nbsp;
+    <a href="14_ecommerce_feed.html">下一个 →</a>
+  </span>
+</div>
+
+<div class="container">
+
+  <div class="header">
+    <h1>📱 TabBar 演化 — 微信 / 抖音 / 小红书 三种范式</h1>
+    <p>TabBar 是 App 的"门面"。三家头部 App 走出了三条不同的路：<b>微信</b>追求克制和功能性，<b>抖音</b>突出沉浸感和创作入口，<b>小红书</b>在两者间找平衡 + 强化品牌色。设计差异背后是<b>用户心智模型</b>的差异。</p>
+  </div>
+
+  <!-- 视觉对比 -->
+  <div class="section-block">
+    <h2>🎨 三种 TabBar 视觉并排对比</h2>
+    <div class="phones">
+
+      <!-- 微信式 -->
+      <div>
+        <div class="phone">
+          <div class="phone-screen">
+            <div style="padding: 12px; font-size: 11px; color: #6c7293;">微信式：克制、对称、信息密度高</div>
+            <div class="tabbar wx">
+              <div class="tab-item active">
+                <div class="ico">💬</div>
+                微信
+                <div class="badge">99+</div>
+              </div>
+              <div class="tab-item">
+                <div class="ico">👥</div>
+                通讯录
+                <div class="red-dot"></div>
+              </div>
+              <div class="tab-item">
+                <div class="ico">🔍</div>
+                发现
+              </div>
+              <div class="tab-item">
+                <div class="ico">👤</div>
+                我
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">微信 · 4 Tab</div>
+        <div class="phone-sub">无中央按钮 · 工具属性 · 极简</div>
+      </div>
+
+      <!-- 抖音式 -->
+      <div>
+        <div class="phone">
+          <div class="phone-screen" style="background: #111;">
+            <div style="padding: 12px; font-size: 11px; color: #888;">抖音式：黑底沉浸、突出发布按钮</div>
+            <div class="tabbar douyin">
+              <div class="tab-item active">
+                <div class="ico">🏠</div>
+                首页
+              </div>
+              <div class="tab-item">
+                <div class="ico">👥</div>
+                朋友
+              </div>
+              <div class="tab-item">
+                <div class="center-btn">
+                  <span class="plus">+</span>
+                </div>
+              </div>
+              <div class="tab-item">
+                <div class="ico">📩</div>
+                消息
+                <div class="badge">3</div>
+              </div>
+              <div class="tab-item">
+                <div class="ico">👤</div>
+                我
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">抖音 · 5 Tab + 中央 CTA</div>
+        <div class="phone-sub">黑色 TabBar · 让用户"发"是核心 KPI</div>
+      </div>
+
+      <!-- 小红书式 -->
+      <div>
+        <div class="phone">
+          <div class="phone-screen">
+            <div style="padding: 12px; font-size: 11px; color: #6c7293;">小红书式：白底品牌色、凸起 CTA</div>
+            <div class="tabbar xhs">
+              <div class="tab-item active">
+                <div class="ico">📷</div>
+                首页
+              </div>
+              <div class="tab-item">
+                <div class="ico">🛒</div>
+                购物
+              </div>
+              <div class="tab-item">
+                <div class="center-btn">+</div>
+              </div>
+              <div class="tab-item">
+                <div class="ico">💬</div>
+                消息
+                <div class="badge">12</div>
+              </div>
+              <div class="tab-item">
+                <div class="ico">👤</div>
+                我
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">小红书 · 5 Tab + 圆角发布键</div>
+        <div class="phone-sub">白底 + 品牌红 · 内容社区平衡感</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 设计哲学 -->
+  <div class="section-block">
+    <h2>🧠 设计哲学差异</h2>
+    <table class="metrics">
+      <tr>
+        <th>维度</th><th>微信</th><th>抖音</th><th>小红书</th>
+      </tr>
+      <tr>
+        <td>背景色</td>
+        <td>白色 / Dark Mode 跟随</td>
+        <td><b>黑色（永远）</b></td>
+        <td>白色</td>
+      </tr>
+      <tr>
+        <td>核心心智</td>
+        <td>工具：进来"查 / 处理"消息</td>
+        <td>消费 + 创作：进来"看 / 发"短视频</td>
+        <td>消费 + 创作：进来"看 / 发"图文</td>
+      </tr>
+      <tr>
+        <td>中央 CTA</td>
+        <td><b>不需要</b>（工具不强行引导发起）</td>
+        <td>多色矩形发布键，永远高亮</td>
+        <td>红色圆角发布键</td>
+      </tr>
+      <tr>
+        <td>Tab 数量</td>
+        <td>4（够用即可）</td>
+        <td>5（含中央 CTA）</td>
+        <td>5（含中央 CTA）</td>
+      </tr>
+      <tr>
+        <td>双击交互</td>
+        <td>双击切到"未读消息"</td>
+        <td>双击刷新 / 切换"关注/推荐"</td>
+        <td>双击刷新</td>
+      </tr>
+      <tr>
+        <td>徽标策略</td>
+        <td>精确数字（99+ 上限）</td>
+        <td>红点 + 数字（克制）</td>
+        <td>数字（精确）</td>
+      </tr>
+      <tr>
+        <td>选中态</td>
+        <td>icon 变实心 + 颜色变绿</td>
+        <td>icon + 文字变白</td>
+        <td>icon + 文字变红</td>
+      </tr>
+    </table>
+
+    <div class="explain success" style="margin-top:16px;">
+      <span class="h">关键洞察：</span>
+      TabBar 设计反映的是"<b>这个 App 想让你做什么</b>"。微信的克制 = 不打扰；抖音的发布键 = 创作者经济；小红书的红色 CTA = 品牌识别度 + 鼓励 UGC。
+    </div>
+  </div>
+
+  <!-- 完整代码 -->
+  <div class="section-block">
+    <h2>📦 完整实现 —— 凸起 TabBar（小红书/抖音通用）</h2>
+    <div class="section-subtitle">系统 UITabBarController 不直接支持中央凸起按钮，需自定义 UITabBar</div>
+
+    <h3 style="margin-top:18px;font-size:14px;">1️⃣ 自定义 TabBar 子类</h3>
+<div class="code-block"><span class="comm">// CustomTabBar.h</span>
+<span class="kw">@interface</span> <span class="type">CustomTabBar</span> : <span class="type">UITabBar</span>
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">copy</span>) <span class="kw">void</span> (^onCenterButtonTap)(<span class="kw">void</span>);
+<span class="kw">@end</span>
+
+<span class="comm">// CustomTabBar.m</span>
+<span class="kw">@implementation</span> <span class="type">CustomTabBar</span> {
+    <span class="type">UIButton</span> *_centerButton;
+}
+
+<span class="kw">- (instancetype)</span><span class="meth">initWithFrame:</span>(<span class="type">CGRect</span>)frame {
+    <span class="kw">if</span> (<span class="kw">self</span> = [<span class="kw">super</span> <span class="meth">initWithFrame:</span>frame]) {
+        _centerButton = [<span class="type">UIButton</span> buttonWithType:<span class="type">UIButtonTypeCustom</span>];
+        [_centerButton setImage:[<span class="type">UIImage</span> systemImageNamed:<span class="str">@"plus"</span>] forState:<span class="type">UIControlStateNormal</span>];
+        _centerButton.tintColor = [<span class="type">UIColor</span> whiteColor];
+        _centerButton.backgroundColor = [<span class="type">UIColor</span> colorWithRed:<span class="num">1.0</span> green:<span class="num">0.14</span> blue:<span class="num">0.26</span> alpha:<span class="num">1</span>];
+        _centerButton.layer.cornerRadius = <span class="num">14</span>;
+        _centerButton.layer.shadowColor = [<span class="type">UIColor</span> colorWithRed:<span class="num">1.0</span> green:<span class="num">0.14</span> blue:<span class="num">0.26</span> alpha:<span class="num">0.4</span>].<span class="type">CGColor</span>;
+        _centerButton.layer.shadowOpacity = <span class="num">1</span>;
+        _centerButton.layer.shadowRadius = <span class="num">8</span>;
+        _centerButton.layer.shadowOffset = <span class="type">CGSizeMake</span>(<span class="num">0</span>, <span class="num">2</span>);
+        [_centerButton addTarget:<span class="kw">self</span> action:<span class="meth">@selector</span>(centerTapped) forControlEvents:<span class="type">UIControlEventTouchUpInside</span>];
+        [<span class="kw">self</span> addSubview:_centerButton];
+    }
+    <span class="kw">return</span> <span class="kw">self</span>;
+}
+
+<span class="kw">- (void)</span><span class="meth">layoutSubviews</span> {
+    [<span class="kw">super</span> <span class="meth">layoutSubviews</span>];
+
+    <span class="comm">// ⭐ 1. 把中央按钮摆放到正中</span>
+    <span class="type">CGFloat</span> btnW = <span class="num">44</span>, btnH = <span class="num">28</span>;
+    _centerButton.frame = <span class="type">CGRectMake</span>((<span class="kw">self</span>.bounds.size.width - btnW) / <span class="num">2</span>,
+                                       (<span class="num">49</span> - btnH) / <span class="num">2</span>,   <span class="comm">// 49 是系统 TabBar 内容高度</span>
+                                       btnW, btnH);
+
+    <span class="comm">// ⭐ 2. 把系统的 4 个 tabBarButton 重新均分布局</span>
+    <span class="comm">//     默认会占满中间空隙，需要手动让出中间</span>
+    <span class="type">NSMutableArray</span> *tabButtons = [<span class="type">NSMutableArray</span> array];
+    <span class="kw">for</span> (<span class="type">UIView</span> *v <span class="kw">in</span> <span class="kw">self</span>.subviews) {
+        <span class="kw">if</span> ([NSStringFromClass(v.class) isEqualToString:<span class="str">@"UITabBarButton"</span>]) {
+            [tabButtons addObject:v];
+        }
+    }
+
+    <span class="type">CGFloat</span> tabW = <span class="kw">self</span>.bounds.size.width / (tabButtons.count + <span class="num">1</span>);
+    <span class="type">NSInteger</span> mid = tabButtons.count / <span class="num">2</span>;
+    [tabButtons enumerateObjectsUsingBlock:^(<span class="type">UIView</span> *btn, <span class="type">NSUInteger</span> i, <span class="type">BOOL</span> *stop) {
+        <span class="type">CGFloat</span> x = i * tabW;
+        <span class="kw">if</span> (i &gt;= mid) x += tabW;   <span class="comm">// ⭐ 中间留出一个 tab 宽度给中央按钮</span>
+        btn.frame = <span class="type">CGRectMake</span>(x, btn.frame.origin.y, tabW, btn.frame.size.height);
+    }];
+}
+
+<span class="kw">- (void)</span><span class="meth">centerTapped</span> {
+    <span class="kw">if</span> (<span class="kw">self</span>.onCenterButtonTap) <span class="kw">self</span>.onCenterButtonTap();
+}
+
+<span class="comm">// ⭐ 关键：让超出 TabBar 区域的中央按钮也能响应点击（如果按钮高出 TabBar）</span>
+<span class="kw">- (UIView *)</span><span class="meth">hitTest:</span>(<span class="type">CGPoint</span>)point <span class="meth">withEvent:</span>(<span class="type">UIEvent</span> *)event {
+    <span class="kw">if</span> (![<span class="kw">self</span> pointInside:point withEvent:event]) {
+        <span class="type">CGPoint</span> p = [<span class="kw">self</span> convertPoint:point toView:_centerButton];
+        <span class="kw">if</span> ([_centerButton pointInside:p withEvent:event]) {
+            <span class="kw">return</span> _centerButton;
+        }
+    }
+    <span class="kw">return</span> [<span class="kw">super</span> <span class="meth">hitTest:</span>point withEvent:event];
+}
+<span class="kw">@end</span></div>
+
+    <h3 style="margin-top:24px;font-size:14px;">2️⃣ 替换系统 TabBar</h3>
+<div class="code-block"><span class="kw">@implementation</span> <span class="type">MainTabBarController</span>
+
+<span class="kw">- (void)</span><span class="meth">viewDidLoad</span> {
+    [<span class="kw">super</span> <span class="meth">viewDidLoad</span>];
+
+    <span class="comm">// ⭐ 用 KVC 把系统 tabBar 替换成自定义</span>
+    <span class="type">CustomTabBar</span> *bar = [[<span class="type">CustomTabBar</span> alloc] init];
+    [<span class="kw">self</span> setValue:bar forKey:<span class="str">@"tabBar"</span>];
+
+    <span class="kw">__weak</span> <span class="kw">typeof</span>(<span class="kw">self</span>) weakSelf = <span class="kw">self</span>;
+    bar.onCenterButtonTap = ^{
+        [weakSelf <span class="meth">presentPublishViewController</span>];
+    };
+
+    <span class="comm">// ⭐ 设置 4 个 viewController（中央按钮不算 tab）</span>
+    <span class="kw">self</span>.viewControllers = @[
+        [<span class="kw">self</span> <span class="meth">wrap:</span>[<span class="type">HomeVC</span> new] title:<span class="str">@"首页"</span>      icon:<span class="str">@"house.fill"</span>],
+        [<span class="kw">self</span> <span class="meth">wrap:</span>[<span class="type">ShopVC</span> new] title:<span class="str">@"购物"</span>      icon:<span class="str">@"bag.fill"</span>],
+        [<span class="kw">self</span> <span class="meth">wrap:</span>[<span class="type">MessageVC</span> new] title:<span class="str">@"消息"</span>   icon:<span class="str">@"message.fill"</span>],
+        [<span class="kw">self</span> <span class="meth">wrap:</span>[<span class="type">ProfileVC</span> new] title:<span class="str">@"我"</span>      icon:<span class="str">@"person.fill"</span>],
+    ];
+}
+
+<span class="kw">- (void)</span><span class="meth">presentPublishViewController</span> {
+    <span class="comm">// ⭐ 中央按钮不切 tab，而是 modal 出发布页</span>
+    <span class="type">PublishVC</span> *vc = [[<span class="type">PublishVC</span> alloc] init];
+    vc.modalPresentationStyle = <span class="type">UIModalPresentationFullScreen</span>;
+    [<span class="kw">self</span> presentViewController:vc animated:<span class="type">YES</span> completion:<span class="kw">nil</span>];
+}
+<span class="kw">@end</span></div>
+
+    <h3 style="margin-top:24px;font-size:14px;">3️⃣ 双击 Tab 触发刷新（抖音/微博通用）</h3>
+<div class="code-block"><span class="comm">// UITabBarControllerDelegate</span>
+<span class="kw">- (void)</span><span class="meth">tabBarController:</span>(<span class="type">UITabBarController</span> *)tbc
+   <span class="meth">didSelectViewController:</span>(<span class="type">UIViewController</span> *)vc {
+
+    <span class="comm">// ⭐ 检测是否是"重复点击当前 tab"</span>
+    <span class="kw">static</span> <span class="type">UIViewController</span> *lastVC = <span class="kw">nil</span>;
+    <span class="kw">static</span> <span class="type">NSTimeInterval</span> lastTime = <span class="num">0</span>;
+    <span class="type">NSTimeInterval</span> now = [<span class="type">NSDate</span> timeIntervalSinceReferenceDate];
+
+    <span class="kw">if</span> (vc == lastVC &amp;&amp; (now - lastTime) &lt; <span class="num">0.5</span>) {
+        <span class="comm">// 双击间隔 &lt; 500ms，触发刷新</span>
+        <span class="kw">if</span> ([vc respondsToSelector:<span class="meth">@selector</span>(scrollToTopAndRefresh)]) {
+            [(<span class="type">id</span>)vc <span class="meth">scrollToTopAndRefresh</span>];
+        }
+    }
+    lastVC = vc;
+    lastTime = now;
+}</div>
+
+    <div class="explain">
+      <span class="h">为什么用 hitTest 处理中央按钮？</span><br>
+      如果中央按钮高于 TabBar（凸起设计），按钮顶部超出 TabBar 的部分点不到。重写 <code>hitTest:withEvent:</code> 让事件穿透到 _centerButton 才能正常响应。
+    </div>
+  </div>
+
+  <!-- 徽标管理 -->
+  <div class="section-block">
+    <h2>🔴 徽标（Badge）管理 — 三家做法对比</h2>
+
+<div class="code-block"><span class="comm">// 微信式：精确数字 + 上限</span>
+<span class="kw">- (void)</span><span class="meth">updateUnreadCount:</span>(<span class="type">NSInteger</span>)count {
+    <span class="kw">self</span>.tabBarItem.badgeValue = count &gt; <span class="num">0</span>
+        ? (count &gt; <span class="num">99</span> ? <span class="str">@"99+"</span> : [<span class="type">NSString</span> stringWithFormat:<span class="str">@"%ld"</span>, count])
+        : <span class="kw">nil</span>;
+}
+
+<span class="comm">// 小红点（不显示数字）</span>
+<span class="kw">- (void)</span><span class="meth">showRedDot:</span>(<span class="type">BOOL</span>)show {
+    <span class="kw">if</span> (show) {
+        <span class="kw">self</span>.tabBarItem.badgeValue = <span class="str">@""</span>;   <span class="comm">// 空字符串显示一个小红点</span>
+        <span class="kw">self</span>.tabBarItem.badgeColor = [<span class="type">UIColor</span> systemRedColor];
+    } <span class="kw">else</span> {
+        <span class="kw">self</span>.tabBarItem.badgeValue = <span class="kw">nil</span>;
+    }
+}
+
+<span class="comm">// 设备级徽标（App icon 的红点，需 push 权限）</span>
+[<span class="type">UIApplication</span>.sharedApplication setApplicationIconBadgeNumber:count];</div>
+
+    <div class="explain warn">
+      <span class="h">徽标的体验红线：</span><br>
+      1. 数字超过 99+ 一律显示 "99+"，避免长数字撑破 UI<br>
+      2. 红点不能滥用 —— 微信"通讯录"的红点是有了新好友请求才显示，不是"有任何更新"<br>
+      3. App 进入对应页面后徽标必须立刻清掉，不要等到下次进入才清
+    </div>
+  </div>
+
+  <!-- 反例 -->
+  <div class="section-block">
+    <h2>⚖️ 反例 vs 正例</h2>
+    <div class="compare-grid">
+      <div class="compare-card bad">
+        <h4>❌ 反例：5 个普通 Tab，全是文字</h4>
+        <div class="explain danger" style="font-size:12px;">
+          常见错误：信息架构混乱，把"创建"埋进二级菜单。<br>
+          后果：核心动作（发布/购买）的转化率显著下降，因为入口深度 +1 就要损失 30%+ 用户。
+        </div>
+      </div>
+      <div class="compare-card good">
+        <h4>✅ 正例：核心动作中央 CTA</h4>
+        <div class="explain success" style="font-size:12px;">
+          抖音、小红书、闲鱼、Keep、知乎都用这套：<br>
+          中央按钮永远是 App 最希望用户做的那个动作。<br>
+          视觉上凸起 + 品牌色，用户一眼看到。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 跨 App 总结 -->
+  <div class="section-block">
+    <h2>🎓 设计亮点提炼（可借鉴）</h2>
+    <div class="explain success">
+      <span class="h">借鉴 1（来自微信）：图标的"实心/线性"切换</span><br>
+      未选中用线性 icon，选中用实心 icon。这种"形状变化"比单纯"颜色变化"更易感知，对老年用户尤其友好。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 2（来自抖音）：永远黑色 TabBar</span><br>
+      内容沉浸式 App 里，黑色 TabBar 不会和内容争抢注意力。永远黑色 = 永远不切深浅色（给视频/图片完整呈现）。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 3（来自小红书）：双 CTA</span><br>
+      首页右上角还有一个"+ 发布"入口（次级），中央按钮是主要入口。<b>主入口 + 备用入口</b>能覆盖更多用户习惯。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 4（来自微博）：双击切换"关注/推荐"</span><br>
+      首页 Tab 双击在两种 feed 间快速切换。比顶部分段控件更省手指距离，是"高频操作就近原则"的典范。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 5（来自 Apple Music / Apple Mail）：选中 Tab 二次点击 = 滚回顶部</span><br>
+      用户对此已形成肌肉记忆。一定要支持，否则用户会困惑"为什么这个 App 不行"。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

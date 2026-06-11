@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hexo + pixelterm v1.0.0">
+<meta name="description" content="一个写作爱好者的在线笔记本">
+<meta name="author" content="floki">
+<meta name="theme-color" content="#0b0f14">
+
+<title>Floki</title>
+
+<link rel="icon" type="image/png" href="/img/cat.png">
+
+<!-- 字体（与设计稿一致） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css">
+
+<!-- 主题样式 -->
+<link rel="stylesheet" href="/css/pixelterm.css">
+<!-- 移动端适配增强（必须放在 pixelterm.css 之后） -->
+<link rel="stylesheet" href="/css/mobile.css">
+
+  <link rel="stylesheet" href="/css/mermaid.css">
+
+
+  <link rel="stylesheet" href="/css/lightgallery.min.css">
+
+
+<!-- 代码高亮（内置 IDE 风格：暗色 One Dark / 亮色 GitHub Light，跟随主题切换） -->
+<link rel="stylesheet" href="/css/highlight.css">
+
+<!-- 自定义 CSS 注入 -->
+
+
+
+<!-- 主题模式优先注入（避免闪屏） -->
+<script>
+(function(){
+  var def = 'auto';
+  var t;
+  try { t = localStorage.getItem('pt-theme'); } catch(e){}
+  if(!t){
+    t = (def === 'auto')
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : def;
+  }
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+
+<body class="layout-default">
+
+<!-- 全屏背景层（CSS pseudos 提供 CRT 扫描线/vignette；下面是 canvas + grid） -->
+
+  <canvas id="rain" aria-hidden="true"></canvas>
+
+<div class="pix-grid" aria-hidden="true"></div>
+
+<div class="titlebar">
+  <div class="dots"><i></i><i></i><i></i></div>
+  <div class="path">— <b>floki@pixelterm</b>: <span>~/blog</span> — zsh — </div>
+  <div class="right">
+    <span class="clock" data-clock>00:00:00</span>
+    <div class="menu">
+      
+        <a href="/" class="">HOME</a>
+      
+        <a href="/list/" class="">POSTS</a>
+      
+        <a href="/categories/" class="">CATEGORIES</a>
+      
+        <a href="/tags/" class="">TAGS</a>
+      
+        <a href="/about/" class="">ABOUT</a>
+      
+    </div>
+    
+      <button class="theme-toggle" data-theme-toggle aria-label="toggle theme">
+        <span class="icon moon">☾</span>
+        <span class="icon sun">☀</span>
+        <span class="knob"></span>
+      </button>
+    
+  </div>
+</div>
+
+
+<main class="shell">
+  
+
+<header class="archive-head">
+  <h1>archives/2024/09/</h1>
+  
+    <p>total <b>1</b> entries · sorted by date desc</p>
+  
+</header>
+
+
+  <div class="year-pill fade">═ 2024<span class="count">[1]</span></div>
+  <table class="tbl fade">
+    <thead>
+      <tr>
+        <th>perm</th>
+        <th>date</th>
+        <th>cat</th>
+        <th>size</th>
+        <th>name</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+        <tr onclick="location.href='/2024/09/01/Effective_STL/'">
+          <td class="perm">-rw-rw-r--</td>
+          <td class="date">09/01 14:55</td>
+          <td class="tag">技术</td>
+          <td class="size">1.1k</td>
+          <td class="title"><a href="/2024/09/01/Effective_STL/">Effective_STL.md</a></td>
+        </tr>
+      
+    </tbody>
+  </table>
+
+
+
+
+
+</main>
+
+<footer class="f">
+  <div class="f-inner">
+    <span><span class="prompt">$ </span>echo "© Floki · Code Notes "</span>
+    
+    
+      <span id="busuanzi_container_site_pv">
+        <span class="prompt">★ </span>visitors × <span id="busuanzi_value_site_pv"></span>
+      </span>
+    
+  </div>
+</footer>
+
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+  <script>
+    window.PT_CAT_BUDDY = {"src":"/img/cat.png","size":100,"corner":"br","followMouse":true,"phrases":["MEOW.EXE","SUDO PURR","> PET ME","HP +1","RUA~","CTRL+M","PRESS A"]};
+  </script>
+  <script src="/js/cat-buddy.js" defer></script>
+
+
+
+<!-- 第三方库 -->
+
+  
+    <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
+
+<script src="/js/pixelterm.js"></script>
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

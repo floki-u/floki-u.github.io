@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hexo + pixelterm v1.0.0">
+<meta name="description" content="一个写作爱好者的在线笔记本">
+<meta name="author" content="floki">
+<meta name="theme-color" content="#0b0f14">
+
+<title>LLM 基本术语入门 · Floki</title>
+
+<link rel="icon" type="image/png" href="/img/cat.png">
+
+<!-- 字体（与设计稿一致） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css">
+
+<!-- 主题样式 -->
+<link rel="stylesheet" href="/css/pixelterm.css">
+<!-- 移动端适配增强（必须放在 pixelterm.css 之后） -->
+<link rel="stylesheet" href="/css/mobile.css">
+
+  <link rel="stylesheet" href="/css/mermaid.css">
+
+
+  <link rel="stylesheet" href="/css/lightgallery.min.css">
+
+
+<!-- 代码高亮（内置 IDE 风格：暗色 One Dark / 亮色 GitHub Light，跟随主题切换） -->
+<link rel="stylesheet" href="/css/highlight.css">
+
+<!-- 自定义 CSS 注入 -->
+
+
+
+<!-- 主题模式优先注入（避免闪屏） -->
+<script>
+(function(){
+  var def = 'auto';
+  var t;
+  try { t = localStorage.getItem('pt-theme'); } catch(e){}
+  if(!t){
+    t = (def === 'auto')
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : def;
+  }
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+
+<body class="layout-post">
+
+<!-- 全屏背景层（CSS pseudos 提供 CRT 扫描线/vignette；下面是 canvas + grid） -->
+
+  <canvas id="rain" aria-hidden="true"></canvas>
+
+<div class="pix-grid" aria-hidden="true"></div>
+
+<div class="titlebar">
+  <div class="dots"><i></i><i></i><i></i></div>
+  <div class="path">— <b>floki@pixelterm</b>: <span>~/LLM 基本术语入门</span> — zsh — </div>
+  <div class="right">
+    <span class="clock" data-clock>00:00:00</span>
+    <div class="menu">
+      
+        <a href="/" class="">HOME</a>
+      
+        <a href="/list/" class="">POSTS</a>
+      
+        <a href="/categories/" class="">CATEGORIES</a>
+      
+        <a href="/tags/" class="">TAGS</a>
+      
+        <a href="/about/" class="">ABOUT</a>
+      
+    </div>
+    
+      <button class="theme-toggle" data-theme-toggle aria-label="toggle theme">
+        <span class="icon moon">☾</span>
+        <span class="icon sun">☀</span>
+        <span class="knob"></span>
+      </button>
+    
+  </div>
+</div>
+
+
+<main class="shell">
+  
+<article class="article ">
+  <header class="art-head fade">
+    <span class="head-spacer"></span>
+    <div class="head-inner" data-vim="LLM 基本术语入门.md   --  2025/08/09">
+      <span class="art-tag">AI</span>
+      
+        <span class="art-tag cyan">技术</span>
+      
+      <h1 class="art-title">LLM 基本术语入门</h1>
+      <div class="art-meta">
+  
+    <span>2025-08-09</span>
+  
+  
+    <span>updated <b>2026-06-11</b></span>
+  
+  
+    <span><b>2k</b> words</span>
+  
+  
+    <span>▶ <b>7</b> min</span>
+  
+  
+    <span id="busuanzi_container_page_pv">views <b><span id="busuanzi_value_page_pv"></span></b></span>
+  
+  
+    <span>in
+      
+        <a href="/categories/%E6%8A%80%E6%9C%AF/">技术</a>
+      
+    </span>
+  
+  
+    <span>tags
+      
+        <a href="/tags/AI/">#AI</a>
+      
+    </span>
+  
+</div>
+
+    </div>
+  </header>
+
+  <div class="art-body">
+    
+
+  
+    <aside class="toc-card" data-toc>
+      <h5>QUEST LOG</h5>
+      <ol class="pt-toc-inner"><li class="pt-toc-inner-item pt-toc-inner-level-1"><a class="pt-toc-inner-link" href="#LLM-%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD%E5%85%A5%E9%97%A8"><span class="pt-toc-inner-text">LLM 基本术语入门</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B-Large-Language-Model"><span class="pt-toc-inner-text">大语言模型 Large Language Model</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E8%AE%A9%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E9%95%BF%E5%87%BA%E4%B8%80%E5%8F%8C%E6%89%8B%EF%BC%9A-Function-Calling"><span class="pt-toc-inner-text">让大语言模型长出一双手： Function Calling</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-4"><a class="pt-toc-inner-link" href="#%E6%97%A9%E6%9C%9F%EF%BC%8C%E6%9C%B4%E7%B4%A0%E7%9A%84%E5%B7%A5%E5%85%B7%E8%B0%83%E7%94%A8%E6%96%B9%E5%BC%8F"><span class="pt-toc-inner-text">早期，朴素的工具调用方式</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-4"><a class="pt-toc-inner-link" href="#%E7%8E%B0%E4%BB%A3%EF%BC%8CFunction-Calling"><span class="pt-toc-inner-text">现代，Function Calling</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#LLM-Function-Calling-Agent"><span class="pt-toc-inner-text">LLM + Function Calling &#x3D; Agent</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#MCP"><span class="pt-toc-inner-text">MCP</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#OpenAI%E6%A0%BC%E5%BC%8FAPI"><span class="pt-toc-inner-text">OpenAI格式API</span></a></li></ol></li></ol>
+    </aside>
+  
+
+
+    <div class="prose">
+      <h1 id="LLM-基本术语入门"><a href="#LLM-基本术语入门" class="headerlink" title="LLM 基本术语入门"></a>LLM 基本术语入门</h1><h6 id="本文提供一个尽可能无门槛的大语言模型应用开发入门，并对齐术语概念。"><a href="#本文提供一个尽可能无门槛的大语言模型应用开发入门，并对齐术语概念。" class="headerlink" title="本文提供一个尽可能无门槛的大语言模型应用开发入门，并对齐术语概念。"></a>本文提供一个尽可能无门槛的大语言模型应用开发入门，并对齐术语概念。</h6><h3 id="大语言模型-Large-Language-Model"><a href="#大语言模型-Large-Language-Model" class="headerlink" title="大语言模型 Large Language Model"></a>大语言模型 Large Language Model</h3><h6 id="LLM-是一种基于深度学习的自然语言处理模型，能够理解和生成自然语言文本。它的能力主要来源于大规模的预训练"><a href="#LLM-是一种基于深度学习的自然语言处理模型，能够理解和生成自然语言文本。它的能力主要来源于大规模的预训练" class="headerlink" title="LLM 是一种基于深度学习的自然语言处理模型，能够理解和生成自然语言文本。它的能力主要来源于大规模的预训练"></a>LLM 是一种基于深度学习的自然语言处理模型，能够理解和生成自然语言文本。它的能力主要来源于大规模的预训练</h6><h6 id="数据和模型架构。"><a href="#数据和模型架构。" class="headerlink" title="数据和模型架构。"></a>数据和模型架构。</h6><p>在 2017 年，Google的一篇《Attention is All You Need》发明了Transformer架构， 2022 年 12 月，OpenAI推出的GPT<br>3.5 正式宣告了大语言模型狂潮的开始。</p>
+<p><img src="/../img/LLM%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD/image-20260224195610716.png" alt="image-20260224195610716"></p>
+<p>LLM的利用过程，简单来说可以利用伪代码描述：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">do:</span><br><span class="line">  当前字元=LLM(上下文所有字元)</span><br><span class="line">  上下文所有字元 += 当前字元</span><br><span class="line">while 字元不是结束符（当前字元）</span><br></pre></td></tr></table></figure>
+
+<p>如上文所示，由于LLM是“一个字一个字蹦出来”的，所以产生了流式输出的需求，也就产生了目前AI前端应用对SSE</p>
+<p>的广泛应用，不过这与本文无关，不做赘述。</p>
+<p>LLM 本身并不具备执行外部操作的能力，其只是一个根据输入，产生输出的统计学模型。</p>
+<h3 id="让大语言模型长出一双手：-Function-Calling"><a href="#让大语言模型长出一双手：-Function-Calling" class="headerlink" title="让大语言模型长出一双手： Function Calling"></a>让大语言模型长出一双手： Function Calling</h3><h4 id="早期，朴素的工具调用方式"><a href="#早期，朴素的工具调用方式" class="headerlink" title="早期，朴素的工具调用方式"></a>早期，朴素的工具调用方式</h4><h6 id="在早期的LLM应用开发过程中，涌现出了期望-LLM-调用传统计算机程序的需求。"><a href="#在早期的LLM应用开发过程中，涌现出了期望-LLM-调用传统计算机程序的需求。" class="headerlink" title="在早期的LLM应用开发过程中，涌现出了期望 LLM 调用传统计算机程序的需求。"></a>在早期的LLM应用开发过程中，涌现出了期望 LLM 调用传统计算机程序的需求。</h6><h6 id="我们举个最简单的例子：小红想做一个属于自己的LLM数学助手，但LLM并不能够进行真正意义上的数学运算。"><a href="#我们举个最简单的例子：小红想做一个属于自己的LLM数学助手，但LLM并不能够进行真正意义上的数学运算。" class="headerlink" title="我们举个最简单的例子：小红想做一个属于自己的LLM数学助手，但LLM并不能够进行真正意义上的数学运算。"></a>我们举个最简单的例子：小红想做一个属于自己的LLM数学助手，但LLM并不能够进行真正意义上的数学运算。</h6><h6 id="于是便产生了一个解决方案：利用提示词，要求-LLM-以格式化方式输出内容，然后利用计算机程序解析-LLM-输出，执"><a href="#于是便产生了一个解决方案：利用提示词，要求-LLM-以格式化方式输出内容，然后利用计算机程序解析-LLM-输出，执" class="headerlink" title="于是便产生了一个解决方案：利用提示词，要求 LLM 以格式化方式输出内容，然后利用计算机程序解析 LLM 输出，执"></a>于是便产生了一个解决方案：利用提示词，要求 LLM 以格式化方式输出内容，然后利用计算机程序解析 LLM 输出，执</h6><h6 id="行相应操作，并将结果继续喂给LLM或是呈现给用户。"><a href="#行相应操作，并将结果继续喂给LLM或是呈现给用户。" class="headerlink" title="行相应操作，并将结果继续喂给LLM或是呈现给用户。"></a>行相应操作，并将结果继续喂给LLM或是呈现给用户。</h6><h6 id="具体来说，形成如下的伪代码："><a href="#具体来说，形成如下的伪代码：" class="headerlink" title="具体来说，形成如下的伪代码："></a>具体来说，形成如下的伪代码：</h6><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">var system_prompt = <span class="string">&quot;system: 如果遇到数学运算，请输出&#123;&#x27;call&#x27;:&#x27;calculator&#x27;, x:x,</span></span><br><span class="line"><span class="string">y:y&#125;&quot;</span></span><br><span class="line">var context = [system_prompt, <span class="string">&quot;user: 帮我算算 2400 + 1 是多少？&quot;</span>]</span><br><span class="line">var resp = LLM(context)</span><br><span class="line">// resp 内容： &#123;<span class="string">&#x27;call&#x27;</span>:<span class="string">&#x27;calculator&#x27;</span>, x:<span class="number">2400</span>, y:<span class="number">1</span>&#125;</span><br><span class="line"></span><br><span class="line">Instruction instruction = null;</span><br><span class="line"><span class="keyword">if</span>(isIntruction(resp, out instruction))&#123;</span><br><span class="line">  var result = call(instruction) // result= <span class="number">2401</span></span><br><span class="line">  context += result</span><br><span class="line">&#125;</span><br><span class="line">// 返回或继续喂给LLM</span><br></pre></td></tr></table></figure>
+
+<h6 id="这种形式在早期大行其道，但缺点实在太多："><a href="#这种形式在早期大行其道，但缺点实在太多：" class="headerlink" title="这种形式在早期大行其道，但缺点实在太多："></a>这种形式在早期大行其道，但缺点实在太多：</h6><ol>
+<li>强烈依赖System Prompt，也就是提示工程（Prompt Engineering），早期模型智商不高，必须编写足够精确的<br>Prompt才能优雅控制模型行为。</li>
+<li>即便写了非常好的System Prompt，模型的指令遵循性仍是无法确定的，毕竟其内部基于概率模型，不能做到像<br>典型计算机程序般说一不二。</li>
+<li>失去流式输出特性：在输出结束前，你无法知晓一段消息应当展示给用户，还是应当作为某种程序的输入。</li>
+<li>严重缺乏标准化。几乎你能在每个地方看到不同的设计，这说好听了是百花齐放，说难听了就是技术&#x2F;学术界的割<br>裂。</li>
+</ol>
+<h4 id="现代，Function-Calling"><a href="#现代，Function-Calling" class="headerlink" title="现代，Function Calling"></a>现代，<strong>Function Calling</strong></h4><p>为了解决前文提到的需求与问题， <strong>OpenAI</strong> 于 <strong>2023</strong> 年 <strong>6</strong> 月 <strong>13</strong> 日在其 <strong>GPT-4</strong> 和 <strong>GPT-3.5 Turbo</strong> 模型中引入了大名鼎<br>鼎的 <strong>Function Calling</strong></p>
+<p><img src="/../img/LLM%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD/image-20260224195533590.png" alt="image-20260224195533590"></p>
+<p>Function Calling作为一种机制，使得大型语言模型（ <strong>LLM</strong> ）能够调用外部函数或 <strong>API</strong> ，标志着 LLM 与外部世界连接<br>方式的重大进化，使得模型能够在生成回答的过程中，智能地选择调用外部函数，并以结构化的形式返回信息，从而<br>增强了模型的能力和应用范围。</p>
+<p>Function Calling 的引入，使得开发者能够更可靠地将 GPT 的能力与外部工具和 API 相连接，推动了大模型应用的快<br>速发展。</p>
+<p>一个最简化的具有Function Calling特性的LLM调用过程是这样的：</p>
+<p>这个过程，正是最朴素的ReAct Agent：通过自然语言设定目标，能够感知，影响现实世界（通过 <strong>Function Calling</strong> ）<br>的大语言模型助手。</p>
+<p>我们可以利用OpenAI提供的SDK，轻易地完成上述过程的开发。</p>
+<h6 id=""><a href="#" class="headerlink" title=""></a><img src="/../img/LLM%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD/image-20260224194659986.png" alt="image-20260224194659986"></h6><h2 id="LLM-Function-Calling-Agent"><a href="#LLM-Function-Calling-Agent" class="headerlink" title="LLM + Function Calling &#x3D; Agent"></a><strong>LLM + Function Calling &#x3D; Agent</strong></h2><p>在前文中，我们已经讨论了大型语言模型（LLM）和函数调用（Function Calling）的基本概念及其演变。接下来，我<br>们将深入探讨 <strong>Agent</strong> （智能体） 的概念，特别是它与 LLM 和 Function Calling 的关系。</p>
+<p><strong>Agent</strong> 是一种能够感知环境、进行决策并执行动作的智能实体。在人工智能领域，Agent 通常具备以下核心能力：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">感知（ Perception ）：通过传感器或其他方式获取环境信息。</span><br><span class="line">决策（ Decision-making ）：基于感知的信息进行分析，制定行动策略。</span><br><span class="line">执行（ Execution ）：根据决策结果采取行动，完成任务目标。</span><br></pre></td></tr></table></figure>
+
+<p>在 LLM 的基础上， <strong>Agent</strong> 可以通过调用外部工具、访问数据库或与其他系统交互，完成更复杂的任务。</p>
+<p>例如，在旅游规划场景中，Agent 可以根据用户的需求，查询天气、预订机票、安排住宿等，形成一个完整的服务流<br>程。</p>
+<p><img src="/../img/LLM%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD/image-20260224194833173.png" alt="image-20260224194833173"></p>
+<p>如下，是LLM，Function Calling, Agent的关系：</p>
+<p><strong>LLM</strong> 提供自然语言理解和生成能力 Agent 的“大脑”，负责理解用户需求和生成响应</p>
+<p><strong>Function Calling</strong> 使 LLM 能够调用外部函数或 API 执行操作 Agent 的“手脚”，用于执行具体任务</p>
+<p><strong>Agent</strong> 具备感知、决策和执行能力的智能实体 LLM + Function Calling，实现自主任务执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">LLM ：相当于 Agent 的“大脑”，负责理解和生成语言。</span><br><span class="line">Function Calling ：相当于 Agent 的“工具”，用于执行具体操作。</span><br><span class="line">Agent ：相当于具备“大脑”和“工具”的完整实体，能够自主完成任务。</span><br></pre></td></tr></table></figure>
+
+<p>因此，Function Calling 是构建 Agent 的基础能力之一，Agent 通过 Function Calling 调用外部工具，实现任务的执<br>行。</p>
+<h2 id="MCP"><a href="#MCP" class="headerlink" title="MCP"></a>MCP</h2><p><strong>MCP</strong> （ <strong>Model Context Protocol</strong> ） 是由 <strong>Anthropic</strong> 于 <strong>2024</strong> 年 <strong>11</strong> 月推出的一项开放标准，旨在为大型语言模型<br>（ <strong>LLM</strong> ）与外部工具、数据源之间的交互提供统一的连接协议。</p>
+<p>但就目前（ 2025 年 7 月）的进展而言，MCP暂时只是一个使得 <strong>Function Calling</strong> 更加容易的辅助工具。诚然，对于toC<br>市场而言，用户可以在自己的Chat客户端上通过配置MCP服务使得自己手头的AI工具「张手」，无需编程经验即可享<br>受MCP生态。但对于经历过上述LLM应用发展过程的开发者而言，MCP目前解决的问题主要是使得 <strong>Agent</strong> 开发过程中<br>的 <strong>Function Calling</strong> 集成更加容易，我们可以通过简单几行配置，快速地集成第三方开发的Function，这个Function<br>与传统的程序内建Function唯二的区别是，其可以是异构的，也不关心其是部署在本地（ <strong>IPC</strong> ）还是远端（ <strong>RPC</strong> ）。</p>
+<p>不少同学对MCP产生了误解，认为MCP是Agent开发的基础。</p>
+<h6 id="但实际上，MCP-的主要目的在于解决当前-AI-模型因数据孤岛限制而无法充分发挥潜力的难题，并非发明了大语言模"><a href="#但实际上，MCP-的主要目的在于解决当前-AI-模型因数据孤岛限制而无法充分发挥潜力的难题，并非发明了大语言模" class="headerlink" title="但实际上，MCP 的主要目的在于解决当前 AI 模型因数据孤岛限制而无法充分发挥潜力的难题，并非发明了大语言模"></a>但实际上，MCP 的主要目的在于解决当前 AI 模型因数据孤岛限制而无法充分发挥潜力的难题，并非发明了大语言模</h6><h6 id="型调用典型计算机程序的功能。MCP-更像是为AI-应用提供了一个更规范的连接万物的接口标准。"><a href="#型调用典型计算机程序的功能。MCP-更像是为AI-应用提供了一个更规范的连接万物的接口标准。" class="headerlink" title="型调用典型计算机程序的功能。MCP 更像是为AI 应用提供了一个更规范的连接万物的接口标准。"></a>型调用典型计算机程序的功能。MCP 更像是为AI 应用提供了一个更规范的连接万物的接口标准。</h6><p>我们必须消除对 <strong>MCP</strong> 的误解，才能够更好地开发更多的Agent机器人。</p>
+<p><img src="/../img/LLM%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD/image-20260224195329788.png" alt="image-20260224195329788"></p>
+<h2 id="OpenAI格式API"><a href="#OpenAI格式API" class="headerlink" title="OpenAI格式API"></a><strong>OpenAI</strong>格式<strong>API</strong></h2><p>大家都知道，OpenAI是世界上最火的大语言模型，其API也就逐渐地就成为了事实标准：所有的大语言模型，都会额<br>外提供一套OpenAI格式的API，并且积极维护，以此实现与现有的程序无缝连接。</p>
+<p>也就是说，对于任何的大语言模型，我们都可以直接利用OpenAI官方的SDK进行开发，也只需要学习OpenAI格式的<br>输入（Message, Function Calling等）</p>
+
+    </div>
+  </div>
+
+  
+    <nav class="art-end">
+      <span class="head-spacer"></span>
+      <div class="end-grid">
+        
+          <a href="/2026/03/04/OpenClaw/">
+            <div class="lab">◄ PREV</div>
+            <div class="ti">是否真的需要OpenClaw</div>
+          </a>
+        
+        
+          <a href="/2025/06/04/RunLoop/" class="end">
+            <div class="lab">NEXT ►</div>
+            <div class="ti">RunLoop 深入理解</div>
+          </a>
+        
+      </div>
+    </nav>
+  
+
+  
+
+</article>
+
+</main>
+
+<footer class="f">
+  <div class="f-inner">
+    <span><span class="prompt">$ </span>echo "© Floki · Code Notes "</span>
+    
+    
+      <span id="busuanzi_container_site_pv">
+        <span class="prompt">★ </span>visitors × <span id="busuanzi_value_site_pv"></span>
+      </span>
+    
+  </div>
+</footer>
+
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+  <script>
+    window.PT_CAT_BUDDY = {"src":"/img/cat.png","size":100,"corner":"br","followMouse":true,"phrases":["MEOW.EXE","SUDO PURR","> PET ME","HP +1","RUA~","CTRL+M","PRESS A"]};
+  </script>
+  <script src="/js/cat-buddy.js" defer></script>
+
+
+
+<!-- 第三方库 -->
+
+  
+    <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
+
+<script src="/js/pixelterm.js"></script>
+
+  <script src="/js/toc.js" defer></script>
+
+
+
+  <script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      document.querySelectorAll('.prose').forEach(function(g){
+        if (typeof lightGallery !== 'function') return;
+        lightGallery(g, {
+          selector: 'img',
+          plugins: [
+            window.lgZoom,
+            window.lgThumbnail,
+            window.lgRotate,
+            window.lgFullscreen,
+            
+          ].filter(Boolean),
+          download: false
+        });
+      });
+    });
+  </script>
+
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/js/mermaid-init.js"></script>
+
+
+
+
+
+</body>
+</html>

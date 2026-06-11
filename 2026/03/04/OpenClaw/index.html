@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hexo + pixelterm v1.0.0">
+<meta name="description" content="一个写作爱好者的在线笔记本">
+<meta name="author" content="floki">
+<meta name="theme-color" content="#0b0f14">
+
+<title>是否真的需要OpenClaw · Floki</title>
+
+<link rel="icon" type="image/png" href="/img/cat.png">
+
+<!-- 字体（与设计稿一致） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css">
+
+<!-- 主题样式 -->
+<link rel="stylesheet" href="/css/pixelterm.css">
+<!-- 移动端适配增强（必须放在 pixelterm.css 之后） -->
+<link rel="stylesheet" href="/css/mobile.css">
+
+  <link rel="stylesheet" href="/css/mermaid.css">
+
+
+  <link rel="stylesheet" href="/css/lightgallery.min.css">
+
+
+<!-- 代码高亮（内置 IDE 风格：暗色 One Dark / 亮色 GitHub Light，跟随主题切换） -->
+<link rel="stylesheet" href="/css/highlight.css">
+
+<!-- 自定义 CSS 注入 -->
+
+
+
+<!-- 主题模式优先注入（避免闪屏） -->
+<script>
+(function(){
+  var def = 'auto';
+  var t;
+  try { t = localStorage.getItem('pt-theme'); } catch(e){}
+  if(!t){
+    t = (def === 'auto')
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : def;
+  }
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+
+<body class="layout-post">
+
+<!-- 全屏背景层（CSS pseudos 提供 CRT 扫描线/vignette；下面是 canvas + grid） -->
+
+  <canvas id="rain" aria-hidden="true"></canvas>
+
+<div class="pix-grid" aria-hidden="true"></div>
+
+<div class="titlebar">
+  <div class="dots"><i></i><i></i><i></i></div>
+  <div class="path">— <b>floki@pixelterm</b>: <span>~/是否真的需要OpenClaw</span> — zsh — </div>
+  <div class="right">
+    <span class="clock" data-clock>00:00:00</span>
+    <div class="menu">
+      
+        <a href="/" class="">HOME</a>
+      
+        <a href="/list/" class="">POSTS</a>
+      
+        <a href="/categories/" class="">CATEGORIES</a>
+      
+        <a href="/tags/" class="">TAGS</a>
+      
+        <a href="/about/" class="">ABOUT</a>
+      
+    </div>
+    
+      <button class="theme-toggle" data-theme-toggle aria-label="toggle theme">
+        <span class="icon moon">☾</span>
+        <span class="icon sun">☀</span>
+        <span class="knob"></span>
+      </button>
+    
+  </div>
+</div>
+
+
+<main class="shell">
+  
+<article class="article ">
+  <header class="art-head fade">
+    <span class="head-spacer"></span>
+    <div class="head-inner" data-vim="是否真的需要OpenClaw.md   --  2026/03/04">
+      <span class="art-tag">AI</span>
+      
+        <span class="art-tag cyan">生活</span>
+      
+      <h1 class="art-title">是否真的需要OpenClaw</h1>
+      <div class="art-meta">
+  
+    <span>2026-03-04</span>
+  
+  
+    <span>updated <b>2026-06-11</b></span>
+  
+  
+    <span><b>3.1k</b> words</span>
+  
+  
+    <span>▶ <b>10</b> min</span>
+  
+  
+    <span id="busuanzi_container_page_pv">views <b><span id="busuanzi_value_page_pv"></span></b></span>
+  
+  
+    <span>in
+      
+        <a href="/categories/%E7%94%9F%E6%B4%BB/">生活</a>
+      
+    </span>
+  
+  
+    <span>tags
+      
+        <a href="/tags/AI/">#AI</a>
+      
+    </span>
+  
+</div>
+
+    </div>
+  </header>
+
+  <div class="art-body">
+    
+
+  
+    <aside class="toc-card" data-toc>
+      <h5>QUEST LOG</h5>
+      <ol class="pt-toc-inner"><li class="pt-toc-inner-item pt-toc-inner-level-1"><a class="pt-toc-inner-link" href="#%E6%98%AF%E5%90%A6%E7%9C%9F%E7%9A%84%E9%9C%80%E8%A6%81OpenClaw"><span class="pt-toc-inner-text">是否真的需要OpenClaw</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E4%B8%80%E3%80%81%E4%BD%A0%E7%9C%9F%E7%9A%84%E9%9C%80%E8%A6%81-OpenClaw-%E5%90%97%EF%BC%9F"><span class="pt-toc-inner-text">一、你真的需要 OpenClaw 吗？</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#1-1-%E5%85%B3%E4%BA%8E%E4%BD%BF%E7%94%A8%E9%97%A8%E6%A7%9B%E7%9A%84%E8%AF%AF%E8%A7%A3"><span class="pt-toc-inner-text">1.1 关于使用门槛的误解</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#1-2-AI-Agent-%E7%9A%84%E6%97%B6%E4%BB%A3%E5%B7%B2%E7%BB%8F%E5%88%B0%E6%9D%A5"><span class="pt-toc-inner-text">1.2 AI Agent 的时代已经到来</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#1-3-%E6%97%A9%E6%9C%9F%E4%BD%BF%E7%94%A8%E4%BD%93%E9%AA%8C"><span class="pt-toc-inner-text">1.3 早期使用体验</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#1-4-%E4%BA%A7%E5%93%81%E5%AF%B9%E5%A4%A7%E4%BC%97%E7%9A%84%E5%90%B8%E5%BC%95%E5%8A%9B"><span class="pt-toc-inner-text">1.4 产品对大众的吸引力</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#1-5-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%81%8A%E5%A4%A9%E8%BD%AF%E4%BB%B6-AI-Agent-%E6%98%AF%E6%9C%80%E4%BD%B3%E6%8B%8D%E6%A1%A3"><span class="pt-toc-inner-text">1.5 为什么聊天软件 + AI Agent 是最佳拍档</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E4%BA%8C%E3%80%81Vibe-Coding-%E7%9A%84%E5%BF%AB%E4%B9%90%E4%B8%8E%E6%B2%9F%E9%80%9A%E9%97%A8%E6%A7%9B"><span class="pt-toc-inner-text">二、Vibe Coding 的快乐与沟通门槛</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E5%85%A5%E9%97%A8%E6%9B%BF%E4%BB%A3%E6%96%B9%E6%A1%88"><span class="pt-toc-inner-text">入门替代方案</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E4%B8%89%E3%80%81%E4%BD%A0%E5%BA%94%E8%AF%A5%E7%94%A8-OpenClaw-%E5%81%9A%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="pt-toc-inner-text">三、你应该用 OpenClaw 做什么？</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#3-1-%E6%98%8E%E7%A1%AE%E5%B7%A5%E5%85%B7%E5%AE%9A%E4%BD%8D"><span class="pt-toc-inner-text">3.1 明确工具定位</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#3-2-OpenClaw-%E7%9A%84%E6%9C%80%E4%BD%B3%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="pt-toc-inner-text">3.2 OpenClaw 的最佳使用场景</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#3-3-%E4%BC%98%E5%8A%BF%E4%B8%8E%E6%8C%91%E6%88%98"><span class="pt-toc-inner-text">3.3 优势与挑战</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#3-4-%E4%BD%BF%E7%94%A8%E5%BF%83%E6%B3%95"><span class="pt-toc-inner-text">3.4 使用心法</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E5%9B%9B%E3%80%81OpenClaw-vs-Code-Agent%EF%BC%9A%E5%AE%9A%E4%BD%8D%E4%B8%8E%E8%BE%B9%E7%95%8C"><span class="pt-toc-inner-text">四、OpenClaw vs Code Agent：定位与边界</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#4-1-%E5%B7%A5%E5%85%B7%E9%80%89%E5%9E%8B%E7%9A%84%E6%A0%B8%E5%BF%83%E5%8E%9F%E5%88%99"><span class="pt-toc-inner-text">4.1 工具选型的核心原则</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#4-2-%E7%9C%81%E9%92%B1%E7%AD%96%E7%95%A5"><span class="pt-toc-inner-text">4.2 省钱策略</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E4%BA%94%E3%80%81%E6%8E%A8%E8%8D%90%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="pt-toc-inner-text">五、推荐工作流</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#Skills-%E7%94%9F%E6%80%81"><span class="pt-toc-inner-text">Skills 生态</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E5%85%AD%E3%80%81%E6%88%91%E7%9A%84%E6%80%9D%E8%80%83"><span class="pt-toc-inner-text">六、我的思考</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E5%85%B3%E4%BA%8EAI"><span class="pt-toc-inner-text">关于AI</span></a></li></ol></li></ol></li></ol>
+    </aside>
+  
+
+
+    <div class="prose">
+      <h1 id="是否真的需要OpenClaw"><a href="#是否真的需要OpenClaw" class="headerlink" title="是否真的需要OpenClaw"></a>是否真的需要OpenClaw</h1><blockquote>
+<p>AI Agent 时代已经到来，OpenClaw 作为一种全新的交互范式，正在改变我们使用 AI 的方式。本文从个人使用经验出发，分享 OpenClaw 的使用心得、最佳实践以及与其他 AI 工具的协作策略。</p>
+</blockquote>
+<hr>
+<p>本文由GPT-5.4润色，与AI共生哈哈</p>
+<h2 id="一、你真的需要-OpenClaw-吗？"><a href="#一、你真的需要-OpenClaw-吗？" class="headerlink" title="一、你真的需要 OpenClaw 吗？"></a>一、你真的需要 OpenClaw 吗？</h2><h3 id="1-1-关于使用门槛的误解"><a href="#1-1-关于使用门槛的误解" class="headerlink" title="1.1 关于使用门槛的误解"></a>1.1 关于使用门槛的误解</h3><p>首先我非常反对一些 KOL 不负责任的论调——所谓”如果你需要托人帮你安装龙虾，那你其实就用不太上龙虾”。</p>
+<p>虽然目前 OpenClaw 确实有不少问题——费 token、难安装、安全性不足、权限管理不完善——但它确实是<strong>目前最符合大众使用习惯</strong>的 AI Agent 交互方式。</p>
+<p>PS：国内各大厂商现在已经推出了各种云端部署方案，甚至本地一键下载的agent桌面应用，你甚至通过他去帮你安装龙虾，不要再花500块去安装了</p>
+<h3 id="1-2-AI-Agent-的时代已经到来"><a href="#1-2-AI-Agent-的时代已经到来" class="headerlink" title="1.2 AI Agent 的时代已经到来"></a>1.2 AI Agent 的时代已经到来</h3><p>AI Agent 已经迅速发展到真的能做事情的程度了，但身边绝大多数人还只是和大模型聊天，对 AI 目前发展到什么程度还一无所知。</p>
+<blockquote>
+<p>最快体验 chat 和 Agent 办事能力区别的方法：用 Kimi 官网免费的 Agent 额度，给它一个你能想到的<strong>最难</strong>的任务——而不是把之前用 chat 的方法给它试。最高支持 50 个附件，你可以发 50 本书给它翻译之类的，或者调研某个你很想做的东西然后写代码实现。不一定能做得很好，但<strong>以前不能做的现在可以做了</strong>。</p>
+</blockquote>
+<p>当然这个方案不是 AI Agent 的极限，只是我觉得能免费体验到的最聪明最易用的 Agent。最近多了一个 WorkBuddy，我觉得也比较开箱即用，但本质上还是一个 CodeBuddy，行为逻辑和 OpenClaw 不太一样。这篇公众号排版就是靠 WorkBuddy + Claude Opus 4.6 搞定的。</p>
+<h3 id="1-3-早期使用体验"><a href="#1-3-早期使用体验" class="headerlink" title="1.3 早期使用体验"></a>1.3 早期使用体验</h3><p>司内推出内网版OpenClaw的时候，我基本每周都会用限额，且烧 token 烧得有我用 CodeBuddy 十倍有余。</p>
+<p>我拿它完成了纯嘴遁做网页 + 部署的整个环节，但效果远不如我后面用 CodeBuddy 认真做的新网页，而后者的 token 开销应该不及前者十分之一，甚至我用的还是更贵的模型。</p>
+<p><strong>这里我想说：越贵的模型办事能力越强，反而越省钱。有条件的请都上目前版本之神 Claude Opus 4.6。</strong></p>
+<h3 id="1-4-产品对大众的吸引力"><a href="#1-4-产品对大众的吸引力" class="headerlink" title="1.4 产品对大众的吸引力"></a>1.4 产品对大众的吸引力</h3><p>但我还是远远低估了这个产品对大众的吸引力，正如现在一些人依然顽固认为这只是个”打卡点”。</p>
+<p><strong>当一个产品足够简单，即使它做得不是很好，即使它很贵，也会有人愿意去用它。</strong></p>
+<p>这里有一个广为流传的故事：</p>
+<blockquote>
+<p>一位名叫 Andreas 的 OpenClaw 用户，给经营图书出版社的母亲演示了自己用 OpenClaw 搭建的 AI 机器人 “Robo”。Robo 当场给出了搭建在线订购网站、对接印刷厂物流、打通财务环节的完整方案。母亲立刻说：”快给我装一个。” Andreas 提醒她这东西目前只有大约 80% 的可靠性，调试起来很麻烦。母亲满不在乎地回答：<strong>“人类也一样会出错。”</strong></p>
+</blockquote>
+<p>（顺便吐槽：我之前把这个故事的主角记成了 OpenClaw 创始人 Peter，后来让 AI 多方查验才纠正过来。人类的记忆也是会出错的！今日被确诊为 AI 😂）</p>
+<h3 id="1-5-为什么聊天软件-AI-Agent-是最佳拍档"><a href="#1-5-为什么聊天软件-AI-Agent-是最佳拍档" class="headerlink" title="1.5 为什么聊天软件 + AI Agent 是最佳拍档"></a>1.5 为什么聊天软件 + AI Agent 是最佳拍档</h3><p>就像当时 OpenClaw 在海外风靡一样，当企业微信、QQ、飞书对 OpenClaw 的适配逐渐跟上以后，在国内再次引起爆火。原因很简单——<strong>用聊天软件使用 AI Agent，就是非常符合人类的使用习惯！</strong></p>
+<p>很多人觉得 OpenClaw 就是个套壳、不好用，是因为他们用了太多更强大的 AI Agent——例如 Cursor、Claude Code 等。尤其是 Claude Code 重度用户，因为 OpenClaw 最初也就是 Peter 想给 Claude Code 配个 Telegram 搞的，他们会觉得 OpenClaw 并没有那么厉害。确实，写代码比不上专业的 Code Agent，我还给我的龙虾配了个 Claude Code，让它写复杂代码的时候用。</p>
+<p><strong>但他们忽略了一个关键点：</strong> 这些 Agent 使用门槛太高，天然让很多用户觉得——起码要懂一点点代码才能用。Vibe Coding，就算再 vibe，首先它是 coding。但 AI 助手就不一样了，谁不想有个在微信 24 小时听你摆布的助手呢？你也不需要搞清楚它怎么做到的，别人帮你配好了以后你掏钱充值 API 就够了。<strong>只要出得起 token 的钱，怎么就不能用了呢？</strong></p>
+<hr>
+<h2 id="二、Vibe-Coding-的快乐与沟通门槛"><a href="#二、Vibe-Coding-的快乐与沟通门槛" class="headerlink" title="二、Vibe Coding 的快乐与沟通门槛"></a>二、Vibe Coding 的快乐与沟通门槛</h2><p>我第一次感受到 Vibe Coding 的快乐也是用小龙虾的时候。CodeBuddy 的 IDE 让我对代码太有掌控欲了，但 Vibe Coding 讲究的就是一个<strong>不看过程只看结果</strong>。只能用手机反而让我更聚焦于如何和 AI 沟通、提需求、下命令，而不是花太多精力在实现上。</p>
+<p>当然，即使是和 AI 沟通也有使用门槛，但人的适应性是很快的，你只要用起来，自然就会慢慢掌握一套顺手的沟通方式。起码我认为这个门槛没有高到——你需要会安装小龙虾。</p>
+<h3 id="入门替代方案"><a href="#入门替代方案" class="headerlink" title="入门替代方案"></a>入门替代方案</h3><p>如果你目前对 OpenClaw 的需求还不足以让你克服安装门槛和 token 支出，可以先尝试以下免费方案体验 AI Agent 的能力边界：</p>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Kimi Agent 模式</strong></td>
+<td>官网免费额度，支持复杂任务</td>
+</tr>
+<tr>
+<td><strong>WorkBuddy</strong></td>
+<td>开箱即用的本地 Agent（注意安全！）</td>
+</tr>
+<tr>
+<td><strong>Claude 官网免费版</strong></td>
+<td>即使免费版，给它生成文档、网页之类的任务也会直接帮你做</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>Anthropic 真是又贵又大方！</p>
+</blockquote>
+<hr>
+<h2 id="三、你应该用-OpenClaw-做什么？"><a href="#三、你应该用-OpenClaw-做什么？" class="headerlink" title="三、你应该用 OpenClaw 做什么？"></a>三、你应该用 OpenClaw 做什么？</h2><h3 id="3-1-明确工具定位"><a href="#3-1-明确工具定位" class="headerlink" title="3.1 明确工具定位"></a>3.1 明确工具定位</h3><p>首先，程序员不能只用 OpenClaw，怎么也得用一下 Cursor、Claude Code 这种专业的 Code Agent。如果你通过 OpenClaw 入门了 Vibe Coding，我也推荐你用更专业的工具去进一步做调整开发。</p>
+<h3 id="3-2-OpenClaw-的最佳使用场景"><a href="#3-2-OpenClaw-的最佳使用场景" class="headerlink" title="3.2 OpenClaw 的最佳使用场景"></a>3.2 OpenClaw 的最佳使用场景</h3><p>我对比下来，感觉 OpenClaw 最适合做<strong>独立的任务调研</strong>和<strong>定时任务</strong>：</p>
+<ul>
+<li><strong>定时任务型 OpenClaw：</strong> 用 Claude Sonnet 开发好工具以后，运行时换成便宜的 DeepSeek——因为全都开发好以后只是运行任务，非常简单。</li>
+<li><strong>调研型 OpenClaw：</strong> 长期配 Claude Sonnet 做各种独立任务的调研，有什么新想法都先甩给它去研究一下，写一个 MVP 出来给我看看。</li>
+</ul>
+<h3 id="3-3-优势与挑战"><a href="#3-3-优势与挑战" class="headerlink" title="3.3 优势与挑战"></a>3.3 优势与挑战</h3><p><strong>优势：</strong></p>
+<ul>
+<li>OpenClaw 独立解决问题的能力极强</li>
+<li>权限极强，自主性极高</li>
+</ul>
+<p><strong>挑战：</strong></p>
+<ul>
+<li>可能会不断尝试各种方案直到烧光你的 token</li>
+<li>安全性较薄弱</li>
+<li>期待后续社区有更好的省 token 优化和安全围栏</li>
+</ul>
+<h3 id="3-4-使用心法"><a href="#3-4-使用心法" class="headerlink" title="3.4 使用心法"></a>3.4 使用心法</h3><ul>
+<li><strong>需要盯着做的任务：</strong> 用 OpenClaw 可能会觉得它怎么这么笨、教不会——这时候需要你有耐心地把解决方法教给它，然后让它沉淀成一个 <strong>skill</strong>，以后类似的任务可以复用。</li>
+<li><strong>不想研究的任务：</strong> 做成啥样不是很在乎的事情，非常适合丢给它，你只需不时问问进度就行。怎么用也可以让它一步一步教你——<strong>你只需要当 AI 老板！</strong></li>
+</ul>
+<hr>
+<h2 id="四、OpenClaw-vs-Code-Agent：定位与边界"><a href="#四、OpenClaw-vs-Code-Agent：定位与边界" class="headerlink" title="四、OpenClaw vs Code Agent：定位与边界"></a>四、OpenClaw vs Code Agent：定位与边界</h2><h3 id="4-1-工具选型的核心原则"><a href="#4-1-工具选型的核心原则" class="headerlink" title="4.1 工具选型的核心原则"></a>4.1 工具选型的核心原则</h3><p>随着体验的深入，我对这两者的使用边界已经划得非常清晰，<strong>它们不再是竞争关系，而是互补的”同事”与”管家”</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐工具</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>“从 0 到 1”的大型项目开发</strong></td>
+<td>Claude Code &#x2F; CodeBuddy CLI</td>
+<td>几千行代码的系统性构建、复杂的重构任务或涉及 CI&#x2F;CD 的精准流水线，需要手术刀般的精准和对代码库的绝对理解</td>
+</tr>
+<tr>
+<td><strong>“长期在线”的数字生活</strong></td>
+<td>OpenClaw</td>
+<td>随时在企微&#x2F;QQ上呼叫的助理，碎片时间里整理思路、监控服务器状态、远程处理小脚本</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>一个恰当的比喻：</strong> OpenClaw 是自动驾驶，Code Agent 是智能辅助——你用哪个取决于你想自己开还是让 AI 开。对于不会开车的人，他们只会选择自动驾驶，只需要决定起点和目的地，由 AI 把他们送到终点。</p>
+</blockquote>
+<h3 id="4-2-省钱策略"><a href="#4-2-省钱策略" class="headerlink" title="4.2 省钱策略"></a>4.2 省钱策略</h3><p>随着 AI 的发展，开发程序已经全面拥抱 AI，市面上涌现了太多工具，但好用的往往需要科学上网和一定的花费。国内目前的 MiniMax、GLM 体验下来还有一定差距。</p>
+<p><strong>核心省钱策略：把重要的交给更强的模型，次要的交给更简单的模型。</strong> 比如你去构建一个 Agent Team，用不同的模型去设定不同的成员——关键决策用 Claude Opus&#x2F;Sonnet，简单执行用 DeepSeek。</p>
+<hr>
+<h2 id="五、推荐工作流"><a href="#五、推荐工作流" class="headerlink" title="五、推荐工作流"></a>五、推荐工作流</h2><p>我理解的目前比较完整的 OpenClaw + Code Agent 协作工作流：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────────────┐</span><br><span class="line">│  Step 1 ▸ OpenClaw 设置定时任务，抓取热点、选题、分析        │</span><br><span class="line">│                          ↓                                  │</span><br><span class="line">│  Step 2 ▸ 人工确认报告                                      │</span><br><span class="line">│                          ↓                                  │</span><br><span class="line">│  Step 3 ▸ 将分析丢给 Claude Code 写代码，走上线部署流程       │</span><br><span class="line">│                          ↓                                  │</span><br><span class="line">│  Step 4 ▸ 后续营销推广利用 OpenClaw                          │</span><br><span class="line">└─────────────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<h3 id="Skills-生态"><a href="#Skills-生态" class="headerlink" title="Skills 生态"></a>Skills 生态</h3><p>调教 OpenClaw 的过程不可避免需要大量的 Skills，可以去 <a target="_blank" rel="noopener" href="https://clawhub.ai/">ClawHub</a> 进行下载，丢给 Claw 让它帮你做安装。</p>
+<p>例如运营小红书的 skill：<a target="_blank" rel="noopener" href="https://clawhub.ai/Borye/xiaohongshu-mcp">xiaohongshu-mcp</a></p>
+<blockquote>
+<p>⚠️ <strong>安全警告：</strong> 目前很多 skill 质量参差不齐，甚至可能是后门的入口，选用时务必谨慎甄别！</p>
+</blockquote>
+<hr>
+<h2 id="六、我的思考"><a href="#六、我的思考" class="headerlink" title="六、我的思考"></a>六、我的思考</h2><p>真正用过就会发现，如何使用 AI，你只要开始了，多多少少很快就可以摸个大概。再深入没必要了——你花老半天研究，人家模型过几个月就更新得更聪明，不需要你那些小技巧了。</p>
+<p><strong>The Bitter Lesson 永不过时</strong>，人类设定的各种条条框框最终都会被更聪明的 AI 淘汰掉。反而你应该去思考的是——<strong>如何用自己已有的知识去构建你特有的工作架构</strong>。随着 AI 越来越厉害，你的系统也会越来越厉害。</p>
+<blockquote>
+<p><strong>不要为了今天的 AI 去设计框架，要为未来的 AI 去设计。</strong></p>
+</blockquote>
+<hr>
+<h3 id="关于AI"><a href="#关于AI" class="headerlink" title="关于AI"></a>关于AI</h3><p>我看 Claude 创始人离开 OpenAI 创业的故事，提到他因为觉得 OpenAI 不够重视 AI 的安全性而决定自己去做这件事情，提到他的一贯做事风格——</p>
+<blockquote>
+<p><strong>不要跟别人争论他的愿景，如果你有自己强烈的愿景，就去做自己的事。</strong></p>
+</blockquote>
+<p>最近我类似的想法也越发强烈。个人很难抵御历史的洪流，但你可以选择做认可的事情。我始终认为 AI 应该取代人类不想做的杂事，把更多精力留给更重要的、不能被替代的事情。而且 AI 是全人类倾尽资源甚至破坏环境代价下开发出来的，<strong>应该受益于全人类</strong>——即使没有那么理想，但绝不应该是少数公司把持。</p>
+<p>所以要用 AI 去做有用的事情——去打破信息壁垒，消除信息差，去抢夺那些原本只有有钱人能拥有的”智能资源”，让智能像互联网和手机一样普及。</p>
+<p><strong>人人都有自己的私人医生、私人助理、行业顾问、研发团队。自动驾驶做 95% 的事情，而人类把握方向盘决定这辆车开向哪儿。</strong></p>
+<p>交通工具的发明扩展了人的活动边界，AI Agent 的发展也会扩展人的行为边界。<strong>工作不会被完全替代，而是会把人类带向更远的地方。</strong></p>
+
+    </div>
+  </div>
+
+  
+    <nav class="art-end">
+      <span class="head-spacer"></span>
+      <div class="end-grid">
+        
+          <a href="/2026/03/11/super%E5%92%8Cspec%E7%BB%93%E5%90%88/">
+            <div class="lab">◄ PREV</div>
+            <div class="ti">Superpowers 与 OpenSpec 结合实践</div>
+          </a>
+        
+        
+          <a href="/2025/08/09/LLM%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD/" class="end">
+            <div class="lab">NEXT ►</div>
+            <div class="ti">LLM 基本术语入门</div>
+          </a>
+        
+      </div>
+    </nav>
+  
+
+  
+
+</article>
+
+</main>
+
+<footer class="f">
+  <div class="f-inner">
+    <span><span class="prompt">$ </span>echo "© Floki · Code Notes "</span>
+    
+    
+      <span id="busuanzi_container_site_pv">
+        <span class="prompt">★ </span>visitors × <span id="busuanzi_value_site_pv"></span>
+      </span>
+    
+  </div>
+</footer>
+
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+  <script>
+    window.PT_CAT_BUDDY = {"src":"/img/cat.png","size":100,"corner":"br","followMouse":true,"phrases":["MEOW.EXE","SUDO PURR","> PET ME","HP +1","RUA~","CTRL+M","PRESS A"]};
+  </script>
+  <script src="/js/cat-buddy.js" defer></script>
+
+
+
+<!-- 第三方库 -->
+
+  
+    <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
+
+<script src="/js/pixelterm.js"></script>
+
+  <script src="/js/toc.js" defer></script>
+
+
+
+  <script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      document.querySelectorAll('.prose').forEach(function(g){
+        if (typeof lightGallery !== 'function') return;
+        lightGallery(g, {
+          selector: 'img',
+          plugins: [
+            window.lgZoom,
+            window.lgThumbnail,
+            window.lgRotate,
+            window.lgFullscreen,
+            
+          ].filter(Boolean),
+          download: false
+        });
+      });
+    });
+  </script>
+
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/js/mermaid-init.js"></script>
+
+
+
+
+
+</body>
+</html>

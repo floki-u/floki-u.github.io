@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hexo + pixelterm v1.0.0">
+<meta name="description" content="一个写作爱好者的在线笔记本">
+<meta name="author" content="floki">
+<meta name="theme-color" content="#0b0f14">
+
+<title>Superpowers 与 OpenSpec 结合实践 · Floki</title>
+
+<link rel="icon" type="image/png" href="/img/cat.png">
+
+<!-- 字体（与设计稿一致） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css">
+
+<!-- 主题样式 -->
+<link rel="stylesheet" href="/css/pixelterm.css">
+<!-- 移动端适配增强（必须放在 pixelterm.css 之后） -->
+<link rel="stylesheet" href="/css/mobile.css">
+
+  <link rel="stylesheet" href="/css/mermaid.css">
+
+
+  <link rel="stylesheet" href="/css/lightgallery.min.css">
+
+
+<!-- 代码高亮（内置 IDE 风格：暗色 One Dark / 亮色 GitHub Light，跟随主题切换） -->
+<link rel="stylesheet" href="/css/highlight.css">
+
+<!-- 自定义 CSS 注入 -->
+
+
+
+<!-- 主题模式优先注入（避免闪屏） -->
+<script>
+(function(){
+  var def = 'auto';
+  var t;
+  try { t = localStorage.getItem('pt-theme'); } catch(e){}
+  if(!t){
+    t = (def === 'auto')
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : def;
+  }
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+
+<body class="layout-post">
+
+<!-- 全屏背景层（CSS pseudos 提供 CRT 扫描线/vignette；下面是 canvas + grid） -->
+
+  <canvas id="rain" aria-hidden="true"></canvas>
+
+<div class="pix-grid" aria-hidden="true"></div>
+
+<div class="titlebar">
+  <div class="dots"><i></i><i></i><i></i></div>
+  <div class="path">— <b>floki@pixelterm</b>: <span>~/Superpowers 与 OpenSpec 结合实践</span> — zsh — </div>
+  <div class="right">
+    <span class="clock" data-clock>00:00:00</span>
+    <div class="menu">
+      
+        <a href="/" class="">HOME</a>
+      
+        <a href="/list/" class="">POSTS</a>
+      
+        <a href="/categories/" class="">CATEGORIES</a>
+      
+        <a href="/tags/" class="">TAGS</a>
+      
+        <a href="/about/" class="">ABOUT</a>
+      
+    </div>
+    
+      <button class="theme-toggle" data-theme-toggle aria-label="toggle theme">
+        <span class="icon moon">☾</span>
+        <span class="icon sun">☀</span>
+        <span class="knob"></span>
+      </button>
+    
+  </div>
+</div>
+
+
+<main class="shell">
+  
+<article class="article ">
+  <header class="art-head fade">
+    <span class="head-spacer"></span>
+    <div class="head-inner" data-vim="Superpowers 与 OpenSpec 结合实践.md   --  2026/03/11">
+      <span class="art-tag">AI</span>
+      
+        <span class="art-tag cyan">技术</span>
+      
+      <h1 class="art-title">Superpowers 与 OpenSpec 结合实践</h1>
+      <div class="art-meta">
+  
+    <span>2026-03-11</span>
+  
+  
+    <span>updated <b>2026-06-11</b></span>
+  
+  
+    <span><b>4.5k</b> words</span>
+  
+  
+    <span>▶ <b>18</b> min</span>
+  
+  
+    <span id="busuanzi_container_page_pv">views <b><span id="busuanzi_value_page_pv"></span></b></span>
+  
+  
+    <span>in
+      
+        <a href="/categories/%E6%8A%80%E6%9C%AF/">技术</a>
+      
+    </span>
+  
+  
+    <span>tags
+      
+        <a href="/tags/AI/">#AI</a>
+      
+    </span>
+  
+</div>
+
+    </div>
+  </header>
+
+  <div class="art-body">
+    
+
+  
+    <aside class="toc-card" data-toc>
+      <h5>QUEST LOG</h5>
+      <ol class="pt-toc-inner"><li class="pt-toc-inner-item pt-toc-inner-level-1"><a class="pt-toc-inner-link" href="#Superpowers-%E4%B8%8E-OpenSpec-%E7%BB%93%E5%90%88%E5%AE%9E%E8%B7%B5"><span class="pt-toc-inner-text">Superpowers 与 OpenSpec 结合实践</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E4%B8%80%E3%80%81%E9%97%AE%E9%A2%98%EF%BC%9AAI-%E7%BC%96%E7%A0%81%E7%9A%84%E2%80%9D%E4%BF%A1%E4%BB%BB%E9%B8%BF%E6%B2%9F%E2%80%9D"><span class="pt-toc-inner-text">一、问题：AI 编码的”信任鸿沟”</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E4%BA%8C%E3%80%81Superpowers%EF%BC%9A%E7%BB%99-AI-%E8%A3%85%E4%B8%8A%E2%80%9D%E5%B7%A5%E4%BD%9C%E6%B5%81%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E2%80%9D"><span class="pt-toc-inner-text">二、Superpowers：给 AI 装上”工作流操作系统”</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#2-1-%E5%AE%83%E6%98%AF%E4%BB%80%E4%B9%88"><span class="pt-toc-inner-text">2.1 它是什么</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#2-2-%E5%86%85%E7%BD%AE-Skills-%E5%85%A8%E6%99%AF"><span class="pt-toc-inner-text">2.2 内置 Skills 全景</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#2-3-%E6%A0%87%E5%87%86%E5%B7%A5%E4%BD%9C%E6%B5%81%EF%BC%9A%E4%BB%8E%E6%83%B3%E6%B3%95%E5%88%B0%E5%90%88%E5%B9%B6"><span class="pt-toc-inner-text">2.3 标准工作流：从想法到合并</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#2-4-%E5%85%B3%E9%94%AE%E6%9C%BA%E5%88%B6%EF%BC%9ARed-Flags-%E8%A1%A8"><span class="pt-toc-inner-text">2.4 关键机制：Red Flags 表</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E4%B8%89%E3%80%81OpenSpec%EF%BC%9A%E4%BB%A5%E2%80%9D%E8%A7%84%E6%A0%BC%E2%80%9D%E4%B8%BA%E5%8D%95%E4%B8%80%E4%BA%8B%E5%AE%9E%E6%9D%A5%E6%BA%90"><span class="pt-toc-inner-text">三、OpenSpec：以”规格”为单一事实来源</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#3-1-%E5%AE%83%E6%98%AF%E4%BB%80%E4%B9%88"><span class="pt-toc-inner-text">3.1 它是什么</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#3-2-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%EF%BC%9A%E5%8F%8C%E6%96%87%E4%BB%B6%E5%A4%B9%E6%A8%A1%E5%9E%8B"><span class="pt-toc-inner-text">3.2 核心概念：双文件夹模型</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#3-3-%E5%9B%9B%E4%B8%AA%E6%A0%B8%E5%BF%83%E5%B7%A5%E4%BB%B6"><span class="pt-toc-inner-text">3.3 四个核心工件</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#3-4-%E5%91%BD%E4%BB%A4%E4%BD%93%E7%B3%BB"><span class="pt-toc-inner-text">3.4 命令体系</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#3-5-%E8%AE%BE%E8%AE%A1%E7%89%B9%E7%82%B9"><span class="pt-toc-inner-text">3.5 设计特点</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E5%9B%9B%E3%80%81Superpowers-vs-OpenSpec%EF%BC%9A%E5%AF%B9%E6%AF%94%E4%B8%8E%E4%BA%92%E8%A1%A5"><span class="pt-toc-inner-text">四、Superpowers vs OpenSpec：对比与互补</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#4-1-%E6%A0%B8%E5%BF%83%E5%B7%AE%E5%BC%82"><span class="pt-toc-inner-text">4.1 核心差异</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#4-2-%E7%94%A8%E4%B8%80%E5%8F%A5%E8%AF%9D%E7%90%86%E8%A7%A3"><span class="pt-toc-inner-text">4.2 用一句话理解</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#4-3-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%AE%83%E4%BB%AC%E4%BA%92%E8%A1%A5"><span class="pt-toc-inner-text">4.3 为什么它们互补</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E4%BA%94%E3%80%81%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%EF%BC%9A%E6%9E%84%E5%BB%BA%E5%AE%8C%E6%95%B4-AI-%E5%BC%80%E5%8F%91%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="pt-toc-inner-text">五、最佳实践：构建完整 AI 开发工作流</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#5-1-%E8%9E%8D%E5%90%88%E5%90%8E%E7%9A%84%E5%85%A8%E6%B5%81%E7%A8%8B"><span class="pt-toc-inner-text">5.1 融合后的全流程</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#5-2-%E5%90%84%E9%98%B6%E6%AE%B5%E7%9A%84%E8%B4%A3%E4%BB%BB%E5%88%86%E5%B7%A5"><span class="pt-toc-inner-text">5.2 各阶段的责任分工</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#5-3-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E6%A0%B7%E8%AE%BE%E8%AE%A1%E5%88%86%E5%B7%A5"><span class="pt-toc-inner-text">5.3 为什么这样设计分工</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E5%85%AD%E3%80%81%E5%AE%9E%E6%93%8D%EF%BC%9A%E9%9C%80%E8%A6%81%E5%88%9B%E5%BB%BA%E7%9A%84%E6%96%87%E4%BB%B6%E5%92%8C%E8%A7%84%E5%88%99"><span class="pt-toc-inner-text">六、实操：需要创建的文件和规则</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#6-1-%E7%AC%AC%E4%B8%80%E6%AD%A5%EF%BC%9A%E5%88%9D%E5%A7%8B%E5%8C%96-OpenSpec"><span class="pt-toc-inner-text">6.1 第一步：初始化 OpenSpec</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#6-2-%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%9A%E7%A1%AE%E4%BF%9D-Superpowers-%E5%B7%B2%E5%AE%89%E8%A3%85"><span class="pt-toc-inner-text">6.2 第二步：确保 Superpowers 已安装</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#6-3-%E7%AC%AC%E4%B8%89%E6%AD%A5%EF%BC%9A%E5%88%9B%E5%BB%BA%E9%A1%B9%E7%9B%AE%E7%BA%A7-CLAUDE-md%EF%BC%88%E5%85%B3%E9%94%AE%EF%BC%89"><span class="pt-toc-inner-text">6.3 第三步：创建项目级 CLAUDE.md（关键）</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#6-4-%E7%AC%AC%E5%9B%9B%E6%AD%A5%EF%BC%9A%E8%87%AA%E5%AE%9A%E4%B9%89-OpenSpec-Schema%EF%BC%88%E5%8F%AF%E9%80%89%EF%BC%89"><span class="pt-toc-inner-text">6.4 第四步：自定义 OpenSpec Schema（可选）</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#6-5-%E7%AC%AC%E4%BA%94%E6%AD%A5%EF%BC%9A%E5%BB%BA%E7%AB%8B%E9%A1%B9%E7%9B%AE-Specs-%E5%9F%BA%E7%BA%BF%EF%BC%88%E5%AD%98%E9%87%8F%E9%A1%B9%E7%9B%AE%EF%BC%89"><span class="pt-toc-inner-text">6.5 第五步：建立项目 Specs 基线（存量项目）</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#6-6-%E5%8F%AF%E9%80%89%EF%BC%9A%E5%9B%A2%E9%98%9F%E5%85%B1%E4%BA%AB%E8%A7%84%E5%88%99"><span class="pt-toc-inner-text">6.6 可选：团队共享规则</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E4%B8%83%E3%80%81%E8%BF%9B%E9%98%B6%EF%BC%9A%E4%B8%A4%E8%80%85%E5%85%B3%E7%B3%BB%E7%9A%84%E6%9C%AC%E8%B4%A8"><span class="pt-toc-inner-text">七、进阶：两者关系的本质</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#7-1-OpenSpec-%E6%98%AF%E2%80%9D%E5%90%88%E5%90%8C%E2%80%9D%EF%BC%8CSuperpowers-%E6%98%AF%E2%80%9D%E6%89%A7%E8%A1%8C%E7%BA%AA%E5%BE%8B%E2%80%9D"><span class="pt-toc-inner-text">7.1 OpenSpec 是”合同”，Superpowers 是”执行纪律”</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#7-2-OpenSpec-%E8%A1%A5-Superpowers-%E7%9A%84%E7%9F%AD%E6%9D%BF"><span class="pt-toc-inner-text">7.2 OpenSpec 补 Superpowers 的短板</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#7-3-OpenFlow%EF%BC%9A%E5%AE%98%E6%96%B9%E6%A1%A5%E6%8E%A5%E6%96%B9%E6%A1%88"><span class="pt-toc-inner-text">7.3 OpenFlow：官方桥接方案</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E5%85%AB%E3%80%81%E6%80%BB%E7%BB%93"><span class="pt-toc-inner-text">八、总结</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%BA%90"><span class="pt-toc-inner-text">参考资源</span></a></li></ol></li></ol>
+    </aside>
+  
+
+
+    <div class="prose">
+      <h1 id="Superpowers-与-OpenSpec-结合实践"><a href="#Superpowers-与-OpenSpec-结合实践" class="headerlink" title="Superpowers 与 OpenSpec 结合实践"></a>Superpowers 与 OpenSpec 结合实践</h1><blockquote>
+<p>当 AI 编码助手能在一分钟内生成上千行代码时，”写得快”已经不是瓶颈——“写得对”才是。Superpowers 和 OpenSpec 分别从 <strong>行为纪律</strong> 和 <strong>工件结构</strong> 两个维度解决这个问题。本文将深入探讨两者的设计哲学、核心能力，以及如何将它们结合成一套完整的 AI 开发工作流。</p>
+</blockquote>
+<hr>
+<h2 id="一、问题：AI-编码的”信任鸿沟”"><a href="#一、问题：AI-编码的”信任鸿沟”" class="headerlink" title="一、问题：AI 编码的”信任鸿沟”"></a>一、问题：AI 编码的”信任鸿沟”</h2><p>用 AI 写代码，你一定遇到过这些情况：</p>
+<ul>
+<li>AI 跳过了需求澄清，直接开始写一整套你根本没要的功能</li>
+<li>改一个 bug，AI 引入三个新 bug</li>
+<li>AI 声称”完成了”，但你发现测试根本没跑通</li>
+<li>代码能跑，但架构一团糟，后续维护成本爆炸</li>
+</ul>
+<p>这些问题的根源是一致的：<strong>AI 擅长生成，但不擅长纪律。</strong> 而软件开发的核心，恰恰是纪律——理解需求、设计方案、编写测试、验证结果、持续迭代。</p>
+<p>Superpowers 和 OpenSpec 分别用不同的思路来解决这个问题。</p>
+<hr>
+<h2 id="二、Superpowers：给-AI-装上”工作流操作系统”"><a href="#二、Superpowers：给-AI-装上”工作流操作系统”" class="headerlink" title="二、Superpowers：给 AI 装上”工作流操作系统”"></a>二、Superpowers：给 AI 装上”工作流操作系统”</h2><h3 id="2-1-它是什么"><a href="#2-1-它是什么" class="headerlink" title="2.1 它是什么"></a>2.1 它是什么</h3><p><a target="_blank" rel="noopener" href="https://github.com/obra/superpowers">Superpowers</a> 是由 Jesse Vincent（Prime Radiant）创建的一套 <strong>AI 编码代理的软件开发方法论</strong>，以 Claude Code 插件（也支持 Codex、Gemini CLI、Cursor 等平台）的形式发布。</p>
+<p>它的核心思想可以概括为一句话：“<strong>在任何行动之前，先检查是否有适用的技能（Skill）。</strong>”</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">    A[用户消息] --&gt; B&#123;检查适用 Skill&#125;</span><br><span class="line">    B --&gt;|命中| C[加载 Skill 指令]</span><br><span class="line">    C --&gt; D[按流程和纪律执行]</span><br><span class="line">    D --&gt; E[验证]</span><br><span class="line">    E --&gt; F[提交]</span><br><span class="line">    F --&gt; G[审查]</span><br><span class="line">    B --&gt;|无匹配| D</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-内置-Skills-全景"><a href="#2-2-内置-Skills-全景" class="headerlink" title="2.2 内置 Skills 全景"></a>2.2 内置 Skills 全景</h3><p>Superpowers 目前提供 <strong>13 个 Skills</strong>，覆盖软件开发的完整生命周期：</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>Skill</th>
+<th>触发时机</th>
+<th>类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>启动</strong></td>
+<td><code>using-superpowers</code></td>
+<td>每次会话开始</td>
+<td>Meta</td>
+</tr>
+<tr>
+<td><strong>理解</strong></td>
+<td><code>brainstorming</code></td>
+<td>任何创造性工作前</td>
+<td>Process</td>
+</tr>
+<tr>
+<td><strong>规划</strong></td>
+<td><code>writing-plans</code></td>
+<td>设计方案确认后</td>
+<td>Process</td>
+</tr>
+<tr>
+<td><strong>环境</strong></td>
+<td><code>using-git-worktrees</code></td>
+<td>需要隔离工作区时</td>
+<td>Process</td>
+</tr>
+<tr>
+<td><strong>实现</strong></td>
+<td><code>test-driven-development</code></td>
+<td>编写任何功能&#x2F;修复代码前</td>
+<td>Rigid</td>
+</tr>
+<tr>
+<td><strong>实现</strong></td>
+<td><code>subagent-driven-development</code></td>
+<td>执行多任务计划时</td>
+<td>Process</td>
+</tr>
+<tr>
+<td><strong>实现</strong></td>
+<td><code>executing-plans</code></td>
+<td>单会话顺序执行计划</td>
+<td>Process</td>
+</tr>
+<tr>
+<td><strong>实现</strong></td>
+<td><code>dispatching-parallel-agents</code></td>
+<td>存在2+独立任务时</td>
+<td>Process</td>
+</tr>
+<tr>
+<td><strong>调试</strong></td>
+<td><code>systematic-debugging</code></td>
+<td>遇到任何 bug&#x2F;测试失败</td>
+<td>Rigid</td>
+</tr>
+<tr>
+<td><strong>验证</strong></td>
+<td><code>verification-before-completion</code></td>
+<td>声称完成&#x2F;修复&#x2F;通过前</td>
+<td>Rigid</td>
+</tr>
+<tr>
+<td><strong>审查</strong></td>
+<td><code>requesting-code-review</code></td>
+<td>任务完成或合并前</td>
+<td>Process</td>
+</tr>
+<tr>
+<td><strong>审查</strong></td>
+<td><code>receiving-code-review</code></td>
+<td>收到 code review 反馈时</td>
+<td>Process</td>
+</tr>
+<tr>
+<td><strong>收尾</strong></td>
+<td><code>finishing-a-development-branch</code></td>
+<td>所有任务完成时</td>
+<td>Process</td>
+</tr>
+</tbody></table>
+<p><strong>Rigid（刚性）vs Flexible（柔性）</strong>：刚性 Skills 要求严格遵循（如 TDD 要求先写测试，调试要求先找根因），柔性 Skills 可以根据上下文调整。</p>
+<h3 id="2-3-标准工作流：从想法到合并"><a href="#2-3-标准工作流：从想法到合并" class="headerlink" title="2.3 标准工作流：从想法到合并"></a>2.3 标准工作流：从想法到合并</h3><p>Superpowers 定义了一条完整的流水线，每个阶段有明确的 Skill 负责：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">flowchart TD</span><br><span class="line">    subgraph Phase1[&quot;Phase 1: 理解&quot;]</span><br><span class="line">        A[&quot;1. brainstorming -- 明确做什么、为什么 -- 输出: 设计文档 (spec)&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    subgraph Phase2[&quot;Phase 2: 环境&quot;]</span><br><span class="line">        B[&quot;2. using-git-worktrees -- 创建隔离 git worktree, 确保不影响主分支&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    subgraph Phase3[&quot;Phase 3: 规划&quot;]</span><br><span class="line">        C[&quot;3. writing-plans -- 拆成 2-5 分钟的 bite-size 任务, 每个任务含精确路径和完整代码&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    subgraph Phase4[&quot;Phase 4: 实现&quot;]</span><br><span class="line">        D[&quot;4. subagent-driven-development -- 逐任务: 子代理, 实现, 审查 -- 可自主工作数小时不偏离计划&quot;]</span><br><span class="line">        D1[&quot;test-driven-development (RED-GREEN-REFACTOR)&quot;]</span><br><span class="line">        D2[&quot;requesting-code-review (每个任务间审查)&quot;]</span><br><span class="line">        D3[&quot;systematic-debugging (遇到失败时)&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    subgraph Phase5[&quot;Phase 5: 验证&quot;]</span><br><span class="line">        E[&quot;5. verification-before-completion -- 验证通过后才声称完成&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    subgraph Phase6[&quot;Phase 6: 收尾&quot;]</span><br><span class="line">        F[&quot;6. finishing-a-development-branch -- 合并/PR/保留/丢弃, 清理环境&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    A --&gt; B --&gt; C --&gt; D</span><br><span class="line">    D --&gt; D1</span><br><span class="line">    D --&gt; D2</span><br><span class="line">    D --&gt; D3</span><br><span class="line">    D1 --&gt; E</span><br><span class="line">    D2 --&gt; E</span><br><span class="line">    D3 --&gt; E</span><br><span class="line">    E --&gt; F</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-4-关键机制：Red-Flags-表"><a href="#2-4-关键机制：Red-Flags-表" class="headerlink" title="2.4 关键机制：Red Flags 表"></a>2.4 关键机制：Red Flags 表</h3><p>Superpowers 最有特色的设计之一，是每个 Skill 内置的 <strong>Red Flags（红旗）表</strong>。它列举了 AI 最常见的”偷懒借口”：</p>
+<table>
+<thead>
+<tr>
+<th>你可能会想…</th>
+<th>但真相是…</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>“这只是个简单问题”</td>
+<td>问题也是任务，请检查 Skills</td>
+</tr>
+<tr>
+<td>“我需要更多上下文”</td>
+<td>Skill 检查在澄清问题<strong>之前</strong></td>
+</tr>
+<tr>
+<td>“让我先探索代码库”</td>
+<td>Skills 告诉你<strong>如何</strong>探索，先检查</td>
+</tr>
+<tr>
+<td>“这不需要正式技能”</td>
+<td>如果存在 Skill，就用它</td>
+</tr>
+<tr>
+<td>“我记得这个 Skill”</td>
+<td>Skills 会更新，读当前版本</td>
+</tr>
+<tr>
+<td>“我这次跳过 TDD 吧”</td>
+<td>停止。这是合理化借口</td>
+</tr>
+</tbody></table>
+<p>这种设计直接对抗了 AI 的”走捷径”倾向，是 Superpowers 纪律性的核心。</p>
+<hr>
+<h2 id="三、OpenSpec：以”规格”为单一事实来源"><a href="#三、OpenSpec：以”规格”为单一事实来源" class="headerlink" title="三、OpenSpec：以”规格”为单一事实来源"></a>三、OpenSpec：以”规格”为单一事实来源</h2><h3 id="3-1-它是什么"><a href="#3-1-它是什么" class="headerlink" title="3.1 它是什么"></a>3.1 它是什么</h3><p><a target="_blank" rel="noopener" href="https://github.com/Fission-AI/OpenSpec">OpenSpec</a> 是 Fission-AI 创建的 <strong>spec-driven development (SDD) CLI 工具</strong>。它的核心理念是：</p>
+<blockquote>
+<p>在写任何代码之前，人和 AI 先共同商定一份规格说明（spec）。这份 spec 成为机器可读的”合同”，约束 AI 的代码生成行为。</p>
+</blockquote>
+<h3 id="3-2-核心概念：双文件夹模型"><a href="#3-2-核心概念：双文件夹模型" class="headerlink" title="3.2 核心概念：双文件夹模型"></a>3.2 核心概念：双文件夹模型</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">项目根目录/</span><br><span class="line">└── openspec/</span><br><span class="line">    ├── specs/              ← &quot;真相&quot;：当前系统的权威规格</span><br><span class="line">    │   └── [capability]/</span><br><span class="line">    │       └── spec.md     （稳定的, 经过审核的）</span><br><span class="line">    │</span><br><span class="line">    └── changes/            ← &quot;提案&quot;：活跃的变更</span><br><span class="line">        └── [change-name]/</span><br><span class="line">            ├── proposal.md   # 为什么要改、改什么</span><br><span class="line">            ├── specs/        # 增量规格（ADDED/MODIFIED/REMOVED）</span><br><span class="line">            ├── design.md     # 技术方案</span><br><span class="line">            └── tasks.md      # 实现清单</span><br></pre></td></tr></table></figure>
+
+<p>这个模型就像 Git 的分支机制：<code>specs/</code> 是 main 分支（事实来源），<code>changes/</code> 是 feature 分支（提案与实现）。归档时，增量规格会合并回主规格。</p>
+<h3 id="3-3-四个核心工件"><a href="#3-3-四个核心工件" class="headerlink" title="3.3 四个核心工件"></a>3.3 四个核心工件</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">flowchart TD</span><br><span class="line">    A[&quot;proposal.md -- 为什么 和 是什么&quot;] --&gt; B</span><br><span class="line">    B[&quot;specs/ -- 增量规格 (ADDED/MODIFIED/REMOVED), 带场景的需求描述&quot;] --&gt; C</span><br><span class="line">    C[&quot;design.md -- 怎么做: 技术方案与架构决策&quot;] --&gt; D</span><br><span class="line">    D[&quot;tasks.md -- 实现清单 (带 checkbox)&quot;] --&gt; E</span><br><span class="line">    E[&quot;实现&quot;] --&gt; F[&quot;验证&quot;] --&gt; G[&quot;归档&quot;]</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-4-命令体系"><a href="#3-4-命令体系" class="headerlink" title="3.4 命令体系"></a>3.4 命令体系</h3><p>OpenSpec 提供了一套完整的命令行工具和斜杠命令：</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>阶段</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/opsx:explore</code></td>
+<td>探索</td>
+<td>调研代码库，不创建正式变更</td>
+</tr>
+<tr>
+<td><code>/opsx:new</code></td>
+<td>创建</td>
+<td>脚手架一个新的 change 目录</td>
+</tr>
+<tr>
+<td><code>/opsx:continue</code></td>
+<td>规划</td>
+<td>逐步创建下一个工件</td>
+</tr>
+<tr>
+<td><code>/opsx:ff</code></td>
+<td>规划</td>
+<td>快速生成所有规划工件</td>
+</tr>
+<tr>
+<td><code>/opsx:propose</code></td>
+<td>规划</td>
+<td>一步生成 proposal + specs + design + tasks</td>
+</tr>
+<tr>
+<td><code>/opsx:apply</code></td>
+<td>实现</td>
+<td>按 tasks.md 逐项实现</td>
+</tr>
+<tr>
+<td><code>/opsx:verify</code></td>
+<td>验证</td>
+<td>三维度验证（完整性、正确性、一致性）</td>
+</tr>
+<tr>
+<td><code>/opsx:sync</code></td>
+<td>整合</td>
+<td>将 delta specs 同步到主 specs</td>
+</tr>
+<tr>
+<td><code>/opsx:archive</code></td>
+<td>归档</td>
+<td>最终完成、合并并归档变更</td>
+</tr>
+<tr>
+<td><code>/opsx:bulk-archive</code></td>
+<td>归档</td>
+<td>批量归档多个变更（含冲突检测）</td>
+</tr>
+<tr>
+<td><code>/opsx:onboard</code></td>
+<td>引导</td>
+<td>15 分钟交互式上手教程</td>
+</tr>
+</tbody></table>
+<h3 id="3-5-设计特点"><a href="#3-5-设计特点" class="headerlink" title="3.5 设计特点"></a>3.5 设计特点</h3><p><strong>Brownfield-first（存量项目优先）</strong>：不像很多 spec 工具只能用于 0→1 的新项目，OpenSpec 专门为修改现有代码库（1→n）做了优化。增量规格（ADDED&#x2F;MODIFIED&#x2F;REMOVED）让变更的影响范围一目了然。</p>
+<p><strong>工具无关</strong>：支持 21+ 种 AI 编码助手，包括 Claude Code、Cursor、Windsurf、Gemini CLI、GitHub Copilot、Cline、RooCode 等。</p>
+<hr>
+<h2 id="四、Superpowers-vs-OpenSpec：对比与互补"><a href="#四、Superpowers-vs-OpenSpec：对比与互补" class="headerlink" title="四、Superpowers vs OpenSpec：对比与互补"></a>四、Superpowers vs OpenSpec：对比与互补</h2><h3 id="4-1-核心差异"><a href="#4-1-核心差异" class="headerlink" title="4.1 核心差异"></a>4.1 核心差异</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Superpowers</th>
+<th>OpenSpec</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>定位</strong></td>
+<td>AI 的行为操作系统</td>
+<td>SDD 工件管理系统</td>
+</tr>
+<tr>
+<td><strong>关注点</strong></td>
+<td>HOW — AI 如何工作</td>
+<td>WHAT — 生产什么工件</td>
+</tr>
+<tr>
+<td><strong>形式</strong></td>
+<td>Claude Code 插件</td>
+<td>npm 全局 CLI 工具</td>
+</tr>
+<tr>
+<td><strong>触发方式</strong></td>
+<td>自动（Skill 按场景激活）</td>
+<td>手动（执行斜杠命令）</td>
+</tr>
+<tr>
+<td><strong>核心理念</strong></td>
+<td>TDD + 系统化 + 证据驱动</td>
+<td>Spec 作为人机之间的合同</td>
+</tr>
+<tr>
+<td><strong>输出物</strong></td>
+<td>设计文档 + 实现计划 + 测试 + 审查报告</td>
+<td>proposal &#x2F; specs &#x2F; design &#x2F; tasks</td>
+</tr>
+<tr>
+<td><strong>跨平台</strong></td>
+<td>Claude Code &#x2F; Codex &#x2F; Gemini CLI &#x2F; Cursor 等</td>
+<td>Claude Code &#x2F; Cursor &#x2F; Windsurf &#x2F; Copilot 等 20+</td>
+</tr>
+</tbody></table>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">    SP[Superpowers&lt;br/&gt;管 HOW&lt;br/&gt;行为纪律] ===|&quot;互补&quot;| OS[OpenSpec&lt;br/&gt;管 WHAT&lt;br/&gt;工件标准]</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-用一句话理解"><a href="#4-2-用一句话理解" class="headerlink" title="4.2 用一句话理解"></a>4.2 用一句话理解</h3><ul>
+<li><strong>Superpowers</strong> 让你的 AI 学会”写代码之前先思考，写完代码要验证，出问题先找根因”。它是一套<strong>行为素养</strong>。</li>
+<li><strong>OpenSpec</strong> 让你的 AI 和你在写代码之前先签一份”合同”，明确要做什么、怎么判断做完了。它是一套<strong>工件标准</strong>。</li>
+</ul>
+<h3 id="4-3-为什么它们互补"><a href="#4-3-为什么它们互补" class="headerlink" title="4.3 为什么它们互补"></a>4.3 为什么它们互补</h3><p>它们天然互补，因为解决的是同一个问题的不同层面：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">flowchart TD</span><br><span class="line">    subgraph WF[&quot;好的 AI 开发工作流&quot;]</span><br><span class="line">        direction TB</span><br><span class="line">        subgraph OS[&quot;OpenSpec: 工件标准 (WHAT)&quot;]</span><br><span class="line">            direction LR</span><br><span class="line">            OS1[&quot;结构化规格文件&quot;]</span><br><span class="line">            OS2[&quot;变更审计追踪&quot;]</span><br><span class="line">            OS3[&quot;人机合同&quot;]</span><br><span class="line">        end</span><br><span class="line">        subgraph SP[&quot;Superpowers: 行为纪律 (HOW)&quot;]</span><br><span class="line">            direction LR</span><br><span class="line">            SP1[&quot;先思考再编码&quot;]</span><br><span class="line">            SP2[&quot;测试驱动开发&quot;]</span><br><span class="line">            SP3[&quot;系统性调试&quot;]</span><br><span class="line">            SP4[&quot;证据驱动验证&quot;]</span><br><span class="line">        end</span><br><span class="line">        OS --&gt;|&quot;规格约束&quot;| SP</span><br><span class="line">        SP --&gt;|&quot;纪律执行&quot;| OS</span><br><span class="line">    end</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>没有 OpenSpec，Superpowers 的”brainstorming → plan”过程缺乏<strong>结构化的持久存储</strong>——设计讨论可能丢失在聊天记录中。</li>
+<li>没有 Superpowers，OpenSpec 的 spec&#x2F;tasks 文件只是一个<strong>静态清单</strong>——AI 可能跳过需求直接编码，或者修 bug 时引入新问题。</li>
+<li>两者结合，OpenSpec 提供持续可追溯的工件，Superpowers 确保 AI 在每个环节遵循正确的纪律。</li>
+</ul>
+<hr>
+<h2 id="五、最佳实践：构建完整-AI-开发工作流"><a href="#五、最佳实践：构建完整-AI-开发工作流" class="headerlink" title="五、最佳实践：构建完整 AI 开发工作流"></a>五、最佳实践：构建完整 AI 开发工作流</h2><h3 id="5-1-融合后的全流程"><a href="#5-1-融合后的全流程" class="headerlink" title="5.1 融合后的全流程"></a>5.1 融合后的全流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">flowchart TD</span><br><span class="line">    subgraph P1[&quot;Phase 1: 探索与提案&quot;]</span><br><span class="line">        direction TB</span><br><span class="line">        A1[&quot;[SP] brainstorming (自动触发)&quot;]</span><br><span class="line">        A2[&quot;[OS] /opsx:explore (探索现有代码)&quot;]</span><br><span class="line">        A3[&quot;[OS] /opsx:new (创建变更目录)&quot;]</span><br><span class="line">        A1 --&gt; A2 --&gt; A3</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    subgraph P2[&quot;Phase 2: 规格与设计&quot;]</span><br><span class="line">        direction TB</span><br><span class="line">        B1[&quot;[OS] /opsx:continue (逐步创建工件)&quot;]</span><br><span class="line">        B1a[&quot;1. proposal.md -- 为什么做 / 做什么&quot;]</span><br><span class="line">        B1b[&quot;2. specs/ -- 增量规格 (ADDED/MODIFIED/REMOVED)&quot;]</span><br><span class="line">        B1c[&quot;3. design.md -- 技术方案&quot;]</span><br><span class="line">        B2[&quot;[OS] /opsx:verify (验证规格完整性)&quot;]</span><br><span class="line">        B1 --&gt; B1a</span><br><span class="line">        B1 --&gt; B1b</span><br><span class="line">        B1 --&gt; B1c</span><br><span class="line">        B1a --&gt; B2</span><br><span class="line">        B1b --&gt; B2</span><br><span class="line">        B1c --&gt; B2</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    subgraph P3[&quot;Phase 3: 实施计划&quot;]</span><br><span class="line">        direction TB</span><br><span class="line">        C1[&quot;[SP] writing-plans (基于 design 写计划)&quot;]</span><br><span class="line">        C2[&quot;[OS] tasks.md (由 writing-plans 输出回填)&quot;]</span><br><span class="line">        C1 --&gt; C2</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    subgraph P4[&quot;Phase 4: 隔离环境&quot;]</span><br><span class="line">        direction TB</span><br><span class="line">        D1[&quot;[SP] using-git-worktrees (创建隔离工作区)&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    subgraph P5[&quot;Phase 5: 实现执行&quot;]</span><br><span class="line">        direction TB</span><br><span class="line">        E1[&quot;[SP] subagent-driven-development (逐任务执行)&quot;]</span><br><span class="line">        E1a[&quot;1. TDD: 写测试-失败-最小实现-通过-提交&quot;]</span><br><span class="line">        E1b[&quot;2. requesting-code-review (任务间审查)&quot;]</span><br><span class="line">        E1c[&quot;3. systematic-debugging (遇到失败时)&quot;]</span><br><span class="line">        E2[&quot;[OS] /opsx:apply (可选, 按 tasks.md 执行)&quot;]</span><br><span class="line">        E1 --&gt; E1a</span><br><span class="line">        E1 --&gt; E1b</span><br><span class="line">        E1 --&gt; E1c</span><br><span class="line">        E1a --&gt; E2</span><br><span class="line">        E1b --&gt; E2</span><br><span class="line">        E1c --&gt; E2</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    subgraph P6[&quot;Phase 6: 验证与收尾&quot;]</span><br><span class="line">        direction TB</span><br><span class="line">        F1[&quot;[SP] verification-before-completion (验证一切通过)&quot;]</span><br><span class="line">        F2[&quot;[OS] /opsx:verify (三维度验证)&quot;]</span><br><span class="line">        F3[&quot;[OS] /opsx:sync -&gt; /opsx:archive (归档变更)&quot;]</span><br><span class="line">        F4[&quot;[SP] finishing-a-development-branch (合并/PR/清理)&quot;]</span><br><span class="line">        F1 --&gt; F2 --&gt; F3 --&gt; F4</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    P1 --&gt; P2 --&gt; P3 --&gt; P4 --&gt; P5 --&gt; P6</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-各阶段的责任分工"><a href="#5-2-各阶段的责任分工" class="headerlink" title="5.2 各阶段的责任分工"></a>5.2 各阶段的责任分工</h3><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>OpenSpec 负责</th>
+<th>Superpowers 负责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>探索</strong></td>
+<td>提供探索命令 (<code>/opsx:explore</code>)，创建变更目录</td>
+<td>通过 brainstorming Skill 引导需求澄清对话</td>
+</tr>
+<tr>
+<td><strong>规格</strong></td>
+<td>结构化 proposal、specs 增量、design 文件</td>
+<td>提供设计评审的对话框架，确保不跳过细节</td>
+</tr>
+<tr>
+<td><strong>规划</strong></td>
+<td>提供 tasks.md 模板作为实现清单</td>
+<td>生成精确到文件路径和代码片段的实现计划</td>
+</tr>
+<tr>
+<td><strong>实现</strong></td>
+<td><code>/opsx:apply</code> 驱动按 tasks.md 执行</td>
+<td>TDD 纪律 + 子代理调度 + 任务间审查</td>
+</tr>
+<tr>
+<td><strong>验证</strong></td>
+<td>三维度验证（完整性、正确性、一致性）</td>
+<td>证据驱动的验证——跑测试、看输出、确认通过</td>
+</tr>
+<tr>
+<td><strong>归档</strong></td>
+<td><code>/opsx:archive</code> 合并 specs 并归档</td>
+<td>决定合并策略（merge&#x2F;PR&#x2F;保留&#x2F;丢弃），清理环境</td>
+</tr>
+</tbody></table>
+<h3 id="5-3-为什么这样设计分工"><a href="#5-3-为什么这样设计分工" class="headerlink" title="5.3 为什么这样设计分工"></a>5.3 为什么这样设计分工</h3><p>这个分工遵循一个简单的原则：<strong>OpenSpec 管”死”的东西（文件、结构、追踪），Superpowers 管”活”的东西（对话、决策、纪律）。</strong></p>
+<ul>
+<li><strong>文件不会丢</strong>：OpenSpec 的 <code>openspec/</code> 目录是整个项目的审计日志，任何时候都能回溯”做了什么、为什么”。</li>
+<li><strong>纪律不会松</strong>：Superpowers 的自动触发机制确保每次开发都走完整流程，AI 没有机会走捷径。</li>
+<li><strong>平台可切换</strong>：如果你换了一个不支持 Superpowers 的 AI 工具，OpenSpec 的 specs 文件仍然在，仍然可以约束 AI。如果你换了一个不支持 OpenSpec 的项目，Superpowers 的纪律仍然在，仍然保证开发质量。</li>
+</ul>
+<hr>
+<h2 id="六、实操：需要创建的文件和规则"><a href="#六、实操：需要创建的文件和规则" class="headerlink" title="六、实操：需要创建的文件和规则"></a>六、实操：需要创建的文件和规则</h2><h3 id="6-1-第一步：初始化-OpenSpec"><a href="#6-1-第一步：初始化-OpenSpec" class="headerlink" title="6.1 第一步：初始化 OpenSpec"></a>6.1 第一步：初始化 OpenSpec</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在项目根目录执行</span></span><br><span class="line"><span class="built_in">cd</span> your-project</span><br><span class="line">openspec init --tools claude</span><br></pre></td></tr></table></figure>
+
+<p>这会创建：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">openspec/</span><br><span class="line">├── specs/          # 主规格目录（空，等待填充）</span><br><span class="line">├── changes/        # 变更目录（空，等待创建）</span><br><span class="line">└── config.yaml     # OpenSpec 配置（指定 AI 工具）</span><br></pre></td></tr></table></figure>
+
+<p>初始化后，Claude Code 中就可以使用 <code>/opsx:new</code>、<code>/opsx:propose</code> 等命令了。</p>
+<h3 id="6-2-第二步：确保-Superpowers-已安装"><a href="#6-2-第二步：确保-Superpowers-已安装" class="headerlink" title="6.2 第二步：确保 Superpowers 已安装"></a>6.2 第二步：确保 Superpowers 已安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在 Claude Code 中</span></span><br><span class="line">/plugin install superpowers@claude-plugins-official</span><br></pre></td></tr></table></figure>
+
+<p>验证安装：在 Claude Code 中输入 “Let’s make a feature X”，应该自动触发 brainstorming skill。</p>
+<h3 id="6-3-第三步：创建项目级-CLAUDE-md（关键）"><a href="#6-3-第三步：创建项目级-CLAUDE-md（关键）" class="headerlink" title="6.3 第三步：创建项目级 CLAUDE.md（关键）"></a>6.3 第三步：创建项目级 CLAUDE.md（关键）</h3><p>在项目根目录创建&#x2F;编辑 <code>CLAUDE.md</code>，定义两者的协作规则：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="section"># CLAUDE.md</span></span><br><span class="line"></span><br><span class="line"><span class="section">## AI 开发工作流规则</span></span><br><span class="line"></span><br><span class="line"><span class="section">### OpenSpec 集成</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">1.</span> <span class="strong">**所有功能性变更必须经过 OpenSpec**</span>：</span><br><span class="line"><span class="bullet">   -</span> 新功能 → <span class="code">`/opsx:new &lt;change-name&gt;`</span></span><br><span class="line"><span class="bullet">   -</span> Bug 修复 → <span class="code">`/opsx:new fix-&lt;description&gt;`</span></span><br><span class="line"><span class="bullet">   -</span> 重构 → <span class="code">`/opsx:new refactor-&lt;description&gt;`</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">2.</span> <span class="strong">**工件标准**</span>：</span><br><span class="line"><span class="bullet">   -</span> proposal.md 必须写清楚 &quot;为什么&quot; 和 &quot;做什么&quot;</span><br><span class="line"><span class="bullet">   -</span> specs/ 必须用 ADDED/MODIFIED/REMOVED 标注增量</span><br><span class="line"><span class="bullet">   -</span> design.md 必须涵盖技术方案和架构决策</span><br><span class="line"><span class="bullet">   -</span> tasks.md 必须是可勾选的实现清单</span><br><span class="line"></span><br><span class="line"><span class="bullet">3.</span> <span class="strong">**变更完成后必须归档**</span>：</span><br><span class="line"><span class="bullet">   -</span> 所有任务完成且验证通过后执行 <span class="code">`/opsx:archive`</span></span><br><span class="line"><span class="bullet">   -</span> 不要留未归档的 change</span><br><span class="line"></span><br><span class="line"><span class="section">### Superpowers 规则</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">1.</span> <span class="strong">**绝不跳过 brainstorming**</span>——即使看起来是&quot;简单功能&quot;</span><br><span class="line"><span class="bullet">2.</span> <span class="strong">**严格 TDD**</span>——先写测试，看它失败，再写实现</span><br><span class="line"><span class="bullet">3.</span> <span class="strong">**调试前必须走 root cause analysis**</span>——不允许症状修复</span><br><span class="line"><span class="bullet">4.</span> <span class="strong">**声称完成前必须运行验证**</span>——<span class="code">`verification-before-completion`</span></span><br><span class="line"><span class="bullet">5.</span> <span class="strong">**每个任务完成后提交**</span>——频繁提交，小步快跑</span><br><span class="line"></span><br><span class="line"><span class="section">### 两者衔接规则</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">1.</span> brainstorming 完成后，使用 <span class="code">`/opsx:new`</span> 创建对应的 OpenSpec 变更</span><br><span class="line"><span class="bullet">2.</span> writing-plans 输出的任务清单，应回填到 <span class="code">`openspec/changes/&lt;name&gt;/tasks.md`</span></span><br><span class="line"><span class="bullet">3.</span> 实现完成后，先走 Superpowers 的验证流程，再走 OpenSpec 的 <span class="code">`/opsx:verify`</span></span><br><span class="line"><span class="bullet">4.</span> 两个验证都通过后，执行 <span class="code">`/opsx:archive`</span> 归档</span><br><span class="line"></span><br><span class="line"><span class="section">### 优先级</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">1.</span> 用户显式指令（最高）</span><br><span class="line"><span class="bullet">2.</span> 本文件中的规则</span><br><span class="line"><span class="bullet">3.</span> Superpowers Skills</span><br><span class="line"><span class="bullet">4.</span> 系统默认行为</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-4-第四步：自定义-OpenSpec-Schema（可选）"><a href="#6-4-第四步：自定义-OpenSpec-Schema（可选）" class="headerlink" title="6.4 第四步：自定义 OpenSpec Schema（可选）"></a>6.4 第四步：自定义 OpenSpec Schema（可选）</h3><p>如果默认的 spec-driven schema 不完全符合你的项目需求，可以自定义：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看可用 schemas</span></span><br><span class="line">openspec schemas</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看默认 schema 的模板路径</span></span><br><span class="line">openspec templates</span><br></pre></td></tr></table></figure>
+
+<p>高级用户可以创建自定义 workflow schema，添加或修改工件类型。详细参考 <code>openspec schema --help</code>。</p>
+<h3 id="6-5-第五步：建立项目-Specs-基线（存量项目）"><a href="#6-5-第五步：建立项目-Specs-基线（存量项目）" class="headerlink" title="6.5 第五步：建立项目 Specs 基线（存量项目）"></a>6.5 第五步：建立项目 Specs 基线（存量项目）</h3><p>对于存量项目，建议逐步建立 specs 基线：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 为核心模块创建 spec</span></span><br><span class="line">/opsx:new baseline-auth-module</span><br></pre></td></tr></table></figure>
+
+<p>在 <code>proposal.md</code> 中描述现有行为（而非要改变什么），在 <code>specs/</code> 中记录现有功能和场景。这样后续任何对 auth 模块的修改都可以创建增量 spec。</p>
+<h3 id="6-6-可选：团队共享规则"><a href="#6-6-可选：团队共享规则" class="headerlink" title="6.6 可选：团队共享规则"></a>6.6 可选：团队共享规则</h3><p>对于团队项目，建议将 <code>.claude/settings.json</code> 中的以下配置也提交到仓库（将敏感信息提取到 <code>.claude/settings.local.json</code>）：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;enabledPlugins&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;superpowers@claude-plugins-official&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>确保团队每个成员的 Claude Code 都使用相同的 Superpowers 和 OpenSpec 工作流。</p>
+<hr>
+<h2 id="七、进阶：两者关系的本质"><a href="#七、进阶：两者关系的本质" class="headerlink" title="七、进阶：两者关系的本质"></a>七、进阶：两者关系的本质</h2><h3 id="7-1-OpenSpec-是”合同”，Superpowers-是”执行纪律”"><a href="#7-1-OpenSpec-是”合同”，Superpowers-是”执行纪律”" class="headerlink" title="7.1 OpenSpec 是”合同”，Superpowers 是”执行纪律”"></a>7.1 OpenSpec 是”合同”，Superpowers 是”执行纪律”</h3><p>想象一个建筑工地：</p>
+<ul>
+<li><strong>OpenSpec 是施工图纸和合同</strong>：定义了要建什么、标准是什么、验收条件是什么。图纸一旦签字，施工方和甲方都以此为凭。</li>
+<li><strong>Superpowers 是施工规范和监理流程</strong>：规定了必须按什么顺序施工（先打地基再砌墙）、每个环节如何验收、出了问题如何追溯。没有这些规范，再好的图纸也可能盖出豆腐渣工程。</li>
+</ul>
+<h3 id="7-2-OpenSpec-补-Superpowers-的短板"><a href="#7-2-OpenSpec-补-Superpowers-的短板" class="headerlink" title="7.2 OpenSpec 补 Superpowers 的短板"></a>7.2 OpenSpec 补 Superpowers 的短板</h3><p>Superpowers 的一个痛点是：<strong>设计文档和计划存在 <code>docs/superpowers/specs/</code> 和 <code>docs/superpowers/plans/</code> 中，是独立的 markdown 文件，缺乏结构化的变更追踪。</strong> 当你回溯”三个月前那个登录重构是谁提议的、规格是什么”时，只能翻聊天记录或文档文件。</p>
+<p>OpenSpec 的 <code>changes/</code> 目录结构 + <code>specs/</code> 主规格目录解决了这个问题。每个变更的完整历史——从提案到归档——都有清晰的文件记录，且 delta specs 清楚地标记了增删改。</p>
+<h3 id="7-3-OpenFlow：官方桥接方案"><a href="#7-3-OpenFlow：官方桥接方案" class="headerlink" title="7.3 OpenFlow：官方桥接方案"></a>7.3 OpenFlow：官方桥接方案</h3><p>社区已经有了桥接两者的工具：<a target="_blank" rel="noopener" href="https://www.npmjs.com/package/@lininn/openflow">OpenFlow</a>（<code>@lininn/openflow</code>）提供了一套 5 阶段工作流：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">    A[&quot;proposal&quot;] --&gt; B[&quot;brainstorming&quot;] --&gt; C[&quot;spec&quot;] --&gt; D[&quot;build&quot;] --&gt; E[&quot;close&quot;]</span><br></pre></td></tr></table></figure>
+
+<p>它会自动检测并安装 OpenSpec CLI 和 Superpowers 依赖，将两者的流程打通。如果你想省去手动衔接的工作，可以直接使用。</p>
+<hr>
+<h2 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h2><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>只用 Superpowers</th>
+<th>只用 OpenSpec</th>
+<th>两者结合</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>纪律性</strong></td>
+<td>✅ 强</td>
+<td>❌ 依赖 AI 自觉</td>
+<td>✅ 强</td>
+</tr>
+<tr>
+<td><strong>可追溯性</strong></td>
+<td>⚠️ 存在文档中</td>
+<td>✅ 结构化追踪</td>
+<td>✅ 完整审计</td>
+</tr>
+<tr>
+<td><strong>跨工具</strong></td>
+<td>⚠️ 部分支持</td>
+<td>✅ 20+ 工具</td>
+<td>✅ 灵活切换</td>
+</tr>
+<tr>
+<td><strong>易上手</strong></td>
+<td>✅ 自动触发</td>
+<td>⚠️ 需学习命令</td>
+<td>⚠️ 初期有学习成本</td>
+</tr>
+<tr>
+<td><strong>维持成本</strong></td>
+<td>✅ 低（自动化）</td>
+<td>⚠️ 需手动归档</td>
+<td>⚠️ 需遵守衔接规则</td>
+</tr>
+<tr>
+<td><strong>适合场景</strong></td>
+<td>日常开发、bug 修复</td>
+<td>中大型功能、团队协作</td>
+<td>所有场景</td>
+</tr>
+</tbody></table>
+<p>最终，这套融合工作流的目标是：</p>
+<blockquote>
+<p><strong>让 AI 不仅能写代码，更能像一个有纪律的资深工程师一样工作——先理解需求，再设计方案，写测试，写代码，验证结果，记录变更，最后归档。每一步都可追溯，每一步都有纪律。</strong></p>
+</blockquote>
+<p>软件开发中最贵的从来不是写代码的时间，而是修复错误决策的成本。Superpowers + OpenSpec 的组合，正是为了把错误决策扼杀在摇篮里。</p>
+<hr>
+<h2 id="参考资源"><a href="#参考资源" class="headerlink" title="参考资源"></a>参考资源</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/obra/superpowers">Superpowers GitHub</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/Fission-AI/OpenSpec">OpenSpec GitHub</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.fsck.com/2025/10/09/superpowers/">Superpowers 发布公告</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/1705378">OpenSpec 中文技术文档</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.npmjs.com/package/@lininn/openflow">OpenFlow - Superpowers + OpenSpec 桥接工具</a></li>
+</ul>
+
+    </div>
+  </div>
+
+  
+    <nav class="art-end">
+      <span class="head-spacer"></span>
+      <div class="end-grid">
+        
+          <a href="/2026/04/13/OpenSpec%E6%96%87%E6%A1%A3%E8%AF%A6%E8%A7%A3/">
+            <div class="lab">◄ PREV</div>
+            <div class="ti">OpenSpec 文档体系与归档机制详解</div>
+          </a>
+        
+        
+          <a href="/2026/03/04/OpenClaw/" class="end">
+            <div class="lab">NEXT ►</div>
+            <div class="ti">是否真的需要OpenClaw</div>
+          </a>
+        
+      </div>
+    </nav>
+  
+
+  
+
+</article>
+
+</main>
+
+<footer class="f">
+  <div class="f-inner">
+    <span><span class="prompt">$ </span>echo "© Floki · Code Notes "</span>
+    
+    
+      <span id="busuanzi_container_site_pv">
+        <span class="prompt">★ </span>visitors × <span id="busuanzi_value_site_pv"></span>
+      </span>
+    
+  </div>
+</footer>
+
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+  <script>
+    window.PT_CAT_BUDDY = {"src":"/img/cat.png","size":100,"corner":"br","followMouse":true,"phrases":["MEOW.EXE","SUDO PURR","> PET ME","HP +1","RUA~","CTRL+M","PRESS A"]};
+  </script>
+  <script src="/js/cat-buddy.js" defer></script>
+
+
+
+<!-- 第三方库 -->
+
+  
+    <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
+
+<script src="/js/pixelterm.js"></script>
+
+  <script src="/js/toc.js" defer></script>
+
+
+
+  <script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      document.querySelectorAll('.prose').forEach(function(g){
+        if (typeof lightGallery !== 'function') return;
+        lightGallery(g, {
+          selector: 'img',
+          plugins: [
+            window.lgZoom,
+            window.lgThumbnail,
+            window.lgRotate,
+            window.lgFullscreen,
+            
+          ].filter(Boolean),
+          download: false
+        });
+      });
+    });
+  </script>
+
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/js/mermaid-init.js"></script>
+
+
+
+
+
+</body>
+</html>

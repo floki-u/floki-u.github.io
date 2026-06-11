@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hexo + pixelterm v1.0.0">
+<meta name="description" content="一个写作爱好者的在线笔记本">
+<meta name="author" content="floki">
+<meta name="theme-color" content="#0b0f14">
+
+<title>inline语义 · Floki</title>
+
+<link rel="icon" type="image/png" href="/img/cat.png">
+
+<!-- 字体（与设计稿一致） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css">
+
+<!-- 主题样式 -->
+<link rel="stylesheet" href="/css/pixelterm.css">
+<!-- 移动端适配增强（必须放在 pixelterm.css 之后） -->
+<link rel="stylesheet" href="/css/mobile.css">
+
+  <link rel="stylesheet" href="/css/mermaid.css">
+
+
+  <link rel="stylesheet" href="/css/lightgallery.min.css">
+
+
+<!-- 代码高亮（内置 IDE 风格：暗色 One Dark / 亮色 GitHub Light，跟随主题切换） -->
+<link rel="stylesheet" href="/css/highlight.css">
+
+<!-- 自定义 CSS 注入 -->
+
+
+
+<!-- 主题模式优先注入（避免闪屏） -->
+<script>
+(function(){
+  var def = 'auto';
+  var t;
+  try { t = localStorage.getItem('pt-theme'); } catch(e){}
+  if(!t){
+    t = (def === 'auto')
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : def;
+  }
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+
+<body class="layout-post">
+
+<!-- 全屏背景层（CSS pseudos 提供 CRT 扫描线/vignette；下面是 canvas + grid） -->
+
+  <canvas id="rain" aria-hidden="true"></canvas>
+
+<div class="pix-grid" aria-hidden="true"></div>
+
+<div class="titlebar">
+  <div class="dots"><i></i><i></i><i></i></div>
+  <div class="path">— <b>floki@pixelterm</b>: <span>~/inline语义</span> — zsh — </div>
+  <div class="right">
+    <span class="clock" data-clock>00:00:00</span>
+    <div class="menu">
+      
+        <a href="/" class="">HOME</a>
+      
+        <a href="/list/" class="">POSTS</a>
+      
+        <a href="/categories/" class="">CATEGORIES</a>
+      
+        <a href="/tags/" class="">TAGS</a>
+      
+        <a href="/about/" class="">ABOUT</a>
+      
+    </div>
+    
+      <button class="theme-toggle" data-theme-toggle aria-label="toggle theme">
+        <span class="icon moon">☾</span>
+        <span class="icon sun">☀</span>
+        <span class="knob"></span>
+      </button>
+    
+  </div>
+</div>
+
+
+<main class="shell">
+  
+<article class="article ">
+  <header class="art-head fade">
+    <span class="head-spacer"></span>
+    <div class="head-inner" data-vim="inline语义.md   --  2025/03/21">
+      <span class="art-tag">C++</span>
+      
+        <span class="art-tag cyan">技术</span>
+      
+      <h1 class="art-title">inline语义</h1>
+      <div class="art-meta">
+  
+    <span>2025-03-21</span>
+  
+  
+    <span>updated <b>2026-06-11</b></span>
+  
+  
+    <span><b>2.6k</b> words</span>
+  
+  
+    <span>▶ <b>10</b> min</span>
+  
+  
+    <span id="busuanzi_container_page_pv">views <b><span id="busuanzi_value_page_pv"></span></b></span>
+  
+  
+    <span>in
+      
+        <a href="/categories/%E6%8A%80%E6%9C%AF/">技术</a>
+      
+    </span>
+  
+  
+    <span>tags
+      
+        <a href="/tags/C/">#C++</a>
+      
+    </span>
+  
+</div>
+
+    </div>
+  </header>
+
+  <div class="art-body">
+    
+
+  
+    <aside class="toc-card" data-toc>
+      <h5>QUEST LOG</h5>
+      <ol class="pt-toc-inner"><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E6%A6%82%E8%BF%B0"><span class="pt-toc-inner-text">概述</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#inline-%E7%9A%84%E6%A0%B8%E5%BF%83%E4%BD%9C%E7%94%A8"><span class="pt-toc-inner-text">inline 的核心作用</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E6%94%BE%E5%AE%BD%E4%B8%80%E6%AC%A1%E5%AE%9A%E4%B9%89%E8%A7%84%E5%88%99-ODR"><span class="pt-toc-inner-text">放宽一次定义规则 (ODR)</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E5%86%85%E8%81%94%E5%B1%95%E5%BC%80%EF%BC%88%E6%AC%A1%E8%A6%81%E4%BD%9C%E7%94%A8%EF%BC%89"><span class="pt-toc-inner-text">内联展开（次要作用）</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E7%BC%96%E8%AF%91%E5%99%A8%E8%A7%86%E8%A7%92"><span class="pt-toc-inner-text">编译器视角</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E4%BC%98%E5%8C%96%E5%99%A8%E7%9C%BC%E9%87%8C%E7%9A%84-inline"><span class="pt-toc-inner-text">优化器眼里的 inline</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E9%93%BE%E6%8E%A5%E5%99%A8%E4%B8%AD%E7%9A%84-inline"><span class="pt-toc-inner-text">链接器中的 inline</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E4%B8%8D%E5%90%8C-C-%E7%89%88%E6%9C%AC%E7%9A%84%E7%89%B9%E6%80%A7"><span class="pt-toc-inner-text">不同 C++ 版本的特性</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#C-98-03%EF%BC%9A%E5%9F%BA%E7%A1%80-inline"><span class="pt-toc-inner-text">C++98&#x2F;03：基础 inline</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#C-11%EF%BC%9Aconstexpr-%E9%9A%90%E5%BC%8F-inline"><span class="pt-toc-inner-text">C++11：constexpr 隐式 inline</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#C-17%EF%BC%9Ainline-%E5%8F%98%E9%87%8F"><span class="pt-toc-inner-text">C++17：inline 变量</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#C-20%EF%BC%9A%E6%A8%A1%E5%9D%97%E4%B8%AD%E7%9A%84-inline"><span class="pt-toc-inner-text">C++20：模块中的 inline</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E6%80%BB%E7%BB%93"><span class="pt-toc-inner-text">总结</span></a></li></ol>
+    </aside>
+  
+
+
+    <div class="prose">
+      <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>inline</code> 是 C++ 中一个被广泛误解的关键字。很多开发者认为它的主要作用是”内联展开函数以提高性能”，但实际上，<strong><code>inline</code> 的核心语义是允许在多个编译单元中出现相同的定义</strong>，而非强制内联。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// inline 的基本语法</span></span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="type">int</span> <span class="title">add</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> a + b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="inline-的核心作用"><a href="#inline-的核心作用" class="headerlink" title="inline 的核心作用"></a><code>inline</code> 的核心作用</h2><h3 id="放宽一次定义规则-ODR"><a href="#放宽一次定义规则-ODR" class="headerlink" title="放宽一次定义规则 (ODR)"></a>放宽一次定义规则 (ODR)</h3><p><strong>这是 <code>inline</code> 最重要的作用！</strong></p>
+<p>C++ 的一次定义规则 (One Definition Rule, ODR) 规定：</p>
+<ul>
+<li>每个函数&#x2F;变量在整个程序中只能有一个定义</li>
+<li>违反 ODR 会导致链接错误</li>
+</ul>
+<p><code>inline</code> 关键字放宽了这个规则：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// header.h</span></span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="type">int</span> <span class="title">getValue</span><span class="params">()</span> </span>&#123;  <span class="comment">// 可以在头文件中定义</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">42</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// a.cpp</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;header.h&quot;</span>  <span class="comment">// 包含定义</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// b.cpp</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;header.h&quot;</span>  <span class="comment">// 再次包含定义 - 不会链接错误！</span></span></span><br></pre></td></tr></table></figure>
+
+<p><strong>没有 <code>inline</code> 的情况：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// header.h</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">getValue</span><span class="params">()</span> </span>&#123;  <span class="comment">// 错误！</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">42</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// a.cpp</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;header.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// b.cpp</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;header.h&quot;</span></span></span><br><span class="line"><span class="comment">// 链接错误：multiple definition of &#x27;getValue&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="内联展开（次要作用）"><a href="#内联展开（次要作用）" class="headerlink" title="内联展开（次要作用）"></a>内联展开（次要作用）</h3><p><code>inline</code> <strong>建议</strong>编译器将函数调用替换为函数体：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">inline</span> <span class="type">int</span> <span class="title">square</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> x * x;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> result = <span class="built_in">square</span>(<span class="number">5</span>);</span><br><span class="line">  <span class="comment">// 编译器可能展开为：int result = 5 * 5;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>重要：这只是一个建议，编译器可以忽略！</strong></p>
+<h2 id="编译器视角"><a href="#编译器视角" class="headerlink" title="编译器视角"></a>编译器视角</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">源代码 → 预处理 → 编译 → 优化 → 代码生成 → 链接</span><br><span class="line">                         ↑</span><br><span class="line">                    内联决策在这里</span><br></pre></td></tr></table></figure>
+
+<p>编译器在决定是否内联时会考虑：</p>
+<table>
+<thead>
+<tr>
+<th>因素</th>
+<th>倾向内联</th>
+<th>倾向不内联</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>函数体大小</td>
+<td>小（几行）</td>
+<td>大（几十行）</td>
+</tr>
+<tr>
+<td>调用频率</td>
+<td>高频调用点</td>
+<td>冷路径调用</td>
+</tr>
+<tr>
+<td>优化级别</td>
+<td><code>-O2</code>&#x2F;<code>-O3</code></td>
+<td><code>-O0</code></td>
+</tr>
+<tr>
+<td>函数复杂度</td>
+<td>简单直接</td>
+<td>包含循环&#x2F;递归</td>
+</tr>
+<tr>
+<td>是否虚函数</td>
+<td>非虚函数</td>
+<td>虚函数</td>
+</tr>
+</tbody></table>
+<h2 id="优化器眼里的-inline"><a href="#优化器眼里的-inline" class="headerlink" title="优化器眼里的 inline"></a>优化器眼里的 inline</h2><p>在这一层语境下，<code>inline</code> 是指将在函数调用处将函数体展开，消除掉函数调用。看一个简单的例子:</p>
+<p>假如我们有以下代码，且 <code>foo</code> 没有被 <code>inline</code> (内联)：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">foo</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123;<span class="keyword">return</span> x + <span class="number">42</span>;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">bar</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123; <span class="type">int</span> y = <span class="built_in">foo</span>(x) + <span class="number">1</span>; <span class="keyword">return</span> y;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到编译器（clang trunk）生成的汇编：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">foo(int):                                # @foo(int)</span><br><span class="line">        push    rbp</span><br><span class="line">        mov     rbp, rsp</span><br><span class="line">        mov     dword ptr [rbp - 4], edi</span><br><span class="line">        mov     eax, dword ptr [rbp - 4]</span><br><span class="line">        add     eax, 42</span><br><span class="line">        pop     rbp</span><br><span class="line">        ret</span><br><span class="line">bar(int):                                # @bar(int)</span><br><span class="line">        push    rbp</span><br><span class="line">        mov     rbp, rsp</span><br><span class="line">        sub     rsp, 16</span><br><span class="line">        mov     dword ptr [rbp - 4], edi</span><br><span class="line">        mov     edi, dword ptr [rbp - 4]</span><br><span class="line">        call    foo(int)</span><br><span class="line">        add     eax, 1</span><br><span class="line">        mov     dword ptr [rbp - 8], eax</span><br><span class="line">        mov     eax, dword ptr [rbp - 8]</span><br><span class="line">        add     rsp, 16</span><br><span class="line">        pop     rbp</span><br><span class="line">        ret</span><br></pre></td></tr></table></figure>
+
+<p>可以看到编译器生成了一条 <code>call</code> 指令，表示调用函数 <code>foo</code>。</p>
+<p>而当我们将代码改成这样时：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> INLINE inline __attribute__((always_inline))</span></span><br><span class="line"><span class="function">INLINE <span class="type">int</span> <span class="title">foo</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123;<span class="keyword">return</span> x + <span class="number">42</span>;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">bar</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123; <span class="type">int</span> y = <span class="built_in">foo</span>(x) + <span class="number">1</span>; <span class="keyword">return</span> y;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译器（clang trunk）生成的汇编为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">bar(int):                                # @bar(int)</span><br><span class="line">        push    rbp</span><br><span class="line">        mov     rbp, rsp</span><br><span class="line">        mov     dword ptr [rbp - 8], edi</span><br><span class="line">        mov     eax, dword ptr [rbp - 8]</span><br><span class="line">        mov     dword ptr [rbp - 4], eax</span><br><span class="line">        mov     eax, dword ptr [rbp - 4]</span><br><span class="line">        add     eax, 42</span><br><span class="line">        add     eax, 1</span><br><span class="line">        mov     dword ptr [rbp - 12], eax</span><br><span class="line">        mov     eax, dword ptr [rbp - 12]</span><br><span class="line">        pop     rbp</span><br><span class="line">        ret</span><br></pre></td></tr></table></figure>
+
+<p>可以看到整 <code>foo</code> 的整个函数体已经被干掉了，在 <code>bar</code> 中直接被替换为了 <code>add eax, 42</code> 即源代码中对应的 <code>x + 42</code>。</p>
+<p>这就是当我们谈优化时 <code>inline</code> 的含义，如果某人说某某函数被 <code>inline</code> 掉了，他实际的意思是编译器将这个函数在它的所有调用处展开了。</p>
+<p>但是！如果认真看一下我们修改后的代码就会发现，并不是加个 <code>inline</code> 关键字函数就会被 <code>inline</code>（内联）的。这是为什么呢？我们都知道 C 和 C++ 都是非常古老的语言，在早期编译器还不是很成熟时，我们确实可以通过使用 <code>inline</code> 关键字告诉编译器请内联这个函数。而随着编译技术的发展，编译器越来越聪明（至少在某些方面），它会自己去判断是否真的需要去内联这个函数。</p>
+<p>比如在 Clang 中，优化器采用了一个 Cost model 导向的算法，会根据一些分析得来的信息进行判断，内联一个函数是否是值得的（profitable）。而 <code>inline</code> 关键字，则会作为一个 hint，帮助优化器决策。所以，<code>inline</code> 关键字一定是对函数内联有影响的！</p>
+<p>我们可以直接看 Clang 编译器的源码 <a target="_blank" rel="noopener" href="https://github.com/llvm/llvm-project/blob/0d8ec20fbb6342c31d219978f9a2c014141b2347/clang/lib/CodeGen/CodeGenModule.cpp#L2338-L2350">clang&#x2F;lib&#x2F;CodeGen&#x2F;CodeGenModule.cpp</a> 来验证这点：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="keyword">auto</span> *FD = <span class="built_in">dyn_cast</span>&lt;FunctionDecl&gt;(D)) &#123;</span><br><span class="line">  <span class="keyword">auto</span> CheckForInline = [](<span class="type">const</span> FunctionDecl *FD) &#123;</span><br><span class="line">    <span class="keyword">auto</span> CheckRedeclForInline = [](<span class="type">const</span> FunctionDecl *Redecl) &#123;</span><br><span class="line">      <span class="keyword">return</span> Redecl-&gt;<span class="built_in">isInlineSpecified</span>();</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">any_of</span>(FD-&gt;<span class="built_in">redecls</span>(), CheckRedeclForInline))</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    <span class="comment">// 和模板有关的代码，略过。</span></span><br><span class="line">  &#125;;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">CheckForInline</span>(FD)) &#123;</span><br><span class="line">    B.<span class="built_in">addAttribute</span>(llvm::Attribute::InlineHint);</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (...)</span><br><span class="line">    ...</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，如果我们的 FunctionDecl (函数声明) 是带 <code>inline</code> 关键字的，我们会给生成的 IR 加一个 <code>llvm::Attribute::InlineHint</code> 的标记。</p>
+<p>而在 LLVM 中端的 Inliner 中搜索 <code>InlineHint</code>，可以找到 <a target="_blank" rel="noopener" href="https://github.com/llvm/llvm-project/blob/de58b81e5cf3f7514241b86109d6dccd46a74968/llvm/lib/Analysis/InlineCost.cpp#L1890-L1892">llvm&#x2F;lib&#x2F;Analysis&#x2F;InlineCost.cpp</a>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Adjust the threshold based on inlinehint attribute and profile based</span></span><br><span class="line">  <span class="comment">// hotness information if the caller does not have MinSize attribute.</span></span><br><span class="line">  <span class="keyword">if</span> (!Caller-&gt;<span class="built_in">hasMinSize</span>()) &#123;</span><br><span class="line">    <span class="keyword">if</span> (Callee.<span class="built_in">hasFnAttribute</span>(Attribute::InlineHint))</span><br><span class="line">      Threshold = <span class="built_in">MaxIfValid</span>(Threshold, Params.HintThreshold);</span><br></pre></td></tr></table></figure>
+
+<p>即使我们不理解 Inliner 整个算法的含义，至少也可以看出加上 <code>inline</code> 关键字是有意义的，虽然不是<strong>决定性因素</strong>，但绝对不是一些人说的毫无意义。</p>
+<h2 id="链接器中的-inline"><a href="#链接器中的-inline" class="headerlink" title="链接器中的 inline"></a>链接器中的 inline</h2><p>首先我们先介绍 C++ 的编译模型：</p>
+<p>对于 C 和 C++ 来说，它的每个源文件，即 <code>.c</code> 和 <code>.cpp</code> 文件都是可以被编译器单独编译的，然后链接器会将编译后生成的所有 <code>.o</code> 文件链接在一起，形成一个可执行文件。而每个源文件被称为 Translation Unit。注意，<strong>头文件不是 Translation unit</strong>，因为头文件在预处理时发挥作用，此后就没有这个概念了。举个简单的例子：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// foo.h</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">foo</span><span class="params">(<span class="type">int</span> x)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// bar.cpp</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;foo.h&quot;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">bar</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123; <span class="keyword">return</span> <span class="built_in">foo</span>(x) + <span class="number">42</span>; &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// baz.cpp</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;foo.h&quot;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">baz</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123; <span class="keyword">return</span> <span class="built_in">foo</span>(x) - <span class="number">42</span>; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这几个文件经过编译器预处理后，我们相当于有下面两个 Translation unit:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// bar.cpp</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">foo</span><span class="params">(<span class="type">int</span> x)</span></span>;</span><br><span class="line"><span class="comment">// include 会将头文件中所有内容复制粘贴过来</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">bar</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123; <span class="keyword">return</span> x + <span class="number">42</span>; &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// baz.cpp</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">foo</span><span class="params">(<span class="type">int</span> x)</span></span>;</span><br><span class="line"><span class="comment">// include 会将头文件中所有内容复制粘贴过来</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">baz</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123; <span class="keyword">return</span> <span class="built_in">foo</span>(x) + <span class="number">1</span>; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>而如果我们尝试在头文件中写一个函数定义呢？如果你试过的话就知道编译器会报错，编译不通过。为什么呢？根据上面的模型我们可以知道，<code>#inlcude</code> 会把头文件中所有内容复制过来，也就是说我们在两个 Translation unit 都定义了同一个函数。那我们可以想象出编译器会生成类似于下面的代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># bar.o</span><br><span class="line">foo:</span><br><span class="line">   # foo 函数的汇编代码</span><br><span class="line">bar:</span><br><span class="line">   # bar 函数的汇编代码</span><br><span class="line"></span><br><span class="line"># baz.o</span><br><span class="line">foo:</span><br><span class="line">   # foo 函数的汇编代码</span><br><span class="line">baz:</span><br><span class="line">   # foo 函数的汇编代码</span><br></pre></td></tr></table></figure>
+
+<p>编译器将源文件编译为 <code>.o</code> 文件后，链接器就会尝试将他们合并为一个可执行文件。这时候它就会发现有一个符号（<code>foo</code>）被定义了两次。而它没有能力处理这种问题，所以便报错了。这也就是 C++ 中经常听到的 ODR violation。</p>
+<p>但是，有些时候我们确实希望能在头文件中写函数定义，比如一个 header-only 的库。这种情况下我们便可以在函数前加一个 <code>inline</code> 关键字。此时连接器就会选择一份定义，然后将其他重复的定义丢掉。</p>
+<p>另外值得一说的是在 C++17 之后，<code>inline</code> 的语义被推广到了变量上，你可以在全局变量前加上 <code>inline</code> 关键字，达到相同的效果。</p>
+<blockquote>
+<p>思考一下，如果头文件里不能直接写函数定义，那函数模板呢？没错，C++ 的模板是 implicit inline 的！</p>
+</blockquote>
+<h2 id="不同-C-版本的特性"><a href="#不同-C-版本的特性" class="headerlink" title="不同 C++ 版本的特性"></a>不同 C++ 版本的特性</h2><h3 id="C-98-03：基础-inline"><a href="#C-98-03：基础-inline" class="headerlink" title="C++98&#x2F;03：基础 inline"></a>C++98&#x2F;03：基础 <code>inline</code></h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 头文件中定义内联函数</span></span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="type">int</span> <span class="title">add</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> a + b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 类内定义的成员函数隐式 inline</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Calculator</span> &#123;</span><br><span class="line"> <span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="type">int</span> <span class="title">Add</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> </span>&#123;  <span class="comment">// 隐式 inline</span></span><br><span class="line">    <span class="keyword">return</span> a + b;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="type">int</span> <span class="title">Multiply</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span>;  <span class="comment">// 声明</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 类外定义需要显式 inline</span></span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="type">int</span> <span class="title">Calculator::Multiply</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> a * b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="C-11：constexpr-隐式-inline"><a href="#C-11：constexpr-隐式-inline" class="headerlink" title="C++11：constexpr 隐式 inline"></a>C++11：<code>constexpr</code> 隐式 <code>inline</code></h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// constexpr 函数隐式 inline</span></span><br><span class="line"><span class="function"><span class="keyword">constexpr</span> <span class="type">int</span> <span class="title">factorial</span><span class="params">(<span class="type">int</span> n)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> n &lt;= <span class="number">1</span> ? <span class="number">1</span> : n * <span class="built_in">factorial</span>(n - <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 等价于：</span></span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="keyword">constexpr</span> <span class="type">int</span> <span class="title">factorial</span><span class="params">(<span class="type">int</span> n)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> n &lt;= <span class="number">1</span> ? <span class="number">1</span> : n * <span class="built_in">factorial</span>(n - <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong><code>constexpr</code> vs <code>inline</code>：</strong></p>
+<ul>
+<li><code>constexpr</code>：编译期求值 + 隐式 <code>inline</code></li>
+<li><code>inline</code>：仅放宽 ODR</li>
+</ul>
+<h3 id="C-17：inline-变量"><a href="#C-17：inline-变量" class="headerlink" title="C++17：inline 变量"></a>C++17：<code>inline</code> 变量</h3><p><strong>这是 C++17 最重要的 <code>inline</code> 特性！</strong></p>
+<p>在 C++17 之前，头文件中定义全局变量很困难：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// C++14 及之前的做法</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// header.h - 方法1：extern 声明</span></span><br><span class="line"><span class="keyword">extern</span> <span class="type">const</span> <span class="type">int</span> kGlobalValue;  <span class="comment">// 声明</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// source.cpp</span></span><br><span class="line"><span class="type">const</span> <span class="type">int</span> kGlobalValue = <span class="number">42</span>;    <span class="comment">// 定义（只能在一个 cpp 中）</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// header.h - 方法2：函数封装</span></span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="type">int</span> <span class="title">GetGlobalValue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="type">static</span> <span class="type">const</span> <span class="type">int</span> value = <span class="number">42</span>;</span><br><span class="line">  <span class="keyword">return</span> value;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// header.h - 方法3：类静态成员</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Constants</span> &#123;</span><br><span class="line">  <span class="type">static</span> <span class="type">const</span> <span class="type">int</span> kValue;  <span class="comment">// 声明</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// source.cpp</span></span><br><span class="line"><span class="type">const</span> <span class="type">int</span> Constants::kValue = <span class="number">42</span>;  <span class="comment">// 定义</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>C++17 的 <code>inline</code> 变量：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// header.h - 直接在头文件中定义！</span></span><br><span class="line"><span class="keyword">inline</span> <span class="keyword">constexpr</span> <span class="type">int</span> kGlobalValue = <span class="number">42</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">inline</span> std::string kGlobalName = <span class="string">&quot;WeMeet&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 类静态成员也可以内联定义</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Config</span> &#123;</span><br><span class="line"> <span class="keyword">public</span>:</span><br><span class="line">  <span class="keyword">inline</span> <span class="type">static</span> <span class="type">int</span> max_connections = <span class="number">100</span>;</span><br><span class="line">  <span class="keyword">inline</span> <span class="type">static</span> <span class="type">const</span> std::string version = <span class="string">&quot;1.0.0&quot;</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong><code>inline</code> 变量的保证：</strong></p>
+<ol>
+<li>可以在多个编译单元中定义</li>
+<li>所有定义必须相同</li>
+<li>程序中只有一个实例（地址相同）</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// a.cpp</span></span><br><span class="line"><span class="keyword">inline</span> <span class="type">int</span> counter = <span class="number">0</span>;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">incrementA</span><span class="params">()</span> </span>&#123; ++counter; &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// b.cpp</span></span><br><span class="line"><span class="keyword">inline</span> <span class="type">int</span> counter = <span class="number">0</span>;  <span class="comment">// 同一个变量！</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">incrementB</span><span class="params">()</span> </span>&#123; ++counter; &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// main.cpp</span></span><br><span class="line"><span class="keyword">inline</span> <span class="type">int</span> counter = <span class="number">0</span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="built_in">incrementA</span>();  <span class="comment">// counter = 1</span></span><br><span class="line">  <span class="built_in">incrementB</span>();  <span class="comment">// counter = 2</span></span><br><span class="line">  <span class="comment">// 所有文件共享同一个 counter</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="C-20：模块中的-inline"><a href="#C-20：模块中的-inline" class="headerlink" title="C++20：模块中的 inline"></a>C++20：模块中的 <code>inline</code></h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// mymodule.cppm</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">module</span> mymodule;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 模块中的 inline 函数</span></span><br><span class="line"><span class="function"><span class="keyword">export</span> <span class="keyword">inline</span> <span class="type">int</span> <span class="title">moduleAdd</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> a + b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 模块中的 inline 变量</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">inline</span> <span class="keyword">constexpr</span> <span class="type">int</span> kModuleConstant = <span class="number">100</span>;</span><br></pre></td></tr></table></figure>
+
+<p>模块系统改变了 <code>inline</code> 的一些行为：</p>
+<ul>
+<li>模块内的非 <code>inline</code> 函数不会自动导出</li>
+<li><code>inline</code> 仍然用于允许头文件式的定义</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li><code>inline</code> 关键字会作为一个 hint 帮助编译器中端的 Inliner 去分析是否要内联一个函数，减少函数调用产生的开销。</li>
+<li><code>inline</code> 可以让一个函数或者一个变量（C++17之后）可以在多个 Translation unit 有重复的定义，一般用在 header-only 的库中。</li>
+</ul>
+
+    </div>
+  </div>
+
+  
+    <nav class="art-end">
+      <span class="head-spacer"></span>
+      <div class="end-grid">
+        
+          <a href="/2025/06/04/RunLoop/">
+            <div class="lab">◄ PREV</div>
+            <div class="ti">RunLoop 深入理解</div>
+          </a>
+        
+        
+          <a href="/2024/11/03/%E6%99%BA%E8%83%BD%E6%8C%87%E9%92%88/" class="end">
+            <div class="lab">NEXT ►</div>
+            <div class="ti">智能指针分析</div>
+          </a>
+        
+      </div>
+    </nav>
+  
+
+  
+
+</article>
+
+</main>
+
+<footer class="f">
+  <div class="f-inner">
+    <span><span class="prompt">$ </span>echo "© Floki · Code Notes "</span>
+    
+    
+      <span id="busuanzi_container_site_pv">
+        <span class="prompt">★ </span>visitors × <span id="busuanzi_value_site_pv"></span>
+      </span>
+    
+  </div>
+</footer>
+
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+  <script>
+    window.PT_CAT_BUDDY = {"src":"/img/cat.png","size":100,"corner":"br","followMouse":true,"phrases":["MEOW.EXE","SUDO PURR","> PET ME","HP +1","RUA~","CTRL+M","PRESS A"]};
+  </script>
+  <script src="/js/cat-buddy.js" defer></script>
+
+
+
+<!-- 第三方库 -->
+
+  
+    <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
+
+<script src="/js/pixelterm.js"></script>
+
+  <script src="/js/toc.js" defer></script>
+
+
+
+  <script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      document.querySelectorAll('.prose').forEach(function(g){
+        if (typeof lightGallery !== 'function') return;
+        lightGallery(g, {
+          selector: 'img',
+          plugins: [
+            window.lgZoom,
+            window.lgThumbnail,
+            window.lgRotate,
+            window.lgFullscreen,
+            
+          ].filter(Boolean),
+          download: false
+        });
+      });
+    });
+  </script>
+
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/js/mermaid-init.js"></script>
+
+
+
+
+
+</body>
+</html>

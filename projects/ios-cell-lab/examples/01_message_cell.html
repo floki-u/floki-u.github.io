@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1. MessageCell - 聊天列表</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/shared.css">
+<script src="../assets/theme.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", sans-serif;
+    background: #f0f0f0;
+    padding: 20px;
+  }
+  .nav {
+    max-width: 760px;
+    margin: 0 auto 20px;
+    display: flex;
+    gap: 10px;
+  }
+  .nav a {
+    padding: 6px 12px;
+    background: white;
+    color: #333;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 13px;
+    border: 1px solid #ddd;
+  }
+  .nav a:hover { background: #1a1a2e; color: white; }
+
+  .container { max-width: 760px; margin: 0 auto; }
+
+  .header {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+  .header h1 { font-size: 24px; color: #1a1a2e; margin-bottom: 12px; }
+
+  /* iOS 真机模拟外框 */
+  .iphone-wrapper {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+  }
+  .iphone {
+    width: 390px;
+    background: white;
+    border-radius: 24px;
+    margin: 0 auto;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  }
+  .status-bar {
+    background: #f7f7f7;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .nav-bar {
+    background: white;
+    padding: 12px 20px;
+    border-bottom: 1px solid #e5e5e5;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  /* MessageCell 本体 */
+  .cell {
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #ededed;
+    cursor: pointer;
+    transition: background 0.1s;
+    position: relative;
+  }
+  .cell:hover { background: #f8f8f8; }
+  .cell:last-child { border-bottom: none; }
+
+  /* 视觉标注气泡 */
+  .cell .anno {
+    position: absolute;
+    background: rgba(26,26,46,0.95);
+    color: white;
+    font-size: 10px;
+    padding: 3px 7px;
+    border-radius: 4px;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .cell .anno-left { left: -120px; top: 50%; transform: translateY(-50%); }
+  .cell .anno-left::after {
+    content: ''; position: absolute; right: -6px; top: 50%; transform: translateY(-50%);
+    border: 6px solid transparent; border-left-color: rgba(26,26,46,0.95);
+  }
+
+  .avatar {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-right: 12px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 18px;
+  }
+
+  .content { flex: 1; min-width: 0; }
+  .row1 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  .name { font-size: 16px; font-weight: 600; color: #1a1a1a; }
+  .time { font-size: 12px; color: #999; flex-shrink: 0; margin-left: 8px; }
+  .msg {
+    font-size: 14px;
+    color: #707070;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .badge {
+    background: #ff3b30;
+    color: white;
+    font-size: 11px;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    padding: 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+  <div class="nav">
+    <a href="../index.html">← 返回主菜单</a>
+    <a href="02_news_cell.html">下一个：NewsCell →</a>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <h1>1️⃣ MessageCell（聊天列表）</h1>
+      <p style="color:#6c7293;font-size:14px;line-height:1.6;">
+        聊天列表 cell —— 最常见的列表场景，看似简单却是<b>三大经典 bug</b> 的高发地：
+        头像错乱、未读红点不消失、cornerRadius 离屏。
+      </p>
+    </div>
+
+    <!-- 视觉效果 -->
+    <div class="section-block">
+      <h2>🎨 视觉效果</h2>
+      <div class="section-subtitle">最终呈现的 UI 长这样（仿微信聊天列表）</div>
+      <div class="iphone">
+        <div class="status-bar"><span>9:41</span><span>•••</span></div>
+        <div class="nav-bar">微信</div>
+        <div class="cell">
+          <div class="avatar" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">张</div>
+          <div class="content">
+            <div class="row1"><span class="name">张三</span><span class="time">14:32</span></div>
+            <div class="msg">明天下午开会，不要迟到啊...</div>
+          </div>
+          <div class="badge">3</div>
+        </div>
+        <div class="cell">
+          <div class="avatar" style="background: linear-gradient(135deg, #fa709a, #fee140);">李</div>
+          <div class="content">
+            <div class="row1"><span class="name">李四</span><span class="time">昨天</span></div>
+            <div class="msg">收到，我看一下文档</div>
+          </div>
+        </div>
+        <div class="cell">
+          <div class="avatar" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">王</div>
+          <div class="content">
+            <div class="row1"><span class="name">王五</span><span class="time">星期一</span></div>
+            <div class="msg">好的👌</div>
+          </div>
+          <div class="badge">12</div>
+        </div>
+        <div class="cell">
+          <div class="avatar" style="background: linear-gradient(135deg, #667eea, #764ba2);">产</div>
+          <div class="content">
+            <div class="row1"><span class="name">产品讨论组</span><span class="time">10:08</span></div>
+            <div class="msg">@all 周会延期到明天 11 点</div>
+          </div>
+          <div class="badge">99+</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 三大坑 -->
+    <div class="section-block">
+      <h2>🚨 三大经典坑（必看）</h2>
+      <div class="section-subtitle">这几个问题如果不处理，线上 bug 接踵而至</div>
+
+      <div class="step">
+        <div class="step-num bad">1</div>
+        <div class="step-content">
+          <b>头像错乱</b>：A 头像下载慢，cell 滚走被 B 复用，A 的下载完成回调还在执行 →
+          <b>B 的 cell 突然闪过 A 的头像</b>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num bad">2</div>
+        <div class="step-content">
+          <b>未读红点不消失</b>：有红点的 cell 滚走后被一个"已读"消息复用，
+          <code>configureWith</code> 里 <code>if (unread > 0)</code> 走不进，<b>红点继续显示</b>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num bad">3</div>
+        <div class="step-content">
+          <b>头像 cornerRadius + clipsToBounds 触发离屏</b>：
+          每帧都要做一次离屏渲染，列表滚动 FPS 直线下降
+        </div>
+      </div>
+    </div>
+
+    <!-- 解决方案 1：prepareForReuse -->
+    <div class="section-block">
+      <h2>✅ 解决方案 1：prepareForReuse 重置状态</h2>
+      <div class="section-subtitle">解决坑 1 + 坑 2 —— cell 复用前自动重置所有"会残留"的状态</div>
+
+      <div class="explain success">
+        <span class="h">📖 原理：</span>
+        cell 被复用时，系统会<b>自动调用</b> <code>prepareForReuse</code>，调用时机在
+        <code>cellForRowAtIndexPath:</code> <b>之前</b>。这是清理上一次状态的<b>唯一正确时机</b>。
+      </div>
+
+      <div class="bad-good">
+        <div class="panel-bad">
+          <div class="panel-head">❌ 反例：没写 prepareForReuse</div>
+<pre class="code-block"><span class="kw">@implementation</span> <span class="type">MessageCell</span>
+
+- (<span class="kw">void</span>)<span class="meth">configureWithMessage:</span>(<span class="type">Message</span> *)msg {
+  <span class="selector">self</span>.nameLabel.text = msg.name;
+
+  <span class="comm">// 头像异步下载</span>
+  [<span class="selector">self</span>.avatarView <span class="meth">sd_setImageWithURL:</span>msg.avatarURL];
+
+  <span class="comm">// 红点</span>
+  <span class="kw">if</span> (msg.unreadCount &gt; <span class="num">0</span>) {
+    <span class="selector">self</span>.badgeView.hidden = <span class="kw">NO</span>;
+  }
+  <span class="comm">// ❌ 没有 else
+  // 复用时如果新数据 unread=0
+  // → 红点不会被隐藏</span>
+}
+
+<span class="kw">@end</span></pre>
+        </div>
+        <div class="panel-good">
+          <div class="panel-head">✅ 正例：用 prepareForReuse</div>
+<pre class="code-block"><span class="kw">@implementation</span> <span class="type">MessageCell</span>
+
+<span class="comm">// ⭐ cell 复用前系统自动调用</span>
+- (<span class="kw">void</span>)<span class="meth">prepareForReuse</span> {
+  [<span class="kw">super</span> <span class="meth">prepareForReuse</span>];
+
+  <span class="comm">// 1. 取消未完成的异步任务</span>
+  [<span class="selector">self</span>.avatarView <span class="meth">sd_cancelCurrentImageLoad</span>];
+
+  <span class="comm">// 2. 清空所有会残留的 UI 状态</span>
+  <span class="selector">self</span>.avatarView.image = <span class="kw">nil</span>;
+  <span class="selector">self</span>.nameLabel.text = <span class="kw">nil</span>;
+  <span class="selector">self</span>.badgeView.hidden = <span class="kw">YES</span>;
+
+  <span class="comm">// 3. 停止动画</span>
+  [<span class="selector">self</span>.indicator <span class="meth">stopAnimating</span>];
+}
+
+- (<span class="kw">void</span>)<span class="meth">configureWithMessage:</span>(<span class="type">Message</span> *)msg {
+  <span class="comm">// 不用写 else 了</span>
+  <span class="kw">if</span> (msg.unreadCount &gt; <span class="num">0</span>) {
+    <span class="selector">self</span>.badgeView.hidden = <span class="kw">NO</span>;
+  }
+}</pre>
+        </div>
+      </div>
+
+      <div class="explain">
+        <span class="h">⚙️ 复用时序：</span>
+        滚出屏幕的 cell B → 进入复用池 → 新 indexPath 需要 cell →
+        <code>dequeueReusableCell...</code> → <b>系统调用 [B prepareForReuse]</b> →
+        你的 <code>cellForRow</code> → <code>configureWith:newData</code>
+      </div>
+    </div>
+
+    <!-- 解决方案 2：圆角头像 -->
+    <div class="section-block">
+      <h2>✅ 解决方案 2：子线程预切圆图（消除离屏）</h2>
+      <div class="section-subtitle">解决坑 3 —— 头像不再用 cornerRadius，而是图片本身就是圆的</div>
+
+      <div class="bad-good">
+        <div class="panel-bad">
+          <div class="panel-head">❌ 反例：cornerRadius + clipsToBounds</div>
+<pre class="code-block"><span class="comm">// ❌ 触发离屏渲染</span>
+<span class="selector">self</span>.avatarView.layer.cornerRadius = <span class="num">24</span>;
+<span class="selector">self</span>.avatarView.<span class="bad">clipsToBounds</span> = <span class="kw">YES</span>;
+
+<span class="comm">// 加载头像</span>
+[<span class="selector">self</span>.avatarView
+  <span class="meth">sd_setImageWithURL:</span>url];
+
+<span class="comm">// 现象：
+// Color Off-screen Rendered
+// → 全屏头像位置都是黄色
+// → 滚动 FPS 35-40</span></pre>
+        </div>
+        <div class="panel-good">
+          <div class="panel-head">✅ 正例：子线程切圆图</div>
+<pre class="code-block"><span class="comm">// avatar 不设任何 cornerRadius</span>
+
+[<span class="selector">self</span>.avatarView <span class="meth">sd_setImageWithURL:</span>url
+  <span class="meth">placeholderImage:</span>placeholder
+  <span class="meth">completed:</span>^(<span class="type">UIImage</span> *img, ...) {
+    <span class="kw">if</span> (!img) <span class="kw">return</span>;
+
+    <span class="comm">// ⭐ 子线程切圆图</span>
+    dispatch_async(global_queue, ^{
+      <span class="type">UIImage</span> *circle =
+        [img <span class="meth">circleImageWithSize:</span>size];
+
+      dispatch_async(main_queue, ^{
+        <span class="comm">// ⭐ 防 cell 已被复用</span>
+        <span class="kw">if</span> ([iv.sd_imageURL <span class="meth">isEqual:</span>u]) {
+          iv.image = circle;
+        }
+      });
+    });
+  }];</pre>
+        </div>
+      </div>
+
+      <details class="collapsible">
+        <summary>📂 展开：完整的圆图工具方法 UIImage+Circle.m</summary>
+        <div class="collapsible-body">
+<pre class="code-block"><span class="kw">@implementation</span> <span class="type">UIImage</span> (<span class="type">Circle</span>)
+
+- (<span class="type">UIImage</span> *)<span class="meth">circleImageWithSize:</span>(<span class="type">CGSize</span>)size {
+  UIGraphicsBeginImageContextWithOptions(size, <span class="kw">NO</span>,
+    [<span class="type">UIScreen</span> mainScreen].scale);
+
+  <span class="comm">// 圆形裁剪路径</span>
+  <span class="type">UIBezierPath</span> *path = [<span class="type">UIBezierPath</span>
+    <span class="meth">bezierPathWithOvalInRect:</span>
+    CGRectMake(<span class="num">0</span>, <span class="num">0</span>, size.width, size.height)];
+  [path <span class="meth">addClip</span>];
+
+  <span class="comm">// 按 aspectFill 算 draw rect，避免变形</span>
+  <span class="type">CGFloat</span> scale = MAX(size.width / <span class="selector">self</span>.size.width,
+                       size.height / <span class="selector">self</span>.size.height);
+  <span class="type">CGSize</span> drawSize = CGSizeMake(<span class="selector">self</span>.size.width * scale,
+                                <span class="selector">self</span>.size.height * scale);
+  <span class="type">CGRect</span> drawRect = CGRectMake(
+    (size.width - drawSize.width) * <span class="num">0.5</span>,
+    (size.height - drawSize.height) * <span class="num">0.5</span>,
+    drawSize.width, drawSize.height);
+  [<span class="selector">self</span> <span class="meth">drawInRect:</span>drawRect];
+
+  <span class="type">UIImage</span> *result = UIGraphicsGetImageFromCurrentImageContext();
+  UIGraphicsEndImageContext();
+  <span class="kw">return</span> result;
+}
+
+<span class="kw">@end</span></pre>
+        </div>
+      </details>
+    </div>
+
+    <!-- 解决方案 3：红点用预渲染图 -->
+    <div class="section-block">
+      <h2>✅ 解决方案 3：红点用预渲染 UIImage</h2>
+      <div class="section-subtitle">cornerRadius=9 同样会触发离屏，全局只渲染一张红点图复用</div>
+
+<pre class="code-block"><span class="kw">@implementation</span> <span class="type">MessageCell</span>
+
+<span class="comm">// ⭐ 全局只渲染一次的红点 image</span>
++ (<span class="type">UIImage</span> *)<span class="meth">redBadgeImage</span> {
+  <span class="kw">static</span> <span class="type">UIImage</span> *image;
+  <span class="kw">static</span> dispatch_once_t once;
+  dispatch_once(&once, ^{
+    <span class="type">CGSize</span> size = CGSizeMake(<span class="num">18</span>, <span class="num">18</span>);
+    UIGraphicsBeginImageContextWithOptions(size, <span class="kw">NO</span>, scale);
+    <span class="type">CGContextRef</span> ctx = UIGraphicsGetCurrentContext();
+    CGContextSetFillColorWithColor(ctx, [<span class="type">UIColor</span> systemRedColor].CGColor);
+    CGContextFillEllipseInRect(ctx, CGRectMake(<span class="num">0</span>, <span class="num">0</span>, <span class="num">18</span>, <span class="num">18</span>));
+    image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+  });
+  <span class="kw">return</span> image;
+}
+
+- (<span class="type">instancetype</span>)<span class="meth">initWithStyle:</span>... {
+  <span class="kw">if</span> (<span class="kw">self</span> = [<span class="kw">super</span> ...]) {
+    <span class="comm">// ⭐ 红点 = UIImageView 贴预渲染图，无 cornerRadius，无离屏</span>
+    _badgeView = [[<span class="type">UIImageView</span> <span class="meth">alloc</span>] <span class="meth">initWithImage:</span>
+                  [<span class="type">MessageCell</span> redBadgeImage]];
+    _badgeView.backgroundColor = [<span class="type">UIColor</span> whiteColor]; <span class="comm">// opaque</span>
+    _badgeView.opaque = <span class="kw">YES</span>;
+  }
+  <span class="kw">return</span> <span class="kw">self</span>;
+}
+
+<span class="kw">@end</span></pre>
+
+      <div class="explain success">
+        <span class="h">💡 为什么这样最优：</span>
+        红点的样式是<b>固定不变</b>的（颜色、形状、大小），全局只需要画一次，
+        所有 cell 共用同一张 UIImage，<b>0 离屏 + 0 内存增长</b>。
+      </div>
+    </div>
+
+    <!-- 完整 cell 实现 -->
+    <div class="section-block">
+      <h2>📦 完整 MessageCell.m 实现</h2>
+      <div class="section-subtitle">把上面所有点串起来的最终代码</div>
+
+<pre class="code-block"><span class="kw">@interface</span> <span class="type">MessageCell</span> ()
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">UIImageView</span> *avatarView;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">UILabel</span> *nameLabel;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">UILabel</span> *timeLabel;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">UILabel</span> *msgLabel;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">UIImageView</span> *badgeView;
+<span class="kw">@end</span>
+
+<span class="kw">@implementation</span> <span class="type">MessageCell</span>
+
+- (<span class="type">instancetype</span>)<span class="meth">initWithStyle:</span>(<span class="type">UITableViewCellStyle</span>)style
+                <span class="meth">reuseIdentifier:</span>(<span class="type">NSString</span> *)reuseIdentifier {
+  <span class="kw">if</span> (<span class="kw">self</span> = [<span class="kw">super</span> <span class="meth">initWithStyle:</span>style <span class="meth">reuseIdentifier:</span>reuseIdentifier]) {
+    <span class="comm">// ✅ contentView 不透明</span>
+    <span class="selector">self</span>.contentView.backgroundColor = [<span class="type">UIColor</span> whiteColor];
+    <span class="selector">self</span>.contentView.opaque = <span class="kw">YES</span>;
+
+    <span class="comm">// 头像：不设任何圆角，由预切圆图实现</span>
+    _avatarView = [[<span class="type">UIImageView</span> <span class="meth">alloc</span>] <span class="meth">init</span>];
+    _avatarView.backgroundColor = [<span class="type">UIColor</span> colorWithWhite:<span class="num">0.95</span> alpha:<span class="num">1</span>];
+    _avatarView.opaque = <span class="kw">YES</span>;
+    [<span class="selector">self</span>.contentView <span class="meth">addSubview:</span>_avatarView];
+
+    <span class="comm">// 文字 label 全部 opaque</span>
+    _nameLabel = [<span class="kw">self</span> <span class="meth">_makeLabel:</span>...];
+    _timeLabel = [<span class="kw">self</span> <span class="meth">_makeLabel:</span>...];
+    _msgLabel  = [<span class="kw">self</span> <span class="meth">_makeLabel:</span>...];
+
+    <span class="comm">// ⭐ 红点 = 预渲染图</span>
+    _badgeView = [[<span class="type">UIImageView</span> <span class="meth">alloc</span>] <span class="meth">initWithImage:</span>
+                  [<span class="type">MessageCell</span> redBadgeImage]];
+    _badgeView.opaque = <span class="kw">YES</span>;
+    [<span class="selector">self</span>.contentView <span class="meth">addSubview:</span>_badgeView];
+  }
+  <span class="kw">return</span> <span class="kw">self</span>;
+}
+
+<span class="comm">// ⭐ 复用前重置</span>
+- (<span class="kw">void</span>)<span class="meth">prepareForReuse</span> {
+  [<span class="kw">super</span> <span class="meth">prepareForReuse</span>];
+  [<span class="selector">self</span>.avatarView <span class="meth">sd_cancelCurrentImageLoad</span>];
+  <span class="selector">self</span>.avatarView.image = <span class="kw">nil</span>;
+  <span class="selector">self</span>.nameLabel.text = <span class="kw">nil</span>;
+  <span class="selector">self</span>.timeLabel.text = <span class="kw">nil</span>;
+  <span class="selector">self</span>.msgLabel.text = <span class="kw">nil</span>;
+  <span class="selector">self</span>.badgeView.hidden = <span class="kw">YES</span>;
+}
+
+- (<span class="kw">void</span>)<span class="meth">configureWithViewModel:</span>(<span class="type">MessageViewModel</span> *)vm {
+  <span class="comm">// 用预算好的 frame</span>
+  <span class="selector">self</span>.avatarView.frame = vm.avatarFrame;
+  <span class="selector">self</span>.nameLabel.frame = vm.nameFrame;
+  <span class="selector">self</span>.timeLabel.frame = vm.timeFrame;
+  <span class="selector">self</span>.msgLabel.frame = vm.msgFrame;
+  <span class="selector">self</span>.badgeView.frame = vm.badgeFrame;
+
+  <span class="selector">self</span>.nameLabel.text = vm.message.senderName;
+  <span class="selector">self</span>.timeLabel.text = vm.timeString;
+  <span class="selector">self</span>.msgLabel.text = vm.message.content;
+  <span class="selector">self</span>.badgeView.hidden = (vm.message.unreadCount == <span class="num">0</span>);
+
+  <span class="comm">// 头像异步加载 + 子线程切圆图</span>
+  <span class="type">NSURL</span> *url = vm.message.avatarURL;
+  <span class="type">UIImageView</span> *iv = <span class="selector">self</span>.avatarView;
+  [iv <span class="meth">sd_setImageWithURL:</span>url
+       <span class="meth">placeholderImage:</span>[<span class="type">UIImage</span> imageNamed:@<span class="str">"placeholder"</span>]
+       <span class="meth">completed:</span>^(<span class="type">UIImage</span> *image, <span class="type">NSError</span> *err, ...) {
+    <span class="kw">if</span> (!image) <span class="kw">return</span>;
+    dispatch_async(global_queue, ^{
+      <span class="type">UIImage</span> *circle = [image <span class="meth">circleImageWithSize:</span>iv.bounds.size];
+      dispatch_async(main_queue, ^{
+        <span class="kw">if</span> ([iv.sd_imageURL <span class="meth">isEqual:</span>u]) {
+          iv.image = circle;
+        }
+      });
+    });
+  }];
+}
+
+<span class="kw">@end</span></pre>
+    </div>
+
+    <!-- ViewModel -->
+    <div class="section-block">
+      <h2>📐 配套：MessageViewModel（子线程预算高度）</h2>
+      <div class="section-subtitle">cell 高度不在 heightForRow 现算，而是子线程预算缓存</div>
+
+<pre class="code-block"><span class="kw">@interface</span> <span class="type">MessageViewModel</span> : <span class="type">NSObject</span>
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">Message</span> *message;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">assign</span>) <span class="type">CGFloat</span> cachedHeight;  <span class="comm">// ⭐ 缓存</span>
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">assign</span>) <span class="type">CGRect</span> avatarFrame;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">assign</span>) <span class="type">CGRect</span> nameFrame;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">assign</span>) <span class="type">CGRect</span> timeFrame;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">assign</span>) <span class="type">CGRect</span> msgFrame;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">assign</span>) <span class="type">CGRect</span> badgeFrame;
+<span class="kw">@end</span>
+
+<span class="kw">@implementation</span> <span class="type">MessageViewModel</span>
+
+- (<span class="kw">void</span>)<span class="meth">prepareLayoutIfNeeded</span> {
+  <span class="kw">if</span> (<span class="selector">self</span>.cachedHeight &gt; <span class="num">0</span>) <span class="kw">return</span>;  <span class="comm">// 已算过</span>
+
+  <span class="selector">self</span>.avatarFrame = CGRectMake(<span class="num">12</span>, <span class="num">12</span>, <span class="num">48</span>, <span class="num">48</span>);
+  <span class="selector">self</span>.nameFrame   = CGRectMake(<span class="num">72</span>, <span class="num">14</span>, <span class="num">200</span>, <span class="num">20</span>);
+  <span class="selector">self</span>.timeFrame   = CGRectMake(<span class="num">300</span>, <span class="num">14</span>, <span class="num">60</span>, <span class="num">16</span>);
+  <span class="selector">self</span>.msgFrame    = CGRectMake(<span class="num">72</span>, <span class="num">38</span>, <span class="num">240</span>, <span class="num">20</span>);
+  <span class="selector">self</span>.badgeFrame  = CGRectMake(<span class="num">350</span>, <span class="num">36</span>, <span class="num">18</span>, <span class="num">18</span>);
+  <span class="selector">self</span>.cachedHeight = <span class="num">72</span>;
+}
+
+<span class="kw">@end</span>
+
+<span class="comm">// VC 里：子线程预算后回主线程刷新</span>
+- (<span class="kw">void</span>)<span class="meth">loadMessages</span> {
+  dispatch_async(global_queue, ^{
+    <span class="type">NSMutableArray</span> *vms = [<span class="type">NSMutableArray</span> array];
+    <span class="kw">for</span> (<span class="type">Message</span> *msg <span class="kw">in</span> messages) {
+      <span class="type">MessageViewModel</span> *vm = [[<span class="type">MessageViewModel</span> alloc] init];
+      vm.message = msg;
+      [vm prepareLayoutIfNeeded];  <span class="comm">// ⭐ 子线程算</span>
+      [vms addObject:vm];
+    }
+    dispatch_async(main_queue, ^{
+      <span class="selector">self</span>.viewModels = vms;
+      [<span class="selector">self</span>.tableView reloadData];
+    });
+  });
+}
+
+- (<span class="type">CGFloat</span>)<span class="meth">tableView:</span>(<span class="type">UITableView</span> *)tv
+        <span class="meth">heightForRowAtIndexPath:</span>(<span class="type">NSIndexPath</span> *)ip {
+  <span class="kw">return</span> <span class="selector">self</span>.viewModels[ip.row].cachedHeight;  <span class="comm">// O(1) 查表</span>
+}</pre>
+    </div>
+
+    <!-- 优化效果对比 -->
+    <div class="section-block">
+      <h2>📊 优化前后对比</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <tr style="background:#1a1a2e;color:white;">
+          <th style="padding:10px;text-align:left;">指标</th>
+          <th style="padding:10px;text-align:left;">❌ 老写法</th>
+          <th style="padding:10px;text-align:left;">✅ 新写法</th>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">头像复用错乱</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#c62828;">经常出现</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">完全消除</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">红点不消失</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#c62828;">必现</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">不会出现</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">离屏渲染（Color Off-screen）</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#c62828;">每个头像 + 红点都黄</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">全屏 0 黄色</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">heightForRow 平均耗时</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#c62828;">~4ms</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">&lt; 0.05ms（O(1) 查表）</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">滚动 FPS（iPhone 8）</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#c62828;">35 ~ 45</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">稳定 58 ~ 60</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="nav" style="margin-top: 24px;">
+      <a href="../index.html">← 返回主菜单</a>
+      <a href="02_news_cell.html">下一个：NewsCell →</a>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hexo + pixelterm v1.0.0">
+<meta name="description" content="一个写作爱好者的在线笔记本">
+<meta name="author" content="floki">
+<meta name="theme-color" content="#0b0f14">
+
+<title>OpenSpec 文档体系与归档机制详解 · Floki</title>
+
+<link rel="icon" type="image/png" href="/img/cat.png">
+
+<!-- 字体（与设计稿一致） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css">
+
+<!-- 主题样式 -->
+<link rel="stylesheet" href="/css/pixelterm.css">
+<!-- 移动端适配增强（必须放在 pixelterm.css 之后） -->
+<link rel="stylesheet" href="/css/mobile.css">
+
+  <link rel="stylesheet" href="/css/mermaid.css">
+
+
+  <link rel="stylesheet" href="/css/lightgallery.min.css">
+
+
+<!-- 代码高亮（内置 IDE 风格：暗色 One Dark / 亮色 GitHub Light，跟随主题切换） -->
+<link rel="stylesheet" href="/css/highlight.css">
+
+<!-- 自定义 CSS 注入 -->
+
+
+
+<!-- 主题模式优先注入（避免闪屏） -->
+<script>
+(function(){
+  var def = 'auto';
+  var t;
+  try { t = localStorage.getItem('pt-theme'); } catch(e){}
+  if(!t){
+    t = (def === 'auto')
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : def;
+  }
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+
+<body class="layout-post">
+
+<!-- 全屏背景层（CSS pseudos 提供 CRT 扫描线/vignette；下面是 canvas + grid） -->
+
+  <canvas id="rain" aria-hidden="true"></canvas>
+
+<div class="pix-grid" aria-hidden="true"></div>
+
+<div class="titlebar">
+  <div class="dots"><i></i><i></i><i></i></div>
+  <div class="path">— <b>floki@pixelterm</b>: <span>~/OpenSpec 文档体系与归档机制详解</span> — zsh — </div>
+  <div class="right">
+    <span class="clock" data-clock>00:00:00</span>
+    <div class="menu">
+      
+        <a href="/" class="">HOME</a>
+      
+        <a href="/list/" class="">POSTS</a>
+      
+        <a href="/categories/" class="">CATEGORIES</a>
+      
+        <a href="/tags/" class="">TAGS</a>
+      
+        <a href="/about/" class="">ABOUT</a>
+      
+    </div>
+    
+      <button class="theme-toggle" data-theme-toggle aria-label="toggle theme">
+        <span class="icon moon">☾</span>
+        <span class="icon sun">☀</span>
+        <span class="knob"></span>
+      </button>
+    
+  </div>
+</div>
+
+
+<main class="shell">
+  
+<article class="article ">
+  <header class="art-head fade">
+    <span class="head-spacer"></span>
+    <div class="head-inner" data-vim="OpenSpec 文档体系与归档机制详解.md   --  2026/04/13">
+      <span class="art-tag">AI</span>
+      
+        <span class="art-tag cyan">技术</span>
+      
+      <h1 class="art-title">OpenSpec 文档体系与归档机制详解</h1>
+      <div class="art-meta">
+  
+    <span>2026-04-13</span>
+  
+  
+    <span>updated <b>2026-06-11</b></span>
+  
+  
+    <span><b>3.3k</b> words</span>
+  
+  
+    <span>▶ <b>12</b> min</span>
+  
+  
+    <span id="busuanzi_container_page_pv">views <b><span id="busuanzi_value_page_pv"></span></b></span>
+  
+  
+    <span>in
+      
+        <a href="/categories/%E6%8A%80%E6%9C%AF/">技术</a>
+      
+    </span>
+  
+  
+    <span>tags
+      
+        <a href="/tags/AI/">#AI</a>
+      
+    </span>
+  
+</div>
+
+    </div>
+  </header>
+
+  <div class="art-body">
+    
+
+  
+    <aside class="toc-card" data-toc>
+      <h5>QUEST LOG</h5>
+      <ol class="pt-toc-inner"><li class="pt-toc-inner-item pt-toc-inner-level-1"><a class="pt-toc-inner-link" href="#OpenSpec-%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB%E4%B8%8E%E5%BD%92%E6%A1%A3%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3"><span class="pt-toc-inner-text">OpenSpec 文档体系与归档机制详解</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E4%B8%80%E3%80%81OpenSpec-%E7%94%9F%E6%88%90%E7%9A%84%E6%89%80%E6%9C%89%E6%96%87%E6%A1%A3"><span class="pt-toc-inner-text">一、OpenSpec 生成的所有文档</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E9%80%90%E6%96%87%E4%BB%B6%E8%AF%B4%E6%98%8E"><span class="pt-toc-inner-text">逐文件说明</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E4%BA%8C%E3%80%81%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%EF%BC%9A%E5%8F%8C%E6%96%87%E4%BB%B6%E5%A4%B9%E6%A8%A1%E5%9E%8B"><span class="pt-toc-inner-text">二、核心概念：双文件夹模型</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E4%B8%89%E3%80%81%E5%A2%9E%E9%87%8F%E8%A7%84%E6%A0%BC%E7%9A%84%E6%A0%BC%E5%BC%8F-%E2%80%94%E2%80%94-%E8%BF%99%E6%98%AF%E6%9C%80%E5%85%B3%E9%94%AE%E7%9A%84%E8%AE%BE%E8%AE%A1"><span class="pt-toc-inner-text">三、增量规格的格式 —— 这是最关键的设计</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E5%9B%9B%E3%80%81%E5%A4%9A%E9%9C%80%E6%B1%82%E5%B9%B6%E8%A1%8C%E4%BC%9A%E4%B8%8D%E4%BC%9A%E4%B9%B1%EF%BC%9F"><span class="pt-toc-inner-text">四、多需求并行会不会乱？</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E9%9A%94%E7%A6%BB%E6%9C%BA%E5%88%B6%EF%BC%9A%E4%B8%80%E4%B8%AA%E9%9C%80%E6%B1%82-%E4%B8%80%E4%B8%AA%E7%8B%AC%E7%AB%8B%E7%9B%AE%E5%BD%95"><span class="pt-toc-inner-text">隔离机制：一个需求 &#x3D; 一个独立目录</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E5%86%B2%E7%AA%81%E6%A3%80%E6%B5%8B"><span class="pt-toc-inner-text">冲突检测</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E6%8E%92%E7%89%88%E8%A7%84%E5%BE%8B"><span class="pt-toc-inner-text">排版规律</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E4%BA%94%E3%80%81%E5%BD%92%E6%A1%A3%E5%88%B0%E5%BA%95%E5%B9%B2%E4%BA%86%E4%BB%80%E4%B9%88"><span class="pt-toc-inner-text">五、归档到底干了什么</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E5%85%AD%E3%80%81%E5%8E%86%E5%8F%B2%E6%96%87%E6%A1%A3%E8%B6%8A%E6%9D%A5%E8%B6%8A%E5%A4%9A%EF%BC%8C%E8%83%BD%E5%88%A0%E5%90%97%EF%BC%9F"><span class="pt-toc-inner-text">六、历史文档越来越多，能删吗？</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E7%BB%9D%E5%AF%B9%E4%B8%8D%E8%83%BD%E5%88%A0%E7%9A%84"><span class="pt-toc-inner-text">绝对不能删的</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E5%8F%AF%E4%BB%A5%E5%AE%89%E5%85%A8%E5%88%A0%E9%99%A4%E7%9A%84"><span class="pt-toc-inner-text">可以安全删除的</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E4%B8%89%E7%A7%8D%E6%B8%85%E7%90%86%E7%AD%96%E7%95%A5"><span class="pt-toc-inner-text">三种清理策略</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E5%AE%9E%E6%93%8D%EF%BC%9A%E5%9C%A8-CLAUDE-md-%E4%B8%AD%E7%BA%A6%E5%AE%9A%E6%B8%85%E7%90%86%E8%A7%84%E5%88%99"><span class="pt-toc-inner-text">实操：在 CLAUDE.md 中约定清理规则</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E4%B8%83%E3%80%81Q-a"><span class="pt-toc-inner-text">七、Q@a</span></a><ol class="pt-toc-inner-child"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#Q1-OpenSpec-%E7%9A%84-specs-%E5%92%8C-changes-%E5%88%86%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E6%A0%B7%E8%AE%BE%E8%AE%A1%EF%BC%9F"><span class="pt-toc-inner-text">Q1: OpenSpec 的 specs&#x2F; 和 changes&#x2F; 分别是什么？为什么这样设计？</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#Q2-OpenSpec-%E7%9A%84%E5%A2%9E%E9%87%8F%E8%A7%84%E6%A0%BC%EF%BC%88Delta-Specs%EF%BC%89%E6%98%AF%E6%80%8E%E4%B9%88%E5%B7%A5%E4%BD%9C%E7%9A%84%EF%BC%9FADDED-MODIFIED-REMOVED-%E5%88%86%E5%88%AB%E5%81%9A%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="pt-toc-inner-text">Q2: OpenSpec 的增量规格（Delta Specs）是怎么工作的？ADDED &#x2F; MODIFIED &#x2F; REMOVED 分别做什么？</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#Q3-%E5%A4%9A%E4%B8%AA%E9%9C%80%E6%B1%82%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91%E6%97%B6%EF%BC%8COpenSpec-%E5%A6%82%E4%BD%95%E9%98%B2%E6%AD%A2%E8%A7%84%E6%A0%BC%E5%86%B2%E7%AA%81%EF%BC%9F"><span class="pt-toc-inner-text">Q3: 多个需求并行开发时，OpenSpec 如何防止规格冲突？</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#Q4-%E5%BD%92%E6%A1%A3%EF%BC%88archive%EF%BC%89%E5%81%9A%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BD%92%E6%A1%A3%E5%90%8E%E7%9A%84%E6%96%87%E6%A1%A3%E5%BE%88%E9%87%8D%E8%A6%81%EF%BC%9F"><span class="pt-toc-inner-text">Q4: 归档（archive）做了什么？为什么归档后的文档很重要？</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#Q5-%E5%A6%82%E6%9E%9C%E4%B8%80%E4%B8%AA%E9%A1%B9%E7%9B%AE%E7%9A%84-openspec-changes-archive-%E5%B7%B2%E7%BB%8F%E5%A0%86%E7%A7%AF%E4%BA%86%E4%B8%8A%E7%99%BE%E4%B8%AA%E7%9B%AE%E5%BD%95%EF%BC%8C%E6%80%8E%E4%B9%88%E5%A4%84%E7%90%86%EF%BC%9F"><span class="pt-toc-inner-text">Q5: 如果一个项目的 openspec&#x2F;changes&#x2F;archive&#x2F; 已经堆积了上百个目录，怎么处理？</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#Q6-OpenSpec-%E5%92%8C%E4%BC%A0%E7%BB%9F-PRD%EF%BC%88%E4%BA%A7%E5%93%81%E9%9C%80%E6%B1%82%E6%96%87%E6%A1%A3%EF%BC%89%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="pt-toc-inner-text">Q6: OpenSpec 和传统 PRD（产品需求文档）有什么区别？</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#Q7-%E4%BB%80%E4%B9%88%E6%83%85%E5%86%B5%E4%B8%8B%E7%94%A8-OpenSpec-%E6%98%AF%E8%BF%87%E5%BA%A6%E8%AE%BE%E8%AE%A1%EF%BC%9F%E4%BB%80%E4%B9%88%E6%83%85%E5%86%B5%E4%B8%8B%E4%B8%8D%E7%94%A8%E5%AE%83%EF%BC%9F"><span class="pt-toc-inner-text">Q7: 什么情况下用 OpenSpec 是过度设计？什么情况下不用它？</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#Q8-OpenSpec-%E5%92%8C-Superpowers-%E5%9C%A8%E5%AE%9E%E8%B7%B5%E4%B8%AD%E5%A6%82%E4%BD%95%E9%85%8D%E5%90%88%EF%BC%9F"><span class="pt-toc-inner-text">Q8: OpenSpec 和 Superpowers 在实践中如何配合？</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#Q9-OpenSpec-%E7%9A%84-tasks-md-%E5%92%8C-GitHub-Issues-Jira-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F%E4%BC%9A%E9%87%8D%E5%A4%8D%E5%90%97%EF%BC%9F"><span class="pt-toc-inner-text">Q9: OpenSpec 的 tasks.md 和 GitHub Issues &#x2F; Jira 有什么区别？会重复吗？</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#Q10-%E5%A6%82%E6%9E%9C%E4%B8%80%E4%B8%AA%E5%8F%98%E6%9B%B4%E5%81%9A%E5%88%B0%E4%B8%80%E5%8D%8A%E9%9C%80%E6%B1%82%E5%8F%98%E4%BA%86%EF%BC%8COpenSpec-%E6%80%8E%E4%B9%88%E5%A4%84%E7%90%86%EF%BC%9F"><span class="pt-toc-inner-text">Q10: 如果一个变更做到一半需求变了，OpenSpec 怎么处理？</span></a></li></ol></li><li class="pt-toc-inner-item pt-toc-inner-level-2"><a class="pt-toc-inner-link" href="#%E5%85%AB%E3%80%81%E6%80%BB%E7%BB%93"><span class="pt-toc-inner-text">八、总结</span></a></li></ol></li></ol>
+    </aside>
+  
+
+
+    <div class="prose">
+      <h1 id="OpenSpec-文档体系与归档机制详解"><a href="#OpenSpec-文档体系与归档机制详解" class="headerlink" title="OpenSpec 文档体系与归档机制详解"></a>OpenSpec 文档体系与归档机制详解</h1><blockquote>
+<p>使用 OpenSpec 一段时间后，<code>openspec/</code> 目录下的文档会越来越多。这篇文带你彻底搞清：OpenSpec 生成了哪些文档、各自什么作用、归档到底干了什么、多需求并行会不会乱、历史文档能不能删。</p>
+</blockquote>
+<hr>
+<h2 id="一、OpenSpec-生成的所有文档"><a href="#一、OpenSpec-生成的所有文档" class="headerlink" title="一、OpenSpec 生成的所有文档"></a>一、OpenSpec 生成的所有文档</h2><p>一个完整的 OpenSpec 项目结构：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">项目根目录/</span><br><span class="line">└── openspec/</span><br><span class="line">    ├── config.yaml                      # 全局配置</span><br><span class="line">    │</span><br><span class="line">    ├── specs/                           # 主规格目录 —— &quot;系统当前真相&quot;</span><br><span class="line">    │   └── &lt;领域名&gt;/</span><br><span class="line">    │       └── spec.md                  # 该领域的完整规格</span><br><span class="line">    │</span><br><span class="line">    ├── changes/                         # 活跃变更区 —— &quot;施工中的提案&quot;</span><br><span class="line">    │   └── &lt;变更名&gt;/</span><br><span class="line">    │       ├── proposal.md              # 提案：为什么做、做什么</span><br><span class="line">    │       ├── .openspec.yaml           # 变更元数据</span><br><span class="line">    │       ├── specs/                   # 增量规格（核心！）</span><br><span class="line">    │       │   └── &lt;领域名&gt;/</span><br><span class="line">    │       │       └── spec.md          # ADDED / MODIFIED / REMOVED</span><br><span class="line">    │       ├── design.md                # 技术方案（可选）</span><br><span class="line">    │       └── tasks.md                 # 实施清单</span><br><span class="line">    │</span><br><span class="line">    └── changes/archive/                 # 归档区 —— &quot;历史记录&quot;</span><br><span class="line">        └── 2026-05-18-&lt;变更名&gt;/         # 按日期前缀 + 变更名</span><br><span class="line">            ├── proposal.md</span><br><span class="line">            ├── design.md</span><br><span class="line">            ├── tasks.md</span><br><span class="line">            ├── specs/</span><br><span class="line">            └── .openspec.yaml</span><br></pre></td></tr></table></figure>
+
+<h3 id="逐文件说明"><a href="#逐文件说明" class="headerlink" title="逐文件说明"></a>逐文件说明</h3><table>
+<thead>
+<tr>
+<th>文件</th>
+<th>谁生成</th>
+<th>作用</th>
+<th>里面有什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>config.yaml</code></td>
+<td><code>openspec init</code></td>
+<td>指定 AI 工具类型、自定义 schema</td>
+<td><code>tools: claude</code> 等配置项</td>
+</tr>
+<tr>
+<td><code>specs/&lt;领域&gt;/spec.md</code></td>
+<td>归档时自动合并</td>
+<td><strong>系统的权威规格</strong>，描述系统”当前是什么样”</td>
+<td>按场景组织的需求描述，是所有变更的目标态</td>
+</tr>
+<tr>
+<td><code>changes/&lt;名&gt;/proposal.md</code></td>
+<td>人 + AI 协作</td>
+<td>解释<strong>为什么改、改什么</strong></td>
+<td>问题背景、变更范围、影响评估</td>
+</tr>
+<tr>
+<td><code>changes/&lt;名&gt;/.openspec.yaml</code></td>
+<td>脚手架生成</td>
+<td>变更的元数据</td>
+<td>变更名、创建时间、状态</td>
+</tr>
+<tr>
+<td><code>changes/&lt;名&gt;/specs/&lt;领域&gt;/spec.md</code></td>
+<td>AI 根据需求生成</td>
+<td><strong>增量规格</strong>——相对于主 specs 的 diff</td>
+<td>用 <code>## ADDED</code>、<code>## MODIFIED</code>、<code>## REMOVED</code> 标记的增量</td>
+</tr>
+<tr>
+<td><code>changes/&lt;名&gt;/design.md</code></td>
+<td>AI 生成（可选）</td>
+<td><strong>技术方案</strong>——怎么做</td>
+<td>架构决策、技术选型、数据流、API 设计</td>
+</tr>
+<tr>
+<td><code>changes/&lt;名&gt;/tasks.md</code></td>
+<td>AI 或人拆分</td>
+<td><strong>实施清单</strong>——分步任务</td>
+<td>带 checkbox 的任务列表</td>
+</tr>
+<tr>
+<td><code>changes/archive/&lt;日期-名&gt;/</code></td>
+<td>归档命令自动生成</td>
+<td><strong>历史审计</strong>——追溯决策</td>
+<td>完整变更副本，一旦归档只读不删</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="二、核心概念：双文件夹模型"><a href="#二、核心概念：双文件夹模型" class="headerlink" title="二、核心概念：双文件夹模型"></a>二、核心概念：双文件夹模型</h2><p>OpenSpec 的精髓在于<strong>两个目录的分工</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">    subgraph specs[&quot;specs/ 主规格&quot;]</span><br><span class="line">        S1[&quot;系统当前真相&quot;]</span><br><span class="line">        S2[&quot;稳定、经过审核&quot;]</span><br><span class="line">        S3[&quot;所有 AI 行为的目标态&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    subgraph changes[&quot;changes/ 活跃变更&quot;]</span><br><span class="line">        C1[&quot;施工中的提案&quot;]</span><br><span class="line">        C2[&quot;临时、可修改&quot;]</span><br><span class="line">        C3[&quot;一个需求一个目录&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    changes --&gt;|归档合并| specs</span><br><span class="line">    specs --&gt;|作为基线| changes</span><br></pre></td></tr></table></figure>
+
+<p><strong><code>specs/</code> &#x3D; Git 的 <code>main</code> 分支</strong> —— 永远代表系统当前状态<br><strong><code>changes/</code> &#x3D; Git 的 <code>feature</code> 分支</strong> —— 每个变更独立开发<br><strong><code>archive/</code> &#x3D; Git 的 <code>log</code></strong> —— 历史记录，只增不减</p>
+<hr>
+<h2 id="三、增量规格的格式-——-这是最关键的设计"><a href="#三、增量规格的格式-——-这是最关键的设计" class="headerlink" title="三、增量规格的格式 —— 这是最关键的设计"></a>三、增量规格的格式 —— 这是最关键的设计</h2><p><code>changes/&lt;名&gt;/specs/</code> 里的 spec.md <strong>不是一个完整的规格文件</strong>，而是相对于主 specs 的<strong>增量（diff）</strong>：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="section"># Spec: 用户认证</span></span><br><span class="line"></span><br><span class="line"><span class="section">## ADDED</span></span><br><span class="line"></span><br><span class="line"><span class="section">### Scenario: 双因素认证</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> Given 用户已启用 2FA</span><br><span class="line"><span class="bullet">-</span> When 用户输入正确密码后</span><br><span class="line"><span class="bullet">-</span> Then 系统必须要求输入 TOTP 验证码</span><br><span class="line"><span class="bullet">-</span> And 验证码有效期为 30 秒</span><br><span class="line"></span><br><span class="line"><span class="section">## MODIFIED</span></span><br><span class="line"></span><br><span class="line"><span class="section">### Scenario: 密码重置</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> 原：发送重置链接到注册邮箱</span><br><span class="line"><span class="bullet">-</span> 改：发送重置链接到注册邮箱 <span class="strong">**和**</span> 绑定手机号，两者均需确认</span><br><span class="line"></span><br><span class="line"><span class="section">## REMOVED</span></span><br><span class="line"></span><br><span class="line"><span class="section">### Scenario: 安全问题找回密码</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> 原有的安全问题验证流程已废弃，由 2FA 替代</span><br></pre></td></tr></table></figure>
+
+<p>归档时，这三种标记分别执行不同的操作：</p>
+<table>
+<thead>
+<tr>
+<th>标记</th>
+<th>归档时做什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ADDED</code></td>
+<td>追加到 <code>specs/&lt;领域&gt;/spec.md</code> 对应章节</td>
+</tr>
+<tr>
+<td><code>MODIFIED</code></td>
+<td>替换 <code>specs/&lt;领域&gt;/spec.md</code> 中对应的场景描述</td>
+</tr>
+<tr>
+<td><code>REMOVED</code></td>
+<td>从 <code>specs/&lt;领域&gt;/spec.md</code> 中删除对应场景</td>
+</tr>
+</tbody></table>
+<p>这就是 OpenSpec 的”合同”机制——每次变更都精确声明了对系统规格的增删改，人和 AI 都能看清楚变更范围。</p>
+<hr>
+<h2 id="四、多需求并行会不会乱？"><a href="#四、多需求并行会不会乱？" class="headerlink" title="四、多需求并行会不会乱？"></a>四、多需求并行会不会乱？</h2><h3 id="隔离机制：一个需求-一个独立目录"><a href="#隔离机制：一个需求-一个独立目录" class="headerlink" title="隔离机制：一个需求 &#x3D; 一个独立目录"></a>隔离机制：一个需求 &#x3D; 一个独立目录</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">openspec/changes/</span><br><span class="line">├── add-2fa/                    ← 独立变更，只涉及 auth</span><br><span class="line">│   ├── proposal.md</span><br><span class="line">│   └── specs/auth/spec.md</span><br><span class="line">│</span><br><span class="line">├── refactor-payment/            ← 独立变更，只涉及 payment</span><br><span class="line">│   ├── proposal.md</span><br><span class="line">│   └── specs/payment/spec.md</span><br><span class="line">│</span><br><span class="line">└── add-dark-mode/               ← 独立变更，只涉及 ui</span><br><span class="line">    ├── proposal.md</span><br><span class="line">    └── specs/ui/spec.md</span><br></pre></td></tr></table></figure>
+
+<p>每个 change 目录<strong>完全物理隔离</strong>，就像多个 Git feature branch 同时开发互不干扰。</p>
+<h3 id="冲突检测"><a href="#冲突检测" class="headerlink" title="冲突检测"></a>冲突检测</h3><p>如果两个活跃 change 同时修改了同一个领域（比如 <code>add-2fa</code> 和 <code>fix-login-timeout</code> 都在改 <code>specs/auth/spec.md</code>）：</p>
+<ul>
+<li>归档第一个 change 时正常合并</li>
+<li>归档第二个 change 时 OpenSpec <strong>检测到冲突</strong>，要求解决后再归档</li>
+</ul>
+<p>这跟 Git merge conflict 的逻辑一样。</p>
+<h3 id="排版规律"><a href="#排版规律" class="headerlink" title="排版规律"></a>排版规律</h3><p>所有 change 目录内部结构一致：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;change-name&gt;/</span><br><span class="line">├── proposal.md      ← 第 1 步：看这个了解背景</span><br><span class="line">├── specs/           ← 第 2 步：看这个了解规格变更</span><br><span class="line">├── design.md        ← 第 3 步：看这个了解技术方案</span><br><span class="line">└── tasks.md         ← 第 4 步：按这个逐项实施</span><br></pre></td></tr></table></figure>
+
+<p>无论 5 个还是 50 个 change，这个结构不变，不会乱。</p>
+<hr>
+<h2 id="五、归档到底干了什么"><a href="#五、归档到底干了什么" class="headerlink" title="五、归档到底干了什么"></a>五、归档到底干了什么</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">步骤 1: 验证      →   检查 spec 完整性 + tasks 全部打勾</span><br><span class="line">步骤 2: 合并      →   ADDED 追加上去、MODIFIED 替换、REMOVED 删除</span><br><span class="line">步骤 3: 移动      →   change 目录 → changes/archive/2026-05-18-&lt;名&gt;/</span><br><span class="line">步骤 4: 清理      →   活跃区不再有这个 change</span><br></pre></td></tr></table></figure>
+
+<p>归档前后对比：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">归档前                               归档后</span><br><span class="line">openspec/                            openspec/</span><br><span class="line">├── specs/auth/spec.md               ├── specs/auth/spec.md</span><br><span class="line">│   (基础认证 + 密码重置)              │   (基础认证 + 密码重置 + 2FA)  ← 更新了</span><br><span class="line">│                                     │</span><br><span class="line">├── changes/                          ├── changes/</span><br><span class="line">│   └── add-2fa/         ← 活跃       │   └── (add-2fa 已移走)</span><br><span class="line">│                                     │</span><br><span class="line">└── changes/archive/                  └── changes/archive/</span><br><span class="line">    (空)                                  └── 2026-05-18-add-2fa/  ← 新增</span><br><span class="line">                                             ├── proposal.md</span><br><span class="line">                                             ├── specs/auth/spec.md</span><br><span class="line">                                             └── tasks.md ✓✓✓</span><br></pre></td></tr></table></figure>
+
+<p>一句话：<strong>主 specs 升级了，change 变成历史档案了。</strong></p>
+<hr>
+<h2 id="六、历史文档越来越多，能删吗？"><a href="#六、历史文档越来越多，能删吗？" class="headerlink" title="六、历史文档越来越多，能删吗？"></a>六、历史文档越来越多，能删吗？</h2><h3 id="绝对不能删的"><a href="#绝对不能删的" class="headerlink" title="绝对不能删的"></a>绝对不能删的</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">openspec/specs/     ← 删了就没了约束 AI 的基线</span><br><span class="line">openspec/config.yaml ← 删了 AI 工具集成可能失效</span><br></pre></td></tr></table></figure>
+
+<p><code>specs/</code> 是系统真相的唯一来源。删了它，后续增量就没了参照物，AI 不知道系统长什么样。</p>
+<h3 id="可以安全删除的"><a href="#可以安全删除的" class="headerlink" title="可以安全删除的"></a>可以安全删除的</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openspec/changes/archive/   ← 纯粹的历史快照</span><br></pre></td></tr></table></figure>
+
+<p>理由很充分：</p>
+<ol>
+<li><strong>规格已合并</strong> —— archive 里的 delta specs 已经合并进 <code>specs/</code> 了，删掉 archive 不影响系统运行</li>
+<li><strong>Git 本身就是归档</strong> —— 如果 proposal.md、design.md 都提交到了 Git，<code>git log</code> 随时能找回来</li>
+<li><strong>archive 只是翻阅便利</strong> —— 它是为了让回溯更快，不是系统运行的必需品</li>
+</ol>
+<h3 id="三种清理策略"><a href="#三种清理策略" class="headerlink" title="三种清理策略"></a>三种清理策略</h3><table>
+<thead>
+<tr>
+<th>策略</th>
+<th>做法</th>
+<th>适合场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>全保留</strong></td>
+<td>永久保留全部 archive</td>
+<td>团队协作、合规审计、新人频繁入职</td>
+</tr>
+<tr>
+<td><strong>定期清理</strong></td>
+<td>保留近 3~6 个月，删除更早的</td>
+<td>个人项目、日常迭代</td>
+</tr>
+<tr>
+<td><strong>依赖 Git</strong></td>
+<td>归档后立即删除 archive</td>
+<td>纪律好、commit message 规范的项目</td>
+</tr>
+</tbody></table>
+<h3 id="实操：在-CLAUDE-md-中约定清理规则"><a href="#实操：在-CLAUDE-md-中约定清理规则" class="headerlink" title="实操：在 CLAUDE.md 中约定清理规则"></a>实操：在 CLAUDE.md 中约定清理规则</h3><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">## OpenSpec 归档清理策略</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">1.</span> 归档完成后，archive 目录保留 90 天</span><br><span class="line"><span class="bullet">2.</span> 超过 90 天的归档记录，确认已合并至 Git 后可删除</span><br><span class="line"><span class="bullet">3.</span> 涉及重大架构决策的归档（propsoal.md 中有架构决策记录）永久保留</span><br><span class="line"><span class="bullet">4.</span> 日常小修小补（typo fix、小重构）的归档可随时清理</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="七、Q-a"><a href="#七、Q-a" class="headerlink" title="七、Q@a"></a>七、Q@a</h2><h3 id="Q1-OpenSpec-的-specs-和-changes-分别是什么？为什么这样设计？"><a href="#Q1-OpenSpec-的-specs-和-changes-分别是什么？为什么这样设计？" class="headerlink" title="Q1: OpenSpec 的 specs&#x2F; 和 changes&#x2F; 分别是什么？为什么这样设计？"></a>Q1: OpenSpec 的 specs&#x2F; 和 changes&#x2F; 分别是什么？为什么这样设计？</h3><p><strong>答：</strong> 双文件夹模型是 OpenSpec 的核心设计。</p>
+<ul>
+<li><code>specs/</code> &#x3D; 系统当前真相，是稳定且经过审核的规格</li>
+<li><code>changes/</code> &#x3D; 活跃的变更提案，每个 change 独立隔离</li>
+</ul>
+<p>这样设计的原因是模拟 Git 的分支模型：<code>specs/</code> 像 main 分支，<code>changes/</code> 像 feature 分支。一个反映”系统现在什么样”，一个记录”我们正在改什么”。两者分离保证了系统始终有一个干净的真相来源，同时允许多个变更并行推进。</p>
+<hr>
+<h3 id="Q2-OpenSpec-的增量规格（Delta-Specs）是怎么工作的？ADDED-MODIFIED-REMOVED-分别做什么？"><a href="#Q2-OpenSpec-的增量规格（Delta-Specs）是怎么工作的？ADDED-MODIFIED-REMOVED-分别做什么？" class="headerlink" title="Q2: OpenSpec 的增量规格（Delta Specs）是怎么工作的？ADDED &#x2F; MODIFIED &#x2F; REMOVED 分别做什么？"></a>Q2: OpenSpec 的增量规格（Delta Specs）是怎么工作的？ADDED &#x2F; MODIFIED &#x2F; REMOVED 分别做什么？</h3><p><strong>答：</strong> 增量规格是 OpenSpec 区别于传统 spec 工具的关键设计。</p>
+<p>传统做法是每次变更重写整个 spec 文件，导致 diff 巨大且难以审计。OpenSpec 的做法是：</p>
+<ul>
+<li>每个 change 只写<strong>相对主 specs 的变化</strong></li>
+<li><code>ADDED</code> 标记新增需求 → 归档时追加</li>
+<li><code>MODIFIED</code> 标记修改需求 → 归档时替换</li>
+<li><code>REMOVED</code> 标记删除需求 → 归档时删除</li>
+</ul>
+<p>这样每次变更的影响范围一目了然，归档时自动合并，同时保留了完整的审计轨迹。</p>
+<hr>
+<h3 id="Q3-多个需求并行开发时，OpenSpec-如何防止规格冲突？"><a href="#Q3-多个需求并行开发时，OpenSpec-如何防止规格冲突？" class="headerlink" title="Q3: 多个需求并行开发时，OpenSpec 如何防止规格冲突？"></a>Q3: 多个需求并行开发时，OpenSpec 如何防止规格冲突？</h3><p><strong>答：</strong> 三层机制：</p>
+<ol>
+<li><strong>目录隔离</strong> —— 每个 change 独立目录，物理隔离</li>
+<li><strong>按领域分组</strong> —— specs 按领域（auth、payment、ui）组织，不同领域的 change 不冲突</li>
+<li><strong>冲突检测</strong> —— 如果两个 change 改了同一个领域的 spec，后归档的那个会检测到冲突，要求人工解决</li>
+</ol>
+<p>这跟 Git 的 merge conflict 机制同理。</p>
+<hr>
+<h3 id="Q4-归档（archive）做了什么？为什么归档后的文档很重要？"><a href="#Q4-归档（archive）做了什么？为什么归档后的文档很重要？" class="headerlink" title="Q4: 归档（archive）做了什么？为什么归档后的文档很重要？"></a>Q4: 归档（archive）做了什么？为什么归档后的文档很重要？</h3><p><strong>答：</strong> 归档做了三件事：</p>
+<ol>
+<li><strong>合并 delta specs</strong> → 把 ADDED&#x2F;MODIFIED&#x2F;REMOVED 应用到主 specs，更新系统真相</li>
+<li><strong>移动目录</strong> → change 从活跃区移到 <code>archive/</code>，带日期前缀</li>
+<li><strong>验证通过才放行</strong> → tasks 必须全部完成</li>
+</ol>
+<p>归档后的文档重要性在于：它提供了完整的<strong>变更审计追踪</strong>。三个月后有人问”为什么认证模块改成这样了”，翻 archive 里的 proposal.md 就能看到当时的决策理由，不需要翻聊天记录。</p>
+<hr>
+<h3 id="Q5-如果一个项目的-openspec-changes-archive-已经堆积了上百个目录，怎么处理？"><a href="#Q5-如果一个项目的-openspec-changes-archive-已经堆积了上百个目录，怎么处理？" class="headerlink" title="Q5: 如果一个项目的 openspec&#x2F;changes&#x2F;archive&#x2F; 已经堆积了上百个目录，怎么处理？"></a>Q5: 如果一个项目的 openspec&#x2F;changes&#x2F;archive&#x2F; 已经堆积了上百个目录，怎么处理？</h3><p><strong>答：</strong> archive 是只读历史，可以安全清理：</p>
+<ol>
+<li><strong>最小风险方案</strong> —— 保留近 3 个月 + 所有涉及架构决策的提案，其余删除</li>
+<li><strong>零风险方案</strong> —— 如果项目 commit message 规范，Git 本身就是完整的归档，archive 全部可删</li>
+<li><strong>不能删的</strong> —— <code>specs/</code> 绝对不能动，那是系统真相</li>
+</ol>
+<p>实践中关键是区分”系统需要的”（specs&#x2F;）和”方便翻阅的”（archive&#x2F;），前者不能丢，后者是缓存。</p>
+<hr>
+<h3 id="Q6-OpenSpec-和传统-PRD（产品需求文档）有什么区别？"><a href="#Q6-OpenSpec-和传统-PRD（产品需求文档）有什么区别？" class="headerlink" title="Q6: OpenSpec 和传统 PRD（产品需求文档）有什么区别？"></a>Q6: OpenSpec 和传统 PRD（产品需求文档）有什么区别？</h3><p><strong>答：</strong> 三个核心区别：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>PRD</th>
+<th>OpenSpec</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>受众</strong></td>
+<td>人（产品、开发、测试）</td>
+<td>人 + AI 编码助手</td>
+</tr>
+<tr>
+<td><strong>格式</strong></td>
+<td>自由格式，word&#x2F;wiki</td>
+<td>结构化的 markdown，机器可解析</td>
+</tr>
+<tr>
+<td><strong>生命周期</strong></td>
+<td>写完就静态了</td>
+<td>从 proposal → tasks → archive 全过程追踪</td>
+</tr>
+</tbody></table>
+<p>PRD 是给人看的说明书，OpenSpec 是给人和 AI 共同遵守的”合同”。PRD 写完放在那里积灰，OpenSpec 的 specs 是活的——每次归档都在更新。</p>
+<hr>
+<h3 id="Q7-什么情况下用-OpenSpec-是过度设计？什么情况下不用它？"><a href="#Q7-什么情况下用-OpenSpec-是过度设计？什么情况下不用它？" class="headerlink" title="Q7: 什么情况下用 OpenSpec 是过度设计？什么情况下不用它？"></a>Q7: 什么情况下用 OpenSpec 是过度设计？什么情况下不用它？</h3><p><strong>答：</strong> 不用 OpenSpec 的场景：</p>
+<ul>
+<li>单人玩具项目，没有长期维护计划</li>
+<li>一次性的脚本或工具</li>
+<li>不涉及功能变更的纯样式调整</li>
+</ul>
+<p>需要 OpenSpec 的场景：</p>
+<ul>
+<li>中大型功能（涉及多个模块&#x2F;文件）</li>
+<li>多人协作或长期维护的项目</li>
+<li>需要决策可追溯的团队项目</li>
+<li>AI 编码助手重度使用的项目（没有 spec 约束 AI 容易跑偏）</li>
+</ul>
+<p>判断标准很简单：<strong>如果三个月后你自己会忘记这段代码为什么这样写，那就值得写 spec。</strong></p>
+<hr>
+<h3 id="Q8-OpenSpec-和-Superpowers-在实践中如何配合？"><a href="#Q8-OpenSpec-和-Superpowers-在实践中如何配合？" class="headerlink" title="Q8: OpenSpec 和 Superpowers 在实践中如何配合？"></a>Q8: OpenSpec 和 Superpowers 在实践中如何配合？</h3><p><strong>答：</strong> 两者的分工：</p>
+<ul>
+<li><strong>OpenSpec 管”死”的东西</strong> —— 文件、结构、追踪。它保证每次变更都有结构化记录。</li>
+<li><strong>Superpowers 管”活”的东西</strong> —— 对话、决策、纪律。它保证 AI 不跳过步骤、不走捷径。</li>
+</ul>
+<p>实践流程：</p>
+<ol>
+<li>brainstorming（Superpowers）明确需求 → 输出到 OpenSpec 的 proposal.md</li>
+<li>writing-plans（Superpowers）拆解任务 → 回填到 OpenSpec 的 tasks.md</li>
+<li>TDD + 子代理执行（Superpowers） → 按 tasks.md 逐项实现</li>
+<li>验证通过 → <code>/opsx:archive</code> 归档（OpenSpec）</li>
+</ol>
+<p>两者不是竞争关系，是<strong>工件标准 + 行为纪律</strong>的互补。</p>
+<hr>
+<h3 id="Q9-OpenSpec-的-tasks-md-和-GitHub-Issues-Jira-有什么区别？会重复吗？"><a href="#Q9-OpenSpec-的-tasks-md-和-GitHub-Issues-Jira-有什么区别？会重复吗？" class="headerlink" title="Q9: OpenSpec 的 tasks.md 和 GitHub Issues &#x2F; Jira 有什么区别？会重复吗？"></a>Q9: OpenSpec 的 tasks.md 和 GitHub Issues &#x2F; Jira 有什么区别？会重复吗？</h3><p><strong>答：</strong> 不同层级：</p>
+<ul>
+<li><strong>GitHub Issues &#x2F; Jira</strong> &#x3D; 协作层面，用于分配、排期、跨团队沟通</li>
+<li><strong>OpenSpec tasks.md</strong> &#x3D; 实现层面，是 AI 编码助手的执行清单，粒度更细（具体的文件路径 + 代码变更）</li>
+</ul>
+<p>实践中两者可以共存：Jira 上有个 Epic “添加 2FA 功能”，OpenSpec 里对应一个 change，tasks.md 是把 Epic 拆成 AI 可以直接执行的 bite-size 任务。不重复，是上下级分解关系。</p>
+<hr>
+<h3 id="Q10-如果一个变更做到一半需求变了，OpenSpec-怎么处理？"><a href="#Q10-如果一个变更做到一半需求变了，OpenSpec-怎么处理？" class="headerlink" title="Q10: 如果一个变更做到一半需求变了，OpenSpec 怎么处理？"></a>Q10: 如果一个变更做到一半需求变了，OpenSpec 怎么处理？</h3><p><strong>答：</strong> 两种方式：</p>
+<ol>
+<li><strong>小改</strong> —— 直接修改 delta specs 里的 MODIFIED 标记，重新 <code>/opsx:verify</code> 检查一致性</li>
+<li><strong>大改</strong> —— 废弃当前 change 目录，创建新的 change。原来的 change 可以作为参考保留或删除</li>
+</ol>
+<p>OpenSpec 的 change 目录是”施工中的提案”，在归档前随时可以改。归档之后如果需求又变了，就再创建一个新的 change，新的 delta 是相对已经更新后的主 specs 的——这跟 Git 再开一个 branch 改 main 上的代码是一样的。</p>
+<hr>
+<h2 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h2><p>OpenSpec 的文档体系可以归结为三层：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">第一层 — specs/       活的，系统真相，不能删</span><br><span class="line">第二层 — changes/     施工中，每个需求独立隔离，归档后移走</span><br><span class="line">第三层 — archive/     死的，历史快照，可以删，Git 兜底</span><br></pre></td></tr></table></figure>
+
+<p>核心原则：<strong>specs 是合同，archive 是收据。合同必须妥善保管，收据可以定期清理。</strong></p>
+<p>判断删不删的标准：如果删了这个目录后，新来的 AI 编码助手还能不能理解系统现状？能 —— 那它就是 archive，可以删。不能 —— 那它就是 specs，绝对不能删。</p>
+
+    </div>
+  </div>
+
+  
+    <nav class="art-end">
+      <span class="head-spacer"></span>
+      <div class="end-grid">
+        
+          <a href="/2026/05/07/%E7%A6%BB%E5%B1%8F%E6%B8%B2%E6%9F%93/">
+            <div class="lab">◄ PREV</div>
+            <div class="ti">离屏渲染</div>
+          </a>
+        
+        
+          <a href="/2026/03/11/super%E5%92%8Cspec%E7%BB%93%E5%90%88/" class="end">
+            <div class="lab">NEXT ►</div>
+            <div class="ti">Superpowers 与 OpenSpec 结合实践</div>
+          </a>
+        
+      </div>
+    </nav>
+  
+
+  
+
+</article>
+
+</main>
+
+<footer class="f">
+  <div class="f-inner">
+    <span><span class="prompt">$ </span>echo "© Floki · Code Notes "</span>
+    
+    
+      <span id="busuanzi_container_site_pv">
+        <span class="prompt">★ </span>visitors × <span id="busuanzi_value_site_pv"></span>
+      </span>
+    
+  </div>
+</footer>
+
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+  <script>
+    window.PT_CAT_BUDDY = {"src":"/img/cat.png","size":100,"corner":"br","followMouse":true,"phrases":["MEOW.EXE","SUDO PURR","> PET ME","HP +1","RUA~","CTRL+M","PRESS A"]};
+  </script>
+  <script src="/js/cat-buddy.js" defer></script>
+
+
+
+<!-- 第三方库 -->
+
+  
+    <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
+
+<script src="/js/pixelterm.js"></script>
+
+  <script src="/js/toc.js" defer></script>
+
+
+
+  <script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      document.querySelectorAll('.prose').forEach(function(g){
+        if (typeof lightGallery !== 'function') return;
+        lightGallery(g, {
+          selector: 'img',
+          plugins: [
+            window.lgZoom,
+            window.lgThumbnail,
+            window.lgRotate,
+            window.lgFullscreen,
+            
+          ].filter(Boolean),
+          download: false
+        });
+      });
+    });
+  </script>
+
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/js/mermaid-init.js"></script>
+
+
+
+
+
+</body>
+</html>

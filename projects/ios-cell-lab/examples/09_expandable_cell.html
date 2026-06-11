@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>09. ExpandableCell — 展开/折叠卡片</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/shared.css">
+<script src="../assets/theme.js"></script>
+<style>
+  body { background: #f5f6fa; font-family: -apple-system, "PingFang SC", sans-serif; margin: 0; padding: 24px; color: #2d3748; }
+  .nav { max-width: 880px; margin: 0 auto 16px; display: flex; justify-content: space-between; font-size: 13px; }
+  .nav a { color: #4facfe; text-decoration: none; }
+  .container { max-width: 880px; margin: 0 auto; }
+  .header { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 28px; border-radius: 14px; margin-bottom: 20px; }
+  .header h1 { margin: 0 0 8px; font-size: 22px; }
+  .header p { margin: 0; opacity: 0.95; font-size: 14px; line-height: 1.7; }
+
+  .phone { width: 360px; margin: 0 auto; background: #fff; border-radius: 28px; padding: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.18); }
+  .status { height: 28px; display: flex; justify-content: space-between; padding: 0 18px; font-size: 12px; font-weight: 600; align-items: center; }
+  .nav-bar { padding: 12px 16px; font-size: 16px; font-weight: 600; border-bottom: 1px solid #f0f1f5; }
+
+  /* 展开 cell */
+  .exp-cell { border-bottom: 1px solid #f5f6fa; cursor: pointer; transition: background 0.15s; }
+  .exp-cell:hover { background: #fafbff; }
+  .exp-head { padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+  .exp-icon { width: 28px; height: 28px; border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; flex-shrink: 0; }
+  .exp-i1 { background: #4facfe; }
+  .exp-i2 { background: #fa709a; }
+  .exp-i3 { background: #11998e; }
+  .exp-title { flex: 1; font-size: 14px; font-weight: 600; color: #1a1a2e; }
+  .chevron { font-size: 12px; color: #a0a4b8; transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); }
+  .chevron.open { transform: rotate(90deg); }
+
+  .exp-body {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .exp-body.open { max-height: 300px; }
+  .exp-body-inner { padding: 0 16px 16px 54px; font-size: 12.5px; color: #6c7293; line-height: 1.7; }
+  .exp-body-inner .meta { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+  .exp-body-inner .meta span { background: #eef2ff; color: #5567d8; padding: 4px 10px; border-radius: 10px; font-size: 11px; }
+
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .compare-card { background: #f9fafc; border-radius: 10px; padding: 14px; }
+  .compare-card.bad { border-top: 3px solid #ef5350; }
+  .compare-card.good { border-top: 3px solid #4caf50; }
+
+  table.metrics { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+  table.metrics th, table.metrics td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ecedf1; }
+  table.metrics th { background: #f5f6fa; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="../index.html">← 返回主菜单</a>
+  <span>
+    <a href="08_swipe_actions.html">← 上一个</a> &nbsp;|&nbsp;
+    <a href="10_parallax_header.html">下一个 →</a>
+  </span>
+</div>
+
+<div class="container">
+
+  <div class="header">
+    <h1>📂 ExpandableCell — 展开/折叠卡片</h1>
+    <p>FAQ、订单详情、设置项常见组件。难点是<b>展开时高度变化要带动画</b>，且不能让 tableView 跳变。iOS 13 起用 Diffable DataSource 做这件事最优雅。</p>
+  </div>
+
+  <!-- 视觉演示 -->
+  <div class="section-block">
+    <h2>🎨 视觉演示（点击 cell 展开/折叠）</h2>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>● ● ●</span></div>
+      <div class="nav-bar">常见问题</div>
+
+      <div class="exp-cell" onclick="toggleCell(this, 0)">
+        <div class="exp-head">
+          <div class="exp-icon exp-i1">?</div>
+          <div class="exp-title">如何修改密码？</div>
+          <div class="chevron">›</div>
+        </div>
+        <div class="exp-body">
+          <div class="exp-body-inner">
+            进入「设置」→「账户与安全」→「修改密码」，输入旧密码后即可设置新密码。新密码需包含大小写字母和数字，长度 8 位以上。
+            <div class="meta"><span>📌 高频问题</span><span>⏱ 阅读 30s</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exp-cell" onclick="toggleCell(this, 1)">
+        <div class="exp-head">
+          <div class="exp-icon exp-i2">!</div>
+          <div class="exp-title">如何注销账号？</div>
+          <div class="chevron">›</div>
+        </div>
+        <div class="exp-body">
+          <div class="exp-body-inner">
+            注销账号是不可逆操作。请确保已备份所有重要数据。进入「设置」→「账户与安全」→「注销账号」，按引导完成 3 步验证后，账号将在 7 天后永久删除。
+            <div class="meta"><span>⚠️ 不可逆</span><span>⏱ 阅读 1min</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exp-cell" onclick="toggleCell(this, 2)">
+        <div class="exp-head">
+          <div class="exp-icon exp-i3">$</div>
+          <div class="exp-title">退款多久到账？</div>
+          <div class="chevron">›</div>
+        </div>
+        <div class="exp-body">
+          <div class="exp-body-inner">
+            微信/支付宝退款 1-3 个工作日到账，银行卡退款 7-15 个工作日。如超时未到账，请联系客服并提供订单号。
+            <div class="meta"><span>💰 财务</span><span>⏱ 阅读 20s</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function toggleCell(el, idx) {
+        const body = el.querySelector('.exp-body');
+        const chev = el.querySelector('.chevron');
+        body.classList.toggle('open');
+        chev.classList.toggle('open');
+      }
+    </script>
+  </div>
+
+  <!-- 核心难点 -->
+  <div class="section-block">
+    <h2>🚨 核心难点</h2>
+    <div class="explain danger">
+      <span class="h">难点 1：高度变化要平滑</span><br>
+      cell 高度从 56pt 变到 180pt，UITableView 默认会"跳"。需要 <code>beginUpdates / endUpdates</code> 或 Diffable DataSource 触发动画。
+    </div>
+    <div class="explain warn">
+      <span class="h">难点 2：折叠时下方 cell 会"被推上来"</span><br>
+      如果展开的是屏幕中间的 cell，折叠时下方所有 cell 上移会很突兀。要么不动 contentOffset（默认行为），要么主动 scrollTo。
+    </div>
+    <div class="explain warn">
+      <span class="h">难点 3：高度计算不能放主线程</span><br>
+      展开后的内容如果是富文本，<code>boundingRectWithSize</code> 在主线程算 → 卡顿。需要预算缓存。
+    </div>
+  </div>
+
+  <!-- 实现 1：传统 -->
+  <div class="section-block">
+    <h2>📦 实现方案 A：传统 UITableView（兼容 iOS 11+）</h2>
+    <div class="section-subtitle">用 NSMutableSet 记录展开的 indexPath，在 heightForRow 里返回不同高度</div>
+
+    <h3 style="margin-top:18px;font-size:14px;">1️⃣ ViewController</h3>
+<div class="code-block"><span class="kw">@interface</span> <span class="type">FAQViewController</span> ()
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">NSArray</span>&lt;<span class="type">FAQItem</span> *&gt; *items;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">NSMutableSet</span>&lt;<span class="type">NSIndexPath</span> *&gt; *expandedIndexPaths;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">NSMutableDictionary</span>&lt;<span class="type">NSIndexPath</span> *, <span class="type">NSNumber</span> *&gt; *heightCache;
+<span class="kw">@end</span>
+
+<span class="kw">@implementation</span> <span class="type">FAQViewController</span>
+
+<span class="kw">- (void)</span><span class="meth">viewDidLoad</span> {
+    [<span class="kw">super</span> <span class="meth">viewDidLoad</span>];
+    <span class="kw">self</span>.expandedIndexPaths = [<span class="type">NSMutableSet</span> set];
+    <span class="kw">self</span>.heightCache = [<span class="type">NSMutableDictionary</span> dictionary];
+    [<span class="kw">self</span>.tableView registerClass:[<span class="type">FAQCell</span> <span class="kw">class</span>] forCellReuseIdentifier:<span class="str">@"cell"</span>];
+}
+
+<span class="kw">- (CGFloat)</span><span class="meth">tableView:</span>(<span class="type">UITableView</span> *)tv
+       <span class="meth">heightForRowAtIndexPath:</span>(<span class="type">NSIndexPath</span> *)ip {
+    <span class="kw">if</span> (![<span class="kw">self</span>.expandedIndexPaths containsObject:ip]) {
+        <span class="kw">return</span> <span class="num">56</span>;     <span class="comm">// 折叠态固定高度</span>
+    }
+    <span class="comm">// ⭐ 展开态高度：先查缓存</span>
+    <span class="type">NSNumber</span> *cached = <span class="kw">self</span>.heightCache[ip];
+    <span class="kw">if</span> (cached) <span class="kw">return</span> cached.<span class="type">CGFloatValue</span>;
+
+    <span class="comm">// 算一次（这里假设已在 ViewModel 子线程预算好）</span>
+    <span class="type">FAQItem</span> *item = <span class="kw">self</span>.items[ip.row];
+    <span class="type">CGFloat</span> h = <span class="num">56</span> + item.contentHeight + <span class="num">20</span>;
+    <span class="kw">self</span>.heightCache[ip] = @(h);
+    <span class="kw">return</span> h;
+}
+
+<span class="kw">- (void)</span><span class="meth">tableView:</span>(<span class="type">UITableView</span> *)tv
+       <span class="meth">didSelectRowAtIndexPath:</span>(<span class="type">NSIndexPath</span> *)ip {
+    [tv <span class="meth">deselectRowAtIndexPath:</span>ip animated:<span class="type">YES</span>];
+
+    <span class="type">FAQCell</span> *cell = [tv cellForRowAtIndexPath:ip];
+    <span class="type">BOOL</span> wasExpanded = [<span class="kw">self</span>.expandedIndexPaths containsObject:ip];
+    <span class="kw">if</span> (wasExpanded) {
+        [<span class="kw">self</span>.expandedIndexPaths removeObject:ip];
+    } <span class="kw">else</span> {
+        [<span class="kw">self</span>.expandedIndexPaths addObject:ip];
+    }
+
+    <span class="comm">// ⭐ 关键：让 tableView 重新计算自己（带动画）</span>
+    [tv <span class="meth">beginUpdates</span>];
+    [cell <span class="meth">setExpanded:</span>!wasExpanded animated:<span class="type">YES</span>];   <span class="comm">// cell 内部 chevron 旋转动画</span>
+    [tv <span class="meth">endUpdates</span>];
+
+    <span class="comm">// 可选：展开时滚到能看见</span>
+    <span class="kw">if</span> (!wasExpanded) {
+        [tv <span class="meth">scrollToRowAtIndexPath:</span>ip
+                  <span class="meth">atScrollPosition:</span><span class="type">UITableViewScrollPositionNone</span>
+                          <span class="meth">animated:</span><span class="type">YES</span>];
+    }
+}
+<span class="kw">@end</span></div>
+
+    <h3 style="margin-top:24px;font-size:14px;">2️⃣ FAQCell —— Chevron 旋转动画</h3>
+<div class="code-block"><span class="kw">@implementation</span> <span class="type">FAQCell</span> {
+    <span class="type">UIImageView</span> *_chevron;
+    <span class="type">UILabel</span> *_titleLabel;
+    <span class="type">UILabel</span> *_contentLabel;
+}
+
+<span class="kw">- (void)</span><span class="meth">setExpanded:</span>(<span class="type">BOOL</span>)expanded animated:(<span class="type">BOOL</span>)animated {
+    <span class="comm">// ⭐ chevron 旋转 90 度</span>
+    <span class="kw">void</span> (^anim)(<span class="kw">void</span>) = ^{
+        _chevron.transform = expanded
+            ? <span class="type">CGAffineTransformMakeRotation</span>(<span class="type">M_PI_2</span>)
+            : <span class="type">CGAffineTransformIdentity</span>;
+        _contentLabel.alpha = expanded ? <span class="num">1</span> : <span class="num">0</span>;
+    };
+    <span class="kw">if</span> (animated) {
+        [<span class="type">UIView</span> <span class="meth">animateWithDuration:</span><span class="num">0.3</span>
+                              <span class="meth">delay:</span><span class="num">0</span>
+             <span class="meth">usingSpringWithDamping:</span><span class="num">0.85</span>
+              <span class="meth">initialSpringVelocity:</span><span class="num">0</span>
+                            <span class="meth">options:</span><span class="num">0</span>
+                         <span class="meth">animations:</span>anim
+                         <span class="meth">completion:</span><span class="kw">nil</span>];
+    } <span class="kw">else</span> {
+        <span class="meth">anim</span>();
+    }
+}
+<span class="kw">@end</span></div>
+
+    <div class="explain success">
+      <span class="h">为什么 beginUpdates / endUpdates 能带动画：</span><br>
+      它告诉 UITableView「我要批量更新」，UITableView 会对比新旧高度，对差值做隐式 CALayer 动画。chevron 的旋转动画是 cell 自己启动的，UITableView 的高度变化是系统启动的，两者并行。
+    </div>
+  </div>
+
+  <!-- 实现 2：现代 -->
+  <div class="section-block">
+    <h2>📦 实现方案 B：UICollectionView + Diffable（iOS 13+）</h2>
+    <div class="section-subtitle">用 OutlineSnapshot 实现"父-子"展开，是 Apple 系统设置 App 的同款方案</div>
+
+<div class="code-block"><span class="comm">// 数据结构 —— 一个 Item 包含 children</span>
+<span class="kw">@interface</span> <span class="type">FAQItem</span> : <span class="type">NSObject</span>
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">copy</span>)   <span class="type">NSString</span> *title;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">copy</span>)   <span class="type">NSString</span> *content;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">copy</span>)   <span class="type">NSArray</span>&lt;<span class="type">FAQItem</span> *&gt; *children;
+<span class="kw">@end</span>
+
+<span class="kw">- (void)</span><span class="meth">viewDidLoad</span> {
+    [<span class="kw">super</span> <span class="meth">viewDidLoad</span>];
+
+    <span class="comm">// ⭐ 1. 用 List 布局</span>
+    <span class="type">UICollectionLayoutListConfiguration</span> *cfg = [[<span class="type">UICollectionLayoutListConfiguration</span> alloc]
+        initWithAppearance:<span class="type">UICollectionLayoutListAppearanceInsetGrouped</span>];
+    <span class="type">UICollectionViewLayout</span> *layout = [<span class="type">UICollectionViewCompositionalLayout</span>
+        <span class="meth">layoutWithListConfiguration:</span>cfg];
+
+    <span class="kw">self</span>.collectionView = [[<span class="type">UICollectionView</span> alloc]
+        initWithFrame:<span class="kw">self</span>.view.bounds collectionViewLayout:layout];
+    [<span class="kw">self</span>.view addSubview:<span class="kw">self</span>.collectionView];
+
+    <span class="comm">// ⭐ 2. 注册 cell（系统提供 valueCell / subtitleCell / sidebarCell 等）</span>
+    <span class="type">UICollectionViewCellRegistration</span> *reg = [<span class="type">UICollectionViewCellRegistration</span>
+        <span class="meth">registrationWithCellClass:</span>[<span class="type">UICollectionViewListCell</span> <span class="kw">class</span>]
+                       <span class="meth">configurationHandler:</span>^(<span class="type">UICollectionViewListCell</span> *cell,
+                                                  <span class="type">NSIndexPath</span> *ip,
+                                                  <span class="type">FAQItem</span> *item) {
+        <span class="type">UIListContentConfiguration</span> *content = [cell defaultContentConfiguration];
+        content.text = item.title;
+        content.secondaryText = item.content;
+        cell.contentConfiguration = content;
+    }];
+
+    <span class="comm">// ⭐ 3. DataSource</span>
+    <span class="kw">self</span>.dataSource = [[<span class="type">UICollectionViewDiffableDataSource</span> alloc]
+         initWithCollectionView:<span class="kw">self</span>.collectionView
+                   cellProvider:^<span class="type">UICollectionViewCell</span> *(<span class="type">UICollectionView</span> *cv,
+                                                              <span class="type">NSIndexPath</span> *ip,
+                                                              <span class="type">FAQItem</span> *item) {
+        <span class="kw">return</span> [cv <span class="meth">dequeueConfiguredReusableCellWithRegistration:</span>reg
+                                                <span class="meth">forIndexPath:</span>ip
+                                                        <span class="meth">item:</span>item];
+    }];
+
+    <span class="comm">// ⭐ 4. Section snapshot —— 关键：append child</span>
+    <span class="type">NSDiffableDataSourceSectionSnapshot</span> *snap = [<span class="type">NSDiffableDataSourceSectionSnapshot</span> new];
+    <span class="kw">for</span> (<span class="type">FAQItem</span> *parent <span class="kw">in</span> <span class="kw">self</span>.items) {
+        [snap <span class="meth">appendItems:</span>@[parent]];
+        [snap <span class="meth">appendItems:</span>parent.children intoParentItem:parent];
+        [snap <span class="meth">expandItems:</span>@[parent]];   <span class="comm">// 默认是否展开</span>
+    }
+    [<span class="kw">self</span>.dataSource <span class="meth">applySnapshot:</span>snap toSection:@<span class="str">"main"</span> animatingDifferences:<span class="type">YES</span>];
+}</div>
+
+    <div class="explain success">
+      <span class="h">Diffable + Outline 的优势：</span><br>
+      · 系统帮你处理"父展开 → 子插入"的动画<br>
+      · 自动 diff，update 数据不用手动算 indexPath<br>
+      · 自带 chevron 和缩进，不用自己画<br>
+      · 性能优于传统 reloadData
+    </div>
+  </div>
+
+  <!-- 对比 -->
+  <div class="section-block">
+    <h2>⚖️ 两种方案对比</h2>
+    <table class="metrics">
+      <tr><th>维度</th><th>传统 (UITableView)</th><th>现代 (Diffable)</th></tr>
+      <tr><td>最低系统</td><td>iOS 6+</td><td>iOS 13+</td></tr>
+      <tr><td>代码量</td><td>多（手动管理 expanded set + heightCache）</td><td>少（snapshot 一把梭）</td></tr>
+      <tr><td>动画质量</td><td>需自己设 RowAnimation</td><td>系统自动 diff 动画</td></tr>
+      <tr><td>嵌套展开</td><td>不支持，要自己实现</td><td>原生支持多级 outline</td></tr>
+      <tr><td>性能</td><td>大数据 reloadData 卡</td><td>diff 后只更新变化部分</td></tr>
+      <tr><td>无障碍</td><td>需手动设置</td><td>自动支持 VoiceOver outline 导航</td></tr>
+    </table>
+  </div>
+
+  <!-- 易错点 -->
+  <div class="section-block">
+    <h2>⚠️ 实战易错点</h2>
+    <div class="explain danger">
+      <span class="h">坑 1：cell 复用时 chevron 状态错乱</span><br>
+      cell 复用前可能是展开态，复用到一个折叠 indexPath 时如果不重置 chevron，会显示成 90 度旋转。<br>
+      <b>解决</b>：在 <code>cellForRow</code> 里强制 <code>setExpanded:animated:NO</code>。
+    </div>
+    <div class="explain danger">
+      <span class="h">坑 2：高度缓存不清</span><br>
+      cell 内容变了（比如刷新数据），<code>heightCache</code> 还是老的高度，会 layout 错乱。<br>
+      <b>解决</b>：reload 时 <code>[heightCache removeAllObjects]</code>。
+    </div>
+    <div class="explain warn">
+      <span class="h">坑 3：endUpdates 内嵌套异步</span><br>
+      <code>beginUpdates / endUpdates</code> 之间不能 dispatch_async，否则更新不在同一事务里。
+    </div>
+    <div class="explain success">
+      <span class="h">优化技巧：富文本展开内容用 YYLabel</span><br>
+      展开后如果是几百字的富文本，用 YYLabel 异步排版，<code>YYTextLayout</code> 子线程算好缓存进 model。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

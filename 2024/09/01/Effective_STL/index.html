@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hexo + pixelterm v1.0.0">
+<meta name="description" content="一个写作爱好者的在线笔记本">
+<meta name="author" content="floki">
+<meta name="theme-color" content="#0b0f14">
+
+<title>Effective_STL · Floki</title>
+
+<link rel="icon" type="image/png" href="/img/cat.png">
+
+<!-- 字体（与设计稿一致） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css">
+
+<!-- 主题样式 -->
+<link rel="stylesheet" href="/css/pixelterm.css">
+<!-- 移动端适配增强（必须放在 pixelterm.css 之后） -->
+<link rel="stylesheet" href="/css/mobile.css">
+
+  <link rel="stylesheet" href="/css/mermaid.css">
+
+
+  <link rel="stylesheet" href="/css/lightgallery.min.css">
+
+
+<!-- 代码高亮（内置 IDE 风格：暗色 One Dark / 亮色 GitHub Light，跟随主题切换） -->
+<link rel="stylesheet" href="/css/highlight.css">
+
+<!-- 自定义 CSS 注入 -->
+
+
+
+<!-- 主题模式优先注入（避免闪屏） -->
+<script>
+(function(){
+  var def = 'auto';
+  var t;
+  try { t = localStorage.getItem('pt-theme'); } catch(e){}
+  if(!t){
+    t = (def === 'auto')
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : def;
+  }
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+
+<body class="layout-post">
+
+<!-- 全屏背景层（CSS pseudos 提供 CRT 扫描线/vignette；下面是 canvas + grid） -->
+
+  <canvas id="rain" aria-hidden="true"></canvas>
+
+<div class="pix-grid" aria-hidden="true"></div>
+
+<div class="titlebar">
+  <div class="dots"><i></i><i></i><i></i></div>
+  <div class="path">— <b>floki@pixelterm</b>: <span>~/Effective_STL</span> — zsh — </div>
+  <div class="right">
+    <span class="clock" data-clock>00:00:00</span>
+    <div class="menu">
+      
+        <a href="/" class="">HOME</a>
+      
+        <a href="/list/" class="">POSTS</a>
+      
+        <a href="/categories/" class="">CATEGORIES</a>
+      
+        <a href="/tags/" class="">TAGS</a>
+      
+        <a href="/about/" class="">ABOUT</a>
+      
+    </div>
+    
+      <button class="theme-toggle" data-theme-toggle aria-label="toggle theme">
+        <span class="icon moon">☾</span>
+        <span class="icon sun">☀</span>
+        <span class="knob"></span>
+      </button>
+    
+  </div>
+</div>
+
+
+<main class="shell">
+  
+<article class="article ">
+  <header class="art-head fade">
+    <span class="head-spacer"></span>
+    <div class="head-inner" data-vim="Effective_STL.md   --  2024/09/01">
+      <span class="art-tag">C++</span>
+      
+        <span class="art-tag cyan">技术</span>
+      
+      <h1 class="art-title">Effective_STL</h1>
+      <div class="art-meta">
+  
+    <span>2024-09-01</span>
+  
+  
+    <span>updated <b>2026-06-11</b></span>
+  
+  
+    <span><b>1.1k</b> words</span>
+  
+  
+    <span>▶ <b>5</b> min</span>
+  
+  
+    <span id="busuanzi_container_page_pv">views <b><span id="busuanzi_value_page_pv"></span></b></span>
+  
+  
+    <span>in
+      
+        <a href="/categories/%E6%8A%80%E6%9C%AF/">技术</a>
+      
+    </span>
+  
+  
+    <span>tags
+      
+        <a href="/tags/C/">#C++</a>
+      
+    </span>
+  
+</div>
+
+    </div>
+  </header>
+
+  <div class="art-body">
+    
+
+  
+    <aside class="toc-card" data-toc>
+      <h5>QUEST LOG</h5>
+      <ol class="pt-toc-inner"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E6%85%8E%E9%87%8D%E9%80%89%E6%8B%A9%E5%88%A0%E9%99%A4%E5%85%83%E7%B4%A0%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="pt-toc-inner-text">慎重选择删除元素的方式</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E6%8F%90%E5%89%8D%E7%94%A8reverse%E5%8E%BB%E9%A2%84%E7%95%99%E5%86%85%E5%AD%98"><span class="pt-toc-inner-text">提前用reverse去预留内存</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E6%80%BB%E6%98%AF%E8%AE%A9%E6%AF%94%E8%BE%83%E5%87%BD%E6%95%B0%E5%9C%A8%E7%AD%89%E5%80%BC%E7%9A%84%E6%83%85%E5%86%B5%E4%B8%8B%E8%BF%94%E5%9B%9Efalse"><span class="pt-toc-inner-text">总是让比较函数在等值的情况下返回false</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E6%9C%89%E5%85%B3chrono%E5%BA%93"><span class="pt-toc-inner-text">有关chrono库</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E5%AE%B9%E5%99%A8%E7%9A%84%E6%88%90%E5%91%98%E5%87%BD%E6%95%B0%E4%BC%98%E4%BA%8E%E5%90%8C%E5%90%8D%E7%9A%84%E7%AE%97%E6%B3%95"><span class="pt-toc-inner-text">容器的成员函数优于同名的算法</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E6%9C%89%E7%9A%84%E6%83%85%E5%86%B5%E4%B8%8B%E5%88%A9%E7%94%A8vector%E6%8E%92%E5%BA%8F%EF%BC%8C%E5%86%85%E5%AD%98%E4%B8%8A%E5%92%8C%E6%9F%A5%E6%89%BE%E9%80%9F%E7%8E%87%E9%83%BD%E4%BC%98%E4%BA%8E%E8%87%AA%E5%B8%A6%E6%8E%92%E5%BA%8F%E7%9A%84%E5%85%B3%E8%81%94%E5%AE%B9%E5%99%A8"><span class="pt-toc-inner-text">有的情况下利用vector排序，内存上和查找速率都优于自带排序的关联容器</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E5%AF%B9%E4%BA%8E%E5%85%B3%E8%81%94%E5%AE%B9%E5%99%A8%E6%9B%B4%E9%AB%98%E6%95%88%E7%9A%84%E6%93%8D%E4%BD%9C"><span class="pt-toc-inner-text">对于关联容器更高效的操作</span></a></li><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E6%A0%87%E5%87%86%E8%BE%93%E5%85%A5cin"><span class="pt-toc-inner-text">标准输入cin</span></a></li></ol>
+    </aside>
+  
+
+
+    <div class="prose">
+      <h3 id="慎重选择删除元素的方式"><a href="#慎重选择删除元素的方式" class="headerlink" title="慎重选择删除元素的方式"></a>慎重选择删除元素的方式</h3><p>对于连续的容器，vector，string，deque<br>earse(remove(x.begin(),x.end(),val),x.end());<br>对于list也生效<br>对于关联容器的时候，用erase就行</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  vector&lt;<span class="type">int</span>&gt; vv&#123;<span class="number">1</span>, <span class="number">7</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>&#125;;</span><br><span class="line"></span><br><span class="line">  vv.<span class="built_in">erase</span>(<span class="built_in">remove</span>(vv.<span class="built_in">begin</span>(), vv.<span class="built_in">end</span>(), <span class="number">1</span>), vv.<span class="built_in">end</span>());</span><br><span class="line"></span><br><span class="line">  for_each(vv.<span class="built_in">begin</span>(), vv.<span class="built_in">end</span>(), [&amp;](<span class="type">int</span> x) &#123;</span><br><span class="line">    cout&lt;&lt;x&lt;&lt;endl;</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果判定条件不是具体的元素，而是某种条件的话</p>
+<p>就把remove替换成remove_if</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vv.<span class="built_in">erase</span>(<span class="built_in">remove_if</span>(vv.<span class="built_in">begin</span>(), vv.<span class="built_in">end</span>(), [](<span class="type">int</span> x) &#123;</span><br><span class="line">  <span class="keyword">return</span> x&lt;=<span class="number">4</span>;</span><br><span class="line">&#125;), vv.<span class="built_in">end</span>());</span><br></pre></td></tr></table></figure>
+
+
+
+<p>map循环删除，标准写法，，vector也能这么写</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">map&lt;string, <span class="type">int</span>&gt; mp;</span><br><span class="line">mp.<span class="built_in">insert</span>(<span class="built_in">make_pair</span>(<span class="string">&quot;a3&quot;</span>, <span class="number">23</span>));</span><br><span class="line">mp.<span class="built_in">insert</span>(<span class="built_in">make_pair</span>(<span class="string">&quot;b3&quot;</span>, <span class="number">22</span>));</span><br><span class="line">mp.<span class="built_in">insert</span>(<span class="built_in">make_pair</span>(<span class="string">&quot;c3&quot;</span>, <span class="number">12</span>));</span><br><span class="line">mp.<span class="built_in">insert</span>(<span class="built_in">make_pair</span>(<span class="string">&quot;a4&quot;</span>, <span class="number">5</span>));</span><br><span class="line">mp.<span class="built_in">insert</span>(<span class="built_in">make_pair</span>(<span class="string">&quot;a7&quot;</span>, <span class="number">89</span>));</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">auto</span> <span class="built_in">it</span>(mp.<span class="built_in">begin</span>()); it != mp.<span class="built_in">end</span>();) &#123;</span><br><span class="line">  <span class="keyword">if</span> (it-&gt;first.<span class="built_in">find</span>(<span class="string">&#x27;a&#x27;</span>) != string::npos) &#123;</span><br><span class="line">    mp.<span class="built_in">erase</span>(it++);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    ++it;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">for_each(mp.<span class="built_in">begin</span>(), mp.<span class="built_in">end</span>(), [](<span class="type">const</span> pair&lt;string, <span class="type">int</span>&gt; &amp;it) &#123;</span><br><span class="line">  cout &lt;&lt; it.first &lt;&lt; <span class="string">&quot; &quot;</span> &lt;&lt; it.second &lt;&lt; endl;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="提前用reverse去预留内存"><a href="#提前用reverse去预留内存" class="headerlink" title="提前用reverse去预留内存"></a>提前用reverse去预留内存</h3><h3 id="总是让比较函数在等值的情况下返回false"><a href="#总是让比较函数在等值的情况下返回false" class="headerlink" title="总是让比较函数在等值的情况下返回false"></a>总是让比较函数在等值的情况下返回false</h3><p>std::less_equal</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">_LIBCPP_TEMPLATE_VIS</span> less_equal</span><br><span class="line">&#123;</span><br><span class="line">....</span><br><span class="line">        &#123;<span class="keyword">return</span> __x &lt;= __y;&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>示例：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">set&lt;<span class="type">int</span>, less_equal&lt;<span class="type">int</span>&gt;&gt; ss;</span><br><span class="line"></span><br><span class="line">ss.<span class="built_in">insert</span>(<span class="number">10</span>);</span><br><span class="line">ss.<span class="built_in">insert</span>(<span class="number">10</span>);</span><br><span class="line">ss.<span class="built_in">insert</span>(<span class="number">10</span>);</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">auto</span> x : ss) &#123;</span><br><span class="line">  cout&lt;&lt;x&lt;&lt;endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>会全部插入，是有问题的，，因为less_equal是小于等于 ，带等值的判断，示例中这样他总会返回true</p>
+<p>条款的意思是我们在有等值的情况等下要 返回false</p>
+<p>举个很不恰当，但是可以说明这个条款写法的例子：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">auto</span> ff = [](<span class="type">int</span> x, <span class="type">int</span> y) &#123;</span><br><span class="line">    <span class="keyword">if</span> (x == y) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> x&lt;y;</span><br><span class="line">  &#125;;</span><br><span class="line">  set &lt; <span class="type">int</span>,<span class="keyword">decltype</span>(ff)&gt; ss;</span><br><span class="line"></span><br><span class="line">  ss.<span class="built_in">insert</span>(<span class="number">10</span>);</span><br><span class="line">  ss.<span class="built_in">insert</span>(<span class="number">10</span>);</span><br><span class="line">  ss.<span class="built_in">insert</span>(<span class="number">10</span>);</span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://oorik.blog.csdn.net/article/details/130910594">https://oorik.blog.csdn.net/article/details/130910594</a></p>
+<h3 id="有关chrono库"><a href="#有关chrono库" class="headerlink" title="有关chrono库"></a>有关chrono库</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">auto</span> t1=chrono::steady_clock::<span class="built_in">now</span>();</span><br><span class="line">  set &lt; <span class="type">int</span>,less&lt;<span class="type">int</span>&gt;&gt; ss;</span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10000000</span>; ++i) &#123;</span><br><span class="line">    ss.<span class="built_in">insert</span>(i);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">auto</span> t2 = chrono::steady_clock::<span class="built_in">now</span>();</span><br><span class="line"></span><br><span class="line">  <span class="type">double</span> ms = chrono::<span class="built_in">duration</span>&lt;<span class="type">double</span>, std::milli&gt;(t2 - t1).<span class="built_in">count</span>();</span><br><span class="line">  cout&lt;&lt;ms&lt;&lt;endl;</span><br><span class="line"><span class="comment">//线程休眠10秒</span></span><br><span class="line">std::this_thread::<span class="built_in">sleep_for</span>(std::chrono::<span class="built_in">seconds</span>(<span class="number">10</span>));</span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/c_base_jin/article/details/79266022">https://blog.csdn.net/c_base_jin/article/details/79266022</a></p>
+<h3 id="容器的成员函数优于同名的算法"><a href="#容器的成员函数优于同名的算法" class="headerlink" title="容器的成员函数优于同名的算法"></a>容器的成员函数优于同名的算法</h3><p>尽量去用容器自带的函数</p>
+<h3 id="有的情况下利用vector排序，内存上和查找速率都优于自带排序的关联容器"><a href="#有的情况下利用vector排序，内存上和查找速率都优于自带排序的关联容器" class="headerlink" title="有的情况下利用vector排序，内存上和查找速率都优于自带排序的关联容器"></a>有的情况下利用vector排序，内存上和查找速率都优于自带排序的关联容器</h3><p>在排序的vector中存储数据可能比在标准的关联容器中存储同样的数据要<strong>耗费更少的内存</strong>，通过二分查找排序的vector可能比直接在标准关联容器中<strong>查找更快</strong></p>
+<p><strong>示例：</strong></p>
+<p><strong>用vector</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"> <span class="keyword">auto</span> t1 = chrono::steady_clock::<span class="built_in">now</span>();</span><br><span class="line"></span><br><span class="line"> vector&lt;<span class="type">int</span>&gt; vv;</span><br><span class="line"> <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">9000000</span>; ++i) &#123;</span><br><span class="line">   vv.<span class="built_in">push_back</span>(i);   <span class="comment">//这样相当于有序了</span></span><br><span class="line"> &#125;</span><br><span class="line"> <span class="type">bool</span> is = <span class="built_in">binary_search</span>(vv.<span class="built_in">begin</span>(), vv.<span class="built_in">end</span>(), <span class="number">96</span>);</span><br><span class="line"><span class="keyword">auto</span> t2 = chrono::steady_clock::<span class="built_in">now</span>();</span><br><span class="line"></span><br><span class="line"> <span class="type">double</span> ms = chrono::<span class="built_in">duration</span>&lt;<span class="type">double</span>, std::milli&gt;(t2 - t1).<span class="built_in">count</span>();</span><br><span class="line"> cout &lt;&lt; ms &lt;&lt; endl;</span><br></pre></td></tr></table></figure>
+
+<p>结果：243.21</p>
+<p>即使利用了排序算法，依然是快的</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">9000000</span>; ++i) &#123;</span><br><span class="line">  vv.<span class="built_in">push_back</span>(<span class="number">9000000</span>-i);</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">sort</span>(vv.<span class="built_in">begin</span>(),vv.<span class="built_in">end</span>());</span><br></pre></td></tr></table></figure>
+
+<p>结果:269.452</p>
+<p><strong>用set</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">auto</span> t1 = chrono::steady_clock::<span class="built_in">now</span>();</span><br><span class="line"></span><br><span class="line">set&lt;<span class="type">int</span>&gt; ss;</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">9000000</span>; ++i) &#123;</span><br><span class="line">  ss.<span class="built_in">insert</span>(i);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">auto</span> it = ss.<span class="built_in">find</span>(<span class="number">96</span>);</span><br><span class="line"><span class="keyword">auto</span> t2 = chrono::steady_clock::<span class="built_in">now</span>();</span><br><span class="line"></span><br><span class="line"><span class="type">double</span> ms = chrono::<span class="built_in">duration</span>&lt;<span class="type">double</span>, std::milli&gt;(t2 - t1).<span class="built_in">count</span>();</span><br><span class="line">cout &lt;&lt; ms &lt;&lt; endl;</span><br></pre></td></tr></table></figure>
+
+<p>结果:4407.11</p>
+<p><strong>用排过序的vector去代替关联容器，有这个思想</strong></p>
+<h3 id="对于关联容器更高效的操作"><a href="#对于关联容器更高效的操作" class="headerlink" title="对于关联容器更高效的操作"></a>对于关联容器更高效的操作</h3><p><strong>新增用insert，修改的用[] 下标方式</strong></p>
+<h3 id="标准输入cin"><a href="#标准输入cin" class="headerlink" title="标准输入cin"></a>标准输入cin</h3><p>cin遇到空格会停止输入，想到读到空格</p>
+<p>可以用cin.get() 或者cin.geline()</p>
+<p>   <strong>1.cin.getline()与他相比，比较粗一些</strong></p>
+<p>   举例：先定义字符数组 char a[20];</p>
+<p>   然后 cin.getline(a,20);即把数组的内容</p>
+<p>   读入进来。它通过换行符来确定行尾，但不保存</p>
+<p>   换行符</p>
+<p>   <strong>2.cin.get()则将换行符留在输入队列中</strong></p>
+<p>   举例：假设我们两次调用cin.get():</p>
+<p>   cin.get(a,20);</p>
+<p>   cin.get(b,20);</p>
+<p>   如果不借助帮助，cin.get(b,20)无法读入，因为</p>
+<p>   换行符留在了输入队列，第二次调用时读的第一个字符便是</p>
+<p>   换行符，所以无法读入新的内容。那么，我们应该如何</p>
+<p>   <strong>解决这类问题呢？</strong></p>
+<p>​     同样的规则，借助不带参数的cin.get();在上例中的两句之间加入cin.get();用它吃掉换行符。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="type">char</span> *a = <span class="keyword">new</span> <span class="type">char</span>[<span class="number">20</span>];</span><br><span class="line">  <span class="type">char</span> *b = <span class="keyword">new</span> <span class="type">char</span>[<span class="number">20</span>];</span><br><span class="line">  <span class="type">char</span> *c = <span class="keyword">new</span> <span class="type">char</span>[<span class="number">20</span>];</span><br><span class="line">  cin.<span class="built_in">getline</span>(a, <span class="number">25</span>);</span><br><span class="line">    </span><br><span class="line">  cin.<span class="built_in">get</span>(b, <span class="number">20</span>).<span class="built_in">get</span>();  <span class="comment">//等于下面</span></span><br><span class="line">    </span><br><span class="line">  cin.<span class="built_in">get</span>(c, <span class="number">20</span>);</span><br><span class="line">  cin.<span class="built_in">get</span>();</span><br><span class="line">    </span><br><span class="line">  cout &lt;&lt; a &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">  cout &lt;&lt; b &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">  cout &lt;&lt; c &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    </div>
+  </div>
+
+  
+    <nav class="art-end">
+      <span class="head-spacer"></span>
+      <div class="end-grid">
+        
+          <a href="/2024/10/17/Effecitve_C++/">
+            <div class="lab">◄ PREV</div>
+            <div class="ti">Effecitve_C++(个人总结向)</div>
+          </a>
+        
+        
+          <a href="/2024/08/12/CSAPP/" class="end">
+            <div class="lab">NEXT ►</div>
+            <div class="ti">CSAPP-链接</div>
+          </a>
+        
+      </div>
+    </nav>
+  
+
+  
+
+</article>
+
+</main>
+
+<footer class="f">
+  <div class="f-inner">
+    <span><span class="prompt">$ </span>echo "© Floki · Code Notes "</span>
+    
+    
+      <span id="busuanzi_container_site_pv">
+        <span class="prompt">★ </span>visitors × <span id="busuanzi_value_site_pv"></span>
+      </span>
+    
+  </div>
+</footer>
+
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+  <script>
+    window.PT_CAT_BUDDY = {"src":"/img/cat.png","size":100,"corner":"br","followMouse":true,"phrases":["MEOW.EXE","SUDO PURR","> PET ME","HP +1","RUA~","CTRL+M","PRESS A"]};
+  </script>
+  <script src="/js/cat-buddy.js" defer></script>
+
+
+
+<!-- 第三方库 -->
+
+  
+    <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
+
+<script src="/js/pixelterm.js"></script>
+
+  <script src="/js/toc.js" defer></script>
+
+
+
+  <script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      document.querySelectorAll('.prose').forEach(function(g){
+        if (typeof lightGallery !== 'function') return;
+        lightGallery(g, {
+          selector: 'img',
+          plugins: [
+            window.lgZoom,
+            window.lgThumbnail,
+            window.lgRotate,
+            window.lgFullscreen,
+            
+          ].filter(Boolean),
+          download: false
+        });
+      });
+    });
+  </script>
+
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/js/mermaid-init.js"></script>
+
+
+
+
+
+</body>
+</html>

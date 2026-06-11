@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>基础 — cell 怎么写才不卡</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/category.css">
+<script src="../assets/theme.js"></script>
+</head>
+<body>
+
+<div class="frame">
+  <main class="main">
+
+    <div class="meta-bar">
+      <span class="dot">●</span>
+      <span><a href="../index.html">ios-list-lab</a></span>
+      <span>/</span>
+      <span style="color:var(--accent);">basics</span>
+      <span class="right"><a href="../index.html">home</a> · <a href="basics.html" class="active">basics</a> · <a href="advanced.html">advanced</a> · <a href="patterns.html">patterns</a></span>
+    </div>
+
+    <section class="cat-hero">
+      <div class="breadcrumb"><a href="../index.html">~</a> / level 01 · basics</div>
+      <h1>基础 <em>— cell 写法</em></h1>
+      <p>cell 复用、圆角不离屏、阴影怎么画、什么时候该用光栅化。这一组看完，写列表至少不会卡到掉帧。</p>
+    </section>
+
+    <div class="ascii-box">
+basics/
+├── <span class="red">01</span>  message_cell      聊天列表
+├── <span class="red">02</span>  news_cell         新闻卡片
+├── <span class="red">03</span>  moment_cell       朋友圈式
+├── <span class="red">04</span>  ad_cell           复杂装饰背景
+├── <span class="red">05</span>  hero_card         弹簧动画
+└── <span class="red">06</span>  comparison        写错 vs 写对 速查
+    </div>
+
+    <section class="exam-grid">
+
+      <a class="exam" href="../examples/01_message_cell.html">
+        <div class="exam-num"><span class="id">01</span>basics</div>
+        <div class="exam-body">
+          <div class="exam-title">MessageCell · 聊天列表</div>
+          <p class="exam-desc">圆角头像 + 未读红点。讲清楚 prepareForReuse 是干嘛的 — 我猜你大概率没用过。</p>
+          <ul class="exam-points">
+            <li>prepareForReuse 不写会怎样（含一个真实 bug 演示）</li>
+            <li>子线程把头像切成圆图，避免触发离屏</li>
+            <li>红点也提前画成图片，复用更省事</li>
+          </ul>
+          <div class="exam-tags"><span class="hi">prepareForReuse</span><span>预切圆图</span></div>
+        </div>
+        <div class="exam-arrow">→</div>
+      </a>
+
+      <a class="exam" href="../examples/02_news_cell.html">
+        <div class="exam-num"><span class="id">02</span>basics</div>
+        <div class="exam-body">
+          <div class="exam-title">NewsCell · 新闻卡片</div>
+          <p class="exam-desc">阴影 + 圆角 + 部分圆角封面图。卡片要分两层做，外层阴影、内层圆角，不能合在一起。</p>
+          <ul class="exam-points">
+            <li>为什么阴影和圆角要拆成两层 view</li>
+            <li>shadowPath 必须设，不然每帧都重新算</li>
+            <li>iOS 13+ 用 cornerCurve 画圆角，不会触发离屏</li>
+          </ul>
+          <div class="exam-tags"><span class="hi">shadowPath</span><span>cornerCurve</span><span>封面图必裁</span></div>
+        </div>
+        <div class="exam-arrow">→</div>
+      </a>
+
+      <a class="exam" href="../examples/03_moment_cell.html">
+        <div class="exam-num"><span class="id">03</span>basics</div>
+        <div class="exam-body">
+          <div class="exam-title">MomentCell · 朋友圈式</div>
+          <p class="exam-desc">含图片九宫格的内容卡。圆角图片别用 clipsToBounds，得在解码的时候就把圆角切好。</p>
+          <ul class="exam-points">
+            <li>SDWebImage 的 RoundCornerTransformer 怎么用</li>
+            <li>Swift 项目用 Kingfisher 也是同一个套路</li>
+            <li>正文高度提前在 ViewModel 算好，别放到 cellForRow</li>
+          </ul>
+          <div class="exam-tags"><span class="hi">Transformer 切图</span><span>零离屏</span></div>
+        </div>
+        <div class="exam-arrow">→</div>
+      </a>
+
+      <a class="exam" href="../examples/04_ad_cell.html">
+        <div class="exam-num"><span class="id">04</span>basics</div>
+        <div class="exam-body">
+          <div class="exam-title">AdCell · 装饰背景很复杂的卡</div>
+          <p class="exam-desc">背景里又是渐变又是阴影又是装饰。直接画一张 UIImage 进去，比开光栅化更靠谱。</p>
+          <ul class="exam-points">
+            <li>UIGraphicsImageRenderer 离线画图的完整流程</li>
+            <li>NSCache 缓存这张图，多个 cell 共用</li>
+            <li>对比一下：为什么这比 shouldRasterize 更稳</li>
+          </ul>
+          <div class="exam-tags"><span class="hi">离线渲染 UIImage</span><span>NSCache</span></div>
+        </div>
+        <div class="exam-arrow">→</div>
+      </a>
+
+      <a class="exam" href="../examples/05_hero_card.html">
+        <div class="exam-num"><span class="id">05</span>basics</div>
+        <div class="exam-body">
+          <div class="exam-title">HeroCard · 弹簧动画</div>
+          <p class="exam-desc">这是为数不多真的应该开光栅化的场景 — 静态的复杂卡 + transform 动画。</p>
+          <ul class="exam-points">
+            <li>带可交互的弹簧动画演示，可以重播</li>
+            <li>shouldRasterize 什么时候开</li>
+            <li>动画一结束就关掉，不要常开</li>
+          </ul>
+          <div class="exam-tags"><span class="hi">光栅化用对地方</span></div>
+        </div>
+        <div class="exam-arrow">→</div>
+      </a>
+
+      <a class="exam" href="../examples/06_comparison.html">
+        <div class="exam-num"><span class="id">06</span>basics</div>
+        <div class="exam-body">
+          <div class="exam-title">写错 vs 写对 速查</div>
+          <p class="exam-desc">前 5 个示例的反例正例汇总在一起，配上 Instruments 的检查方式。</p>
+          <ul class="exam-points">
+            <li>圆角、阴影、光栅化、装饰背景的写错 vs 写对</li>
+            <li>高度计算、图片解码、prepareForReuse 的常见踩坑</li>
+            <li>对应该用 Instruments 哪个面板验证</li>
+          </ul>
+          <div class="exam-tags"><span>写错</span><span class="hi">写对</span><span>Instruments</span></div>
+        </div>
+        <div class="exam-arrow">→</div>
+      </a>
+
+    </section>
+
+    <section class="path-section">
+      <div class="sec-title">
+        <span class="num">02</span>
+        <span class="h">怎么看</span>
+      </div>
+      <p class="sub">每个示例都是下一个的前置。按顺序看不会跳。</p>
+
+      <ul class="path-list">
+        <li class="path-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h5>从 01 开始</h5>
+            <p>cell 复用 + prepareForReuse 是基础。先把这俩搞明白，剩下的好说。</p>
+          </div>
+        </li>
+        <li class="path-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h5>02 + 03：圆角阴影怎么不离屏</h5>
+            <p>列表卡顿 90% 是这俩引起的。学会 shadowPath / cornerCurve / Transformer 三件套。</p>
+          </div>
+        </li>
+        <li class="path-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h5>04 + 05：搞清楚光栅化到底什么时候用</h5>
+            <p>对照着看一眼就懂：cell 上千万别开，做动画的静态 view 才该开。</p>
+          </div>
+        </li>
+        <li class="path-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h5>06：复习一遍</h5>
+            <p>把前 5 个的反例正例放一起对比，能讲清楚为什么 = 基础过关。</p>
+          </div>
+        </li>
+        <li class="path-item">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <h5>下一组 → 常用组件</h5>
+            <p>基础有了，可以开始造 Skeleton / Swipe / Parallax 这些日常用的组件。</p>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <footer>
+      <div class="left">EOF · level 01 · basics</div>
+      <div>
+        <a href="../index.html">home</a> ·
+        <a href="advanced.html">next: advanced →</a>
+      </div>
+    </footer>
+
+  </main>
+</div>
+
+</body>
+</html>

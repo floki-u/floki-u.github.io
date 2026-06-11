@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hexo + pixelterm v1.0.0">
+<meta name="description" content="一个写作爱好者的在线笔记本">
+<meta name="author" content="floki">
+<meta name="theme-color" content="#0b0f14">
+
+<title>git常用工作流命令 · Floki</title>
+
+<link rel="icon" type="image/png" href="/img/cat.png">
+
+<!-- 字体（与设计稿一致） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css">
+
+<!-- 主题样式 -->
+<link rel="stylesheet" href="/css/pixelterm.css">
+<!-- 移动端适配增强（必须放在 pixelterm.css 之后） -->
+<link rel="stylesheet" href="/css/mobile.css">
+
+  <link rel="stylesheet" href="/css/mermaid.css">
+
+
+  <link rel="stylesheet" href="/css/lightgallery.min.css">
+
+
+<!-- 代码高亮（内置 IDE 风格：暗色 One Dark / 亮色 GitHub Light，跟随主题切换） -->
+<link rel="stylesheet" href="/css/highlight.css">
+
+<!-- 自定义 CSS 注入 -->
+
+
+
+<!-- 主题模式优先注入（避免闪屏） -->
+<script>
+(function(){
+  var def = 'auto';
+  var t;
+  try { t = localStorage.getItem('pt-theme'); } catch(e){}
+  if(!t){
+    t = (def === 'auto')
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : def;
+  }
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+
+<body class="layout-post">
+
+<!-- 全屏背景层（CSS pseudos 提供 CRT 扫描线/vignette；下面是 canvas + grid） -->
+
+  <canvas id="rain" aria-hidden="true"></canvas>
+
+<div class="pix-grid" aria-hidden="true"></div>
+
+<div class="titlebar">
+  <div class="dots"><i></i><i></i><i></i></div>
+  <div class="path">— <b>floki@pixelterm</b>: <span>~/git常用工作流命令</span> — zsh — </div>
+  <div class="right">
+    <span class="clock" data-clock>00:00:00</span>
+    <div class="menu">
+      
+        <a href="/" class="">HOME</a>
+      
+        <a href="/list/" class="">POSTS</a>
+      
+        <a href="/categories/" class="">CATEGORIES</a>
+      
+        <a href="/tags/" class="">TAGS</a>
+      
+        <a href="/about/" class="">ABOUT</a>
+      
+    </div>
+    
+      <button class="theme-toggle" data-theme-toggle aria-label="toggle theme">
+        <span class="icon moon">☾</span>
+        <span class="icon sun">☀</span>
+        <span class="knob"></span>
+      </button>
+    
+  </div>
+</div>
+
+
+<main class="shell">
+  
+<article class="article ">
+  <header class="art-head fade">
+    <span class="head-spacer"></span>
+    <div class="head-inner" data-vim="git常用工作流命令.md   --  2024/07/31">
+      <span class="art-tag">工具</span>
+      
+        <span class="art-tag cyan">技术</span>
+      
+      <h1 class="art-title">git常用工作流命令</h1>
+      <div class="art-meta">
+  
+    <span>2024-07-31</span>
+  
+  
+    <span>updated <b>2026-06-11</b></span>
+  
+  
+    <span><b>3.3k</b> words</span>
+  
+  
+    <span>▶ <b>12</b> min</span>
+  
+  
+    <span id="busuanzi_container_page_pv">views <b><span id="busuanzi_value_page_pv"></span></b></span>
+  
+  
+    <span>in
+      
+        <a href="/categories/%E6%8A%80%E6%9C%AF/">技术</a>
+      
+    </span>
+  
+  
+    <span>tags
+      
+        <a href="/tags/%E5%B7%A5%E5%85%B7/">#工具</a>
+      
+    </span>
+  
+</div>
+
+    </div>
+  </header>
+
+  <div class="art-body">
+    
+
+  
+    <aside class="toc-card" data-toc>
+      <h5>QUEST LOG</h5>
+      <ol class="pt-toc-inner"><li class="pt-toc-inner-item pt-toc-inner-level-3"><a class="pt-toc-inner-link" href="#%E4%B8%80%E6%AC%A1%E5%AE%8C%E6%95%B4%E7%9A%84%E6%97%85%E7%A8%8B"><span class="pt-toc-inner-text">一次完整的旅程</span></a></li></ol>
+    </aside>
+  
+
+
+    <div class="prose">
+      <p> <img src="/../img/git%E5%B8%B8%E7%94%A8%E5%B7%A5%E4%BD%9C%E6%B5%81%E5%91%BD%E4%BB%A4/1710338715416-260b7562-19a5-4127-bacb-02309828e3d0.png" alt="img"></p>
+<p>git log 查看下当前分支的提交记录  commit id,还有head指针，他指向最新的提交。我们可以通过修改head指向去回退版本</p>
+<p><img src="/../img/git%E5%B8%B8%E7%94%A8%E5%B7%A5%E4%BD%9C%E6%B5%81%E5%91%BD%E4%BB%A4/1710343841106-4e8161ac-6843-4c4c-b0df-e1bd041e5504.png" alt="img"></p>
+<p>git reflog可以帮助你查看本地代码库中的所有操作记录，包括所有分支、提交、合并和重置操作。</p>
+<p>当你误删分支、提交、文件等操作时，你可以使用git reflog命令找回你误删除的内容</p>
+<p>在本地更改的一些文件，但是还没add到暂存区，想要退回到原始样子，就是丢弃我们本地工作区的这些改动-&gt; 用git checkout – xx(想还原的文件)</p>
+<p>如果add之后，添加到暂存区了，但是不想要这个修改，也就是回退add操作，可以用</p>
+<p>git reset HEAD 文件名   这样被add的文件修改就从暂存区退出来了，我们本地再修改好了再去add</p>
+<p>如果commit 之后把暂存区的修改提交到了本地仓库上，我们git log就能看到，此时本地仓库的提交是领先于远程的，本地的是5e44那一笔，而远程仓库或者说别人只能看到cf9c那一笔</p>
+<p><img src="/../img/git%E5%B8%B8%E7%94%A8%E5%B7%A5%E4%BD%9C%E6%B5%81%E5%91%BD%E4%BB%A4/1710344662803-330c7b7e-e5b1-454f-b1a7-713de3765d91.png" alt="img"></p>
+<p>那么此时如果commit有误，想要回退到之前的样子，那么用</p>
+<p>git reset –hard commit_id   就是实现了head指针去指向旧的提交版本，相当于就是把本地仓库不想要的提交给回退了，但其实5e44那一笔提交还是在的，只是我们把head指针移动了一下，并没有做删除操作</p>
+<p>因为没有做删除操作那么如果我又想回到5e44那一笔的话，我们可以git reflog 能看到之前的操作记录，然后再git reset –hard 5e44  ，这样就又回去了</p>
+<p>如果push到了远端，怎么回退</p>
+<p>如果期间没有别人的提交，那么我们可以利用上面的方式做本地做回退 ，回退完之后因为本地代码落后于远端，push不上去，这时候就得push -f 强制推送</p>
+<p>工作目录 vs 暂存区 git diff <filename> —查看文件在工作目录与暂存区的差别。如果还没 add 进暂存区，则查看文件自身修改前后的差别。也可查看和另一分支的区别。 git diff <branch> <filename></p>
+<p>- 暂存区 vs Git仓库</p>
+<p>git diff –cached <filename></p>
+<p>— 意义：表示查看已经 add 进暂存区但是尚未 commit 的内容同最新一次 commit 时的内容的差异。 也可以指定仓库版本：</p>
+<p>git diff –cached <commit> <filename></p>
+<p>- 工作目录 vs Git仓库 git diff <commit> <filename> 意义：查看工作目录同Git仓库指定 commit 的内容的差异。 <commit>&#x3D;HEAD 时：查看工作目录同最近一次 commit 的内容的差异。</p>
+<p>git diff HEAD – 文件名 查看本地工作区file文件和本地仓库中最近一次commit该文件的区别 （一般是在不同分支做代码合并的时候用）</p>
+<p>– Git仓库 vs Git仓库   ： git diff <commit> <commit> </p>
+<p>git clean  清除工作区中git版本控制的文件，比如临时文件，构建出来的二进制文件 一般用git clean -dxf </p>
+<p>git branch 显示本地分支</p>
+<p>git branch -r 查看远端所有分支</p>
+<p>git branch -a 查看本地和远端的所有分支</p>
+<p>git branch xxx 新建分支，但是不切换</p>
+<p>git checkout -b 本地分支  origin&#x2F;远程分支    -》创建本地分支并切换，并且和远端分支关联（前提远端分支是存在的）</p>
+<p>上面那一句等于：（前提远端分支是存在的）</p>
+<p><strong>创建 ：git branch 本地分支     -&gt;</strong>  </p>
+<p><strong>然后切换：git checkout 本地分支  -&gt;</strong> </p>
+<p><strong>建立联系：git push –set-upstream  远程主机名(一般是origin)  远程分支名</strong></p>
+<p>建立联系是为了pull，push的时候，不用去额外指定参数了，本地的aa分支和远端的aa分支关联了，那么切换到本地分支aa做的修改，想要push到远端，不指定远端分支的话，git push 默认就推到远端aa上了。一般我们理想的也是这样，本地和远端一一对应</p>
+<p>git checkout xx 切换分支</p>
+<p>git status  本次修改（新增、删除、修改）中涉及到哪些文件，同时也可以看到已经存入暂存区中发生修改变更的文件，便于检查具体修改了哪些文件，以免出现疏漏</p>
+<p>git remote -v 可以查看本地仓库连接的远程仓库是啥</p>
+<p><img src="/../img/git%E5%B8%B8%E7%94%A8%E5%B7%A5%E4%BD%9C%E6%B5%81%E5%91%BD%E4%BB%A4/1710341230904-9bcea2f7-e2e1-4137-89fd-9a78bba701eb.png" alt="img"></p>
+<p>git branch -d  本地分支  -&gt; 删除本地分支 （注意不能此时在本地分支去删除本地分支），这里的删除必须保证要删除的分支的修改已经合并了</p>
+<p>如果说想强制删，不管有没有修改合并，就用git branch -D  本地分支</p>
+<p>git branch -d -r origin&#x2F;远端分支  -&gt;删除远端分支</p>
+<p>远端分支删完之后还必须推送上去才行 : git push origin :远端分支</p>
+<p>git blame file可以追溯某个文件的修改记录，也就是能看到某个文件被谁修改了，是哪一笔commit，找到owner</p>
+<p>git remote prune origin</p>
+<p><img src="/../img/git%E5%B8%B8%E7%94%A8%E5%B7%A5%E4%BD%9C%E6%B5%81%E5%91%BD%E4%BB%A4/1710346412777-880fb004-97bc-4a66-bef6-efecbffb3c92.png" alt="img"></p>
+<p><img src="/../img/git%E5%B8%B8%E7%94%A8%E5%B7%A5%E4%BD%9C%E6%B5%81%E5%91%BD%E4%BB%A4/1710346437876-2ae12ef8-6db4-4c18-bb9b-a4473ef7623d.png" alt="img"></p>
+<p><strong>在远端创建新分支之后，本地git branch -r 看不到创建的分支，这时候可以这样：</strong></p>
+<ul>
+<li>git remote update origin：这个子命令会更新本地代码库中远程分支的信息。它会拉取远程仓库的所有分支信息，并将它们存储到本地的.git&#x2F;refs&#x2F;remotes&#x2F;origin目录下。如果本地代码库中没有某些远程分支，它们也会被创建出来。</li>
+<li>git remote update origin –prune：这个子命令在更新远程分支信息的同时，会删除本地已经不存在于远程仓库中的分支。这可以帮助你保持本地代码库的干净和整洁。</li>
+</ul>
+<p>需要注意的是，这个命令中的origin指的是远程仓库的名称。如果你的代码库中有多个远程仓库，你可以通过修改origin来指定要更新的远程仓库。</p>
+<ul>
+<li>还可以用 get fectch 去做更新</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"># 显示分支</span><br><span class="line">git branch -a</span><br><span class="line"># 添加源文件</span><br><span class="line">git add src/test.cpp</span><br><span class="line"># 提交</span><br><span class="line">git commit -m &quot;cooment&quot;</span><br><span class="line"># 回到某个版本</span><br><span class="line">git reset --hard xxx  </span><br><span class="line"># 关联仓库项目</span><br><span class="line">git remote add repo_name git@github.com:SYaoJun/Shiro-and-JWT.git</span><br><span class="line"># 强制推送当前分支到远端</span><br><span class="line">git push origin HEAD </span><br><span class="line"># 显示标签</span><br><span class="line">git tag</span><br><span class="line"># 切换分支</span><br><span class="line">git checkout -b v1.23 v1.23</span><br><span class="line"># 强制更新某个分支</span><br><span class="line">git push -f origin HEAD:main</span><br></pre></td></tr></table></figure>
+
+<p>git checkout – . 相当于把我修改的但是还没有add的<strong>所有文件</strong>全部回退到最修改之前的样子。命令用来检出仓库中的版本文件，舍弃工作目录中的更改。 可以简化为<strong>git checkout . （注意只能对与所有文件 .的时候才能这么简化)</strong></p>
+<p>git checkout – file 文件表示 退回没add之前的,（<strong>对文件中内容的操作，无法对添加文件、删除文件起作用</strong>）      等于  git restore file（<strong>不包括对文件自身的操作，如添加文件、删除文件</strong>）</p>
+<p><strong>git restore –staged</strong> <file_name> 将暂存区的修改重新放回工作区,也就是add之后没commit的恢复到add之前状态（<strong>包括对文件自身的操作，如添加文件、删除文件</strong>） **等价于 git reset HEAD file    ，**<strong>比如说新添加了文件，add之后不想要了，想撤销这个add的新添加文件，可以用这俩命令，或者说原来有的文件（工作区是干净的，也就是远端已有的文件），本地现在给删了。如果正常add，提交，push之后远端这个文件也没了，现在的你删除之后，又不想删了，这个文件还是想留着 同样可以用这俩命令</strong></p>
+<p><strong>git checkout HEAD – file</strong> 文件表示 退回add之后但是没有commit的   </p>
+<p>推荐看：</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/Sweet_19BaBa/article/details/111950384">https://blog.csdn.net/Sweet_19BaBa/article/details/111950384</a></p>
+<p>所以说如果想撤销新添加的文件，或者删除文件的操作，且已经add了，那就用git restore –staged file</p>
+<p>git merge xx分支(注意是本地的分支)  ：一般我们在feature分支开发完之后，add，commit之后。切换到master分支，然后用git merge feature 就是把feature分支上本地修改 合并到master分支的本地上。合并完之后再push</p>
+<p>git clean -dfx</p>
+<p>git fetch</p>
+<p>git branch -vv 可以去查看本地分支和远端的分支 关联情况</p>
+<p>管理项目代码：三种方式</p>
+<p>1、开发不同的需求，代码保存在本地的一个文件夹中，我们拉不同的远程分支和本地分支，一个分支对应只去开发一件事。开发不同的事情我们需要来回git checkout xx去切换分支开发</p>
+<p>2、开发不同的需求，创建不同的文件夹，好比我们本地存多份项目代码，每一份项目代码中只用去拉我们自己的开发分支，专注开发，一份代码对应开发一件事情（推荐）</p>
+<p>3、利用worktree</p>
+<p>工作流：</p>
+<p>1、先本地clone代码</p>
+<p>之后每天来先同步远端，本地git pull,（git pull 是fetch和merge的组合），建议用 <strong>git pull -rebase</strong>  </p>
+<p>2、然后先再远端智研直接创建远端分支在对应的标签下：bugfix，feature，feature_dev </p>
+<p>不建议先git checkout -b 本地branch 把本地分支创建好之后 直接 git push origin &lt;本地分支名&gt;:&lt;远程分支名&gt; 直接创建远端分支 （如果已经切换到了对应本地分支，那么不需要指明&lt;本地分支名&gt;:     可以直接git push origin 远端分支）</p>
+<p>3、本地同步分支：</p>
+<p>git fetch  -&gt;把远端创建的分支信息同步到本地上来，，（和git pull不一样，git pull是拉代码）</p>
+<p>git checkout -b  本地分支名  origin&#x2F;远端分支名   -&gt; 本地创建分支，切换到创建的分支，本地分支并且和远端的分支关联 （建议本地和远端的名字一样）</p>
+<p>4、基于本地开发</p>
+<p>git add  把工作区文件提交到暂存区</p>
+<p>git commit -m “xx”    把暂存区的改动提交到了本地代码仓库的分支上（就是提交到了本地分支上）</p>
+<p>git push origin xx:yy     把本地分支xx上的 提交到远程仓库 分支yy上，origin是远程主机名，一般默认都是这个     </p>
+<p>如果本地分支和远端分支已经建立连接，并且本次push操作就是想推到对应的远端的分支上，并且远程分支已经存在，并且你在本地分支上执行了 checkout 操作切换到了你要推送的本地分支那就直接可以 git push 去推 。（建议指明分支名）git push 该命令会将当前分支推送到与之关联的远程分支上。</p>
+<h3 id="一次完整的旅程"><a href="#一次完整的旅程" class="headerlink" title="一次完整的旅程"></a>一次完整的旅程</h3><p>当一个需求任务开始时，创建分支，不需要我们使用命令去做，git和coding平台已经很好支持<br>假设我们的分支为feature&#x2F;3.9.0_wyk，来源为master<br>首先我们两份代码库，假设A为push使用， B作为开发使用，标识字母代表需要使用命令</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">git checkout -b feature/<span class="number">3.9</span>.0_wyk origin/feature/<span class="number">3.9</span>.0_wyk 创建本地分支，并且与远端分支关联，<span class="variable constant_">AB</span></span><br><span class="line">编写代码xxxxx，B</span><br><span class="line">完成所有功能验证后，准备提交，B</span><br><span class="line">git checkout master 切换至master分支， A</span><br><span class="line">git pull 拉取最新代码及状态，A</span><br><span class="line">git checkout feature/<span class="number">3.9</span>.0_wyk 切换目标分支，A</span><br><span class="line">git pull --rebase master 将最近一段时间内，master的修改合入至目标分支，A</span><br><span class="line">使用<span class="title class_">Beyond</span> <span class="title class_">Compare</span>工具，将本次功能编写所产生的的代码，从B合入至A</span><br><span class="line">git commit -a 提交所有修改，并产生一个commit， A</span><br><span class="line">git push &#123;本地分支名&#125; &#123;远端分支名&#125; 提交本地修改至远端服务器，A</span><br></pre></td></tr></table></figure>
+
+<p>以上为最正常的情况，没有任何冲突等等问题<br>1.假设开发过程中，出包验证后出现问题，二次修改应该怎么处理？</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">使用<span class="number">8</span>完成新的代码修改合入</span><br><span class="line">git commit --amend 提交本次修改至最后一次commit中, A</span><br><span class="line">git push -f 强制覆盖远程对应分支, A</span><br></pre></td></tr></table></figure>
+
+<p>2.假设开发过程中，出现多次修改的情况？</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">合流前，在开发分支进行rebase -i操作, A</span><br><span class="line">git rebase -i <span class="variable constant_">HEAD</span>~&#123;需要合并的commit个数&#125; 合并多次commit为一次，A</span><br><span class="line">弹出新页面后，会出现多行以pick开头，vm操作，除第一行外，其他行以pick开头的，替换pick-&gt;s，vm保存</span><br><span class="line">弹出新页面后，修改 # <span class="title class_">This</span> is the commit message #<span class="number">2</span> 下一行内容，为合并commit后的描述</span><br><span class="line">git push -f 强制覆盖远程对应分支, A</span><br></pre></td></tr></table></figure>
+
+<p>3.假设rebase出现冲突？</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">git pull --rebase origin master 出现冲突</span><br><span class="line">本地解决冲突</span><br><span class="line">git commit -a 提交解决冲突的修改</span><br><span class="line">git rebase --<span class="keyword">continue</span> 继续解决下一个冲突</span><br><span class="line">循环<span class="number">2</span>-<span class="number">4</span>直到完成所有的冲突解决后</span><br><span class="line">git push 提交至远端</span><br><span class="line">git rebase --abort 回退本次rebase操作</span><br></pre></td></tr></table></figure>
+
+<p>4.回退操作</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git reset --hard &#123;commit id&#125; 强制回退值commit id处代码</span><br><span class="line">git push -f 强制覆盖远程对应分支</span><br></pre></td></tr></table></figure>
+    </div>
+  </div>
+
+  
+    <nav class="art-end">
+      <span class="head-spacer"></span>
+      <div class="end-grid">
+        
+          <a href="/2024/08/12/CSAPP/">
+            <div class="lab">◄ PREV</div>
+            <div class="ti">CSAPP-链接</div>
+          </a>
+        
+        <span></span>
+      </div>
+    </nav>
+  
+
+  
+
+</article>
+
+</main>
+
+<footer class="f">
+  <div class="f-inner">
+    <span><span class="prompt">$ </span>echo "© Floki · Code Notes "</span>
+    
+    
+      <span id="busuanzi_container_site_pv">
+        <span class="prompt">★ </span>visitors × <span id="busuanzi_value_site_pv"></span>
+      </span>
+    
+  </div>
+</footer>
+
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+  <script>
+    window.PT_CAT_BUDDY = {"src":"/img/cat.png","size":100,"corner":"br","followMouse":true,"phrases":["MEOW.EXE","SUDO PURR","> PET ME","HP +1","RUA~","CTRL+M","PRESS A"]};
+  </script>
+  <script src="/js/cat-buddy.js" defer></script>
+
+
+
+<!-- 第三方库 -->
+
+  
+    <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
+
+<script src="/js/pixelterm.js"></script>
+
+  <script src="/js/toc.js" defer></script>
+
+
+
+  <script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+  <script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      document.querySelectorAll('.prose').forEach(function(g){
+        if (typeof lightGallery !== 'function') return;
+        lightGallery(g, {
+          selector: 'img',
+          plugins: [
+            window.lgZoom,
+            window.lgThumbnail,
+            window.lgRotate,
+            window.lgFullscreen,
+            
+          ].filter(Boolean),
+          download: false
+        });
+      });
+    });
+  </script>
+
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/js/mermaid-init.js"></script>
+
+
+
+
+
+</body>
+</html>

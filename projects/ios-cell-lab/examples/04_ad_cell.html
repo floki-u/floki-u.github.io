@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>4. AdCell - 离线渲染 vs 光栅化</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/shared.css">
+<script src="../assets/theme.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "PingFang SC", sans-serif; background: #f5f5f5; padding: 20px; }
+  .nav { max-width: 760px; margin: 0 auto 20px; display: flex; gap: 10px; }
+  .nav a { padding: 6px 12px; background: white; color: #333; text-decoration: none; border-radius: 6px; font-size: 13px; border: 1px solid #ddd; }
+  .nav a:hover { background: #1a1a2e; color: white; }
+  .container { max-width: 760px; margin: 0 auto; }
+  .header { background: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; }
+  .header h1 { font-size: 24px; color: #1a1a2e; margin-bottom: 12px; }
+
+  .iphone {
+    width: 390px; background: #f5f5f5; border-radius: 24px; margin: 0 auto;
+    overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding-bottom: 20px;
+  }
+  .status-bar { background: white; padding: 14px 20px; display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; }
+  .nav-bar { background: white; padding: 12px 20px; border-bottom: 1px solid #e5e5e5; text-align: center; font-size: 17px; font-weight: 600; margin-bottom: 12px; }
+
+  .ad {
+    width: 358px; height: 100px; margin: 12px auto;
+    border-radius: 12px; position: relative; overflow: hidden;
+    color: white; padding: 18px; cursor: pointer;
+  }
+  .ad-1 { background: linear-gradient(135deg, #667eea, #764ba2); }
+  .ad-2 { background: linear-gradient(135deg, #f093fb, #f5576c); }
+  .ad-3 { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+  .ad::before {
+    content: ''; position: absolute; width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.2), transparent);
+    top: -50px; right: -50px; border-radius: 50%;
+  }
+  .ad::after {
+    content: ''; position: absolute; width: 100px; height: 100px;
+    background: radial-gradient(circle, rgba(255,255,255,0.15), transparent);
+    bottom: -30px; left: 30px; border-radius: 50%;
+  }
+  .ad-content { position: relative; z-index: 1; }
+  .ad-badge { background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 4px; font-size: 11px; display: inline-block; }
+  .ad-title { font-size: 18px; font-weight: 700; margin-top: 6px; }
+  .ad-desc { font-size: 12px; opacity: 0.9; margin-top: 2px; }
+
+  .normal-cell {
+    background: white; margin: 4px 12px; padding: 14px; border-radius: 8px;
+    display: flex; align-items: center; gap: 12px; font-size: 14px; color: #555;
+  }
+  .normal-cell .num {
+    width: 24px; height: 24px; border-radius: 4px; background: #f0f0f0;
+    display: flex; align-items: center; justify-content: center; font-size: 12px; color: #888;
+  }
+</style>
+</head>
+<body>
+  <div class="nav">
+    <a href="../index.html">← 返回主菜单</a>
+    <a href="03_moment_cell.html">← 上一个</a>
+    <a href="05_hero_card.html">下一个 →</a>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <h1>4️⃣ AdCell（复杂装饰背景：离线渲染最佳实践）</h1>
+      <p style="color:#6c7293;font-size:14px;line-height:1.6;">
+        广告 cell 经常有复杂的装饰背景（渐变 + 装饰圆 + 光晕）。
+        这种场景<b>千万不要堆 N 层 view + 透明度叠加</b>，
+        最佳实践是<b>整个背景一次性画成一张 UIImage</b>，cell 上只贴 UIImageView。
+        本节告诉你为什么这<b>比光栅化更优</b>。
+      </p>
+    </div>
+
+    <!-- 视觉效果 -->
+    <div class="section-block">
+      <h2>🎨 视觉效果</h2>
+      <div class="section-subtitle">商城首页穿插的广告卡片</div>
+      <div class="iphone">
+        <div class="status-bar"><span>9:41</span><span>•••</span></div>
+        <div class="nav-bar">🛒 商城首页</div>
+
+        <div class="normal-cell"><span class="num">1</span><span>iPhone 充电线</span></div>
+        <div class="normal-cell"><span class="num">2</span><span>蓝牙耳机</span></div>
+
+        <div class="ad ad-1">
+          <div class="ad-content">
+            <span class="ad-badge">广告</span>
+            <div class="ad-title">限时优惠 ¥9.9</div>
+            <div class="ad-desc">立即领取你的专属福利</div>
+          </div>
+        </div>
+
+        <div class="normal-cell"><span class="num">3</span><span>智能音箱</span></div>
+
+        <div class="ad ad-2">
+          <div class="ad-content">
+            <span class="ad-badge">广告</span>
+            <div class="ad-title">新人专享礼包</div>
+            <div class="ad-desc">注册即送 100 元优惠券</div>
+          </div>
+        </div>
+
+        <div class="normal-cell"><span class="num">4</span><span>移动电源</span></div>
+
+        <div class="ad ad-3">
+          <div class="ad-content">
+            <span class="ad-badge" style="color:#1a1a2e;">广告</span>
+            <div class="ad-title">618 大促预热</div>
+            <div class="ad-desc">满 200 减 50</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 核心思想 -->
+    <div class="section-block">
+      <h2>💡 核心思想：能合并的层就合并</h2>
+
+      <div class="bad-good">
+        <div class="panel-bad">
+          <div class="panel-head">❌ 反例：多层 view 叠加</div>
+<pre class="code-block">[contentView <span class="meth">addSubview:</span>gradientView];     <span class="comm">// 渐变背景</span>
+[contentView <span class="meth">addSubview:</span>circle1];          <span class="comm">// 装饰圆 1</span>
+[contentView <span class="meth">addSubview:</span>circle2];          <span class="comm">// 装饰圆 2</span>
+[contentView <span class="meth">addSubview:</span>blurView];         <span class="comm">// 模糊层</span>
+[contentView <span class="meth">addSubview:</span>label1];           <span class="comm">// 标签</span>
+[contentView <span class="meth">addSubview:</span>label2];           <span class="comm">// 标题</span>
+
+<span class="comm">// ❌ 6 个 subview 叠加
+// ❌ 装饰圆要 cornerRadius=50 + clipsToBounds
+//    → 2 次离屏
+// ❌ 半透明叠加 → 多次混合
+// ❌ Color Blended Layers 全红
+// ❌ Color Off-screen Rendered 大量黄色</span></pre>
+        </div>
+        <div class="panel-good">
+          <div class="panel-head">✅ 正例：离线渲染成一张 UIImage</div>
+<pre class="code-block"><span class="comm">// cell 上只有一个 UIImageView</span>
+[contentView <span class="meth">addSubview:</span>backgroundImageView];
+
+<span class="comm">// 把整个背景预渲染成 UIImage</span>
+UIImage *bg = [<span class="type">AdBackgroundRenderer</span>
+  <span class="meth">backgroundImageForSize:</span>size
+                  <span class="meth">theme:</span><span class="str">@"purple"</span>];
+backgroundImageView.image = bg;
+
+<span class="comm">// 标签直接叠在 imageView 上</span>
+[backgroundImageView <span class="meth">addSubview:</span>titleLabel];
+[backgroundImageView <span class="meth">addSubview:</span>descLabel];
+
+<span class="comm">// ✅ 1 个 UIImageView + 2 个 label
+// ✅ 0 离屏（图本身就是圆角的）
+// ✅ 0 混合（全部 opaque）
+// ✅ 同主题广告共用一张 UIImage</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- 离线渲染器 -->
+    <div class="section-block">
+      <h2>🛠️ AdBackgroundRenderer：离线渲染器实现</h2>
+      <div class="section-subtitle">用 UIGraphicsImageRenderer 在子线程一次画完所有装饰</div>
+
+<pre class="code-block"><span class="kw">@interface</span> <span class="type">AdBackgroundRenderer</span> : <span class="type">NSObject</span>
++ (<span class="type">UIImage</span> *)<span class="meth">backgroundImageForSize:</span>(<span class="type">CGSize</span>)size
+                              <span class="meth">theme:</span>(<span class="type">NSString</span> *)theme;
+<span class="kw">@end</span>
+
+<span class="kw">@implementation</span> <span class="type">AdBackgroundRenderer</span>
+
+<span class="comm">// ⭐ NSCache 缓存，跨 cell 复用</span>
++ (<span class="type">NSCache</span> *)<span class="meth">imageCache</span> {
+  <span class="kw">static</span> <span class="type">NSCache</span> *cache;
+  <span class="kw">static</span> dispatch_once_t once;
+  dispatch_once(&once, ^{
+    cache = [[<span class="type">NSCache</span> alloc] init];
+    cache.countLimit = <span class="num">20</span>;
+  });
+  <span class="kw">return</span> cache;
+}
+
++ (<span class="type">UIImage</span> *)<span class="meth">backgroundImageForSize:</span>(<span class="type">CGSize</span>)size
+                              <span class="meth">theme:</span>(<span class="type">NSString</span> *)theme {
+  <span class="comm">// 1. 命中缓存直接返回</span>
+  <span class="type">NSString</span> *key = [<span class="type">NSString</span> <span class="meth">stringWithFormat:</span>@<span class="str">"%@_%@"</span>,
+                                                theme, NSStringFromCGSize(size)];
+  <span class="type">UIImage</span> *cached = [[<span class="kw">self</span> <span class="meth">imageCache</span>] <span class="meth">objectForKey:</span>key];
+  <span class="kw">if</span> (cached) <span class="kw">return</span> cached;
+
+  <span class="comm">// 2. UIGraphicsImageRenderer 一次画完</span>
+  <span class="type">UIGraphicsImageRendererFormat</span> *fmt = [<span class="type">UIGraphicsImageRendererFormat</span> preferredFormat];
+  fmt.opaque = <span class="kw">YES</span>;  <span class="comm">// ✅ 不透明</span>
+  <span class="type">UIGraphicsImageRenderer</span> *renderer =
+    [[<span class="type">UIGraphicsImageRenderer</span> alloc] <span class="meth">initWithSize:</span>size <span class="meth">format:</span>fmt];
+
+  <span class="type">UIImage</span> *image = [renderer <span class="meth">imageWithActions:</span>^(<span class="type">UIGraphicsImageRendererContext</span> *ctx) {
+    <span class="type">CGContextRef</span> c = ctx.CGContext;
+
+    <span class="comm">// (1) 圆角矩形裁剪</span>
+    <span class="type">UIBezierPath</span> *clip = [<span class="type">UIBezierPath</span>
+      <span class="meth">bezierPathWithRoundedRect:</span>CGRectMake(<span class="num">0</span>, <span class="num">0</span>, size.width, size.height)
+                  <span class="meth">cornerRadius:</span><span class="num">12</span>];
+    [clip <span class="meth">addClip</span>];
+
+    <span class="comm">// (2) 渐变背景</span>
+    <span class="type">CGColorSpaceRef</span> cs = CGColorSpaceCreateDeviceRGB();
+    <span class="type">CGFloat</span> colors[] = {
+      <span class="num">0.40</span>, <span class="num">0.49</span>, <span class="num">0.92</span>, <span class="num">1.0</span>,   <span class="comm">// #667eea</span>
+      <span class="num">0.46</span>, <span class="num">0.29</span>, <span class="num">0.64</span>, <span class="num">1.0</span>,   <span class="comm">// #764ba2</span>
+    };
+    <span class="type">CGGradientRef</span> grad = CGGradientCreateWithColorComponents(cs, colors, <span class="kw">NULL</span>, <span class="num">2</span>);
+    CGContextDrawLinearGradient(c, grad,
+      CGPointMake(<span class="num">0</span>, <span class="num">0</span>),
+      CGPointMake(size.width, size.height), <span class="num">0</span>);
+    CGGradientRelease(grad);
+    CGColorSpaceRelease(cs);
+
+    <span class="comm">// (3) 装饰圆（右上）</span>
+    [[<span class="type">UIColor</span> colorWithWhite:<span class="num">1</span> alpha:<span class="num">0.2</span>] <span class="meth">setFill</span>];
+    [[<span class="type">UIBezierPath</span>
+      <span class="meth">bezierPathWithOvalInRect:</span>CGRectMake(size.width - <span class="num">150</span>, -<span class="num">50</span>, <span class="num">200</span>, <span class="num">200</span>)] <span class="meth">fill</span>];
+
+    <span class="comm">// (4) 装饰圆（左下）</span>
+    [[<span class="type">UIColor</span> colorWithWhite:<span class="num">1</span> alpha:<span class="num">0.15</span>] <span class="meth">setFill</span>];
+    [[<span class="type">UIBezierPath</span>
+      <span class="meth">bezierPathWithOvalInRect:</span>CGRectMake(<span class="num">30</span>, size.height - <span class="num">70</span>, <span class="num">100</span>, <span class="num">100</span>)] <span class="meth">fill</span>];
+  }];
+
+  <span class="comm">// 3. 缓存</span>
+  [[<span class="kw">self</span> <span class="meth">imageCache</span>] <span class="meth">setObject:</span>image <span class="meth">forKey:</span>key];
+  <span class="kw">return</span> image;
+}
+
+<span class="kw">@end</span></pre>
+
+      <div class="explain success">
+        <span class="h">⭐ 关键点：</span>
+        <code>UIGraphicsImageRenderer</code> 是 iOS 10+ 的现代绘图 API，
+        自动处理 scale、color space、内存管理，比老的 <code>UIGraphicsBeginImageContext</code> 快约 30%。
+      </div>
+    </div>
+
+    <!-- AdCell 实现 -->
+    <div class="section-block">
+      <h2>📦 AdCell.m：极简的 cell 结构</h2>
+
+<pre class="code-block"><span class="kw">@implementation</span> <span class="type">AdCell</span>
+
+- (<span class="type">instancetype</span>)<span class="meth">initWithStyle:</span>... {
+  <span class="kw">if</span> (<span class="kw">self</span> = [<span class="kw">super</span> ...]) {
+    <span class="comm">// ⭐ 整个 cell 的复杂背景 = 1 个 UIImageView</span>
+    _backgroundImageView = [[<span class="type">UIImageView</span> alloc] init];
+    _backgroundImageView.opaque = <span class="kw">YES</span>;
+    [<span class="selector">self</span>.contentView <span class="meth">addSubview:</span>_backgroundImageView];
+
+    <span class="comm">// 文字 label 直接叠上去</span>
+    _badgeLabel = [<span class="kw">self</span> <span class="meth">_makeLabel</span>];
+    _titleLabel = [<span class="kw">self</span> <span class="meth">_makeLabel</span>];
+    _descLabel  = [<span class="kw">self</span> <span class="meth">_makeLabel</span>];
+    [_backgroundImageView <span class="meth">addSubview:</span>_badgeLabel];
+    [_backgroundImageView <span class="meth">addSubview:</span>_titleLabel];
+    [_backgroundImageView <span class="meth">addSubview:</span>_descLabel];
+  }
+  <span class="kw">return</span> <span class="kw">self</span>;
+}
+
+- (<span class="kw">void</span>)<span class="meth">prepareForReuse</span> {
+  [<span class="kw">super</span> <span class="meth">prepareForReuse</span>];
+  <span class="selector">self</span>.backgroundImageView.image = <span class="kw">nil</span>;
+  <span class="selector">self</span>.titleLabel.text = <span class="kw">nil</span>;
+  <span class="selector">self</span>.descLabel.text = <span class="kw">nil</span>;
+}
+
+- (<span class="kw">void</span>)<span class="meth">configureWithViewModel:</span>(<span class="type">AdViewModel</span> *)vm {
+  <span class="selector">self</span>.backgroundImageView.frame = <span class="selector">self</span>.contentView.bounds;
+  <span class="selector">self</span>.titleLabel.text = vm.title;
+  <span class="selector">self</span>.descLabel.text = vm.desc;
+
+  <span class="comm">// ⭐ 子线程取背景图（缓存命中时立即返回）</span>
+  <span class="type">CGSize</span> size = <span class="selector">self</span>.contentView.bounds.size;
+  dispatch_async(global_queue, ^{
+    <span class="type">UIImage</span> *bg = [<span class="type">AdBackgroundRenderer</span>
+      <span class="meth">backgroundImageForSize:</span>size <span class="meth">theme:</span>vm.theme];
+    dispatch_async(main_queue, ^{
+      <span class="kw">if</span> ([<span class="selector">self</span>.viewModel.theme <span class="meth">isEqualToString:</span>vm.theme]) {
+        <span class="selector">self</span>.backgroundImageView.image = bg;
+      }
+    });
+  });
+}
+
+<span class="kw">@end</span></pre>
+    </div>
+
+    <!-- 与光栅化对比 -->
+    <div class="section-block">
+      <h2>🆚 vs 光栅化的本质区别</h2>
+      <div class="section-subtitle">"画一次缓存"看似一样，但在 cell 场景下差距巨大</div>
+
+      <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:10px;">
+        <tr style="background:#1a1a2e;color:white;">
+          <th style="padding:10px;text-align:left;">维度</th>
+          <th style="padding:10px;text-align:left;">shouldRasterize（光栅化）</th>
+          <th style="padding:10px;text-align:left;">离线渲染成 UIImage</th>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">缓存策略</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#c62828;">系统管，100ms 不用就清</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">自己用 NSCache 管，永久</td>
+        </tr>
+        <tr style="background:#e8f5e9;">
+          <td style="padding:10px;border:1px solid #e5e5e5;">跨 cell 复用</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#c62828;">❌ 一个 view 一份缓存</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;"><b>✅ 所有同主题 cell 共用一张图</b></td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">失效条件</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;">layer 内容变化即失效</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">完全可控，永不失效</td>
+        </tr>
+        <tr style="background:#e8f5e9;">
+          <td style="padding:10px;border:1px solid #e5e5e5;">cell 复用场景</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#c62828;">❌ 复用即失效，反向优化</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;"><b>✅ cell 只是 setImage，0 成本</b></td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">额外 view 数量</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;">多层 subview 叠加</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">只需 1 个 UIImageView</td>
+        </tr>
+        <tr style="background:#e8f5e9;">
+          <td style="padding:10px;border:1px solid #e5e5e5;">混合层数</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#c62828;">多层叠加都要混合</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;"><b>1 层不透明图，无混合</b></td>
+        </tr>
+      </table>
+
+      <div class="explain success" style="margin-top:14px;">
+        <span class="h">🎯 结论：</span>
+        「复杂装饰 + 内容相对固定 + 在列表中频繁复用」的场景，<b>永远用离线渲染成 UIImage</b>，
+        不要用光栅化。这是 cell 场景的最佳实践。
+      </div>
+    </div>
+
+    <div class="nav" style="margin-top: 24px;">
+      <a href="../index.html">← 返回主菜单</a>
+      <a href="03_moment_cell.html">← 上一个</a>
+      <a href="05_hero_card.html">下一个 →</a>
+    </div>
+  </div>
+</body>
+</html>
