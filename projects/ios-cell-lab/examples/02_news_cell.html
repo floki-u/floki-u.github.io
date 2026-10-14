@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2. NewsCell - 卡片阴影 + 圆角</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/shared.css">
+<script src="../assets/theme.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", sans-serif;
+    background: #f0f2f5;
+    padding: 20px;
+  }
+  .nav {
+    max-width: 760px;
+    margin: 0 auto 20px;
+    display: flex;
+    gap: 10px;
+  }
+  .nav a {
+    padding: 6px 12px;
+    background: white;
+    color: #333;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 13px;
+    border: 1px solid #ddd;
+  }
+  .nav a:hover { background: #1a1a2e; color: white; }
+  .container { max-width: 760px; margin: 0 auto; }
+  .header { background: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; }
+  .header h1 { font-size: 24px; color: #1a1a2e; margin-bottom: 12px; }
+
+  .iphone {
+    width: 390px;
+    background: #f0f2f5;
+    border-radius: 24px;
+    margin: 0 auto;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    padding-bottom: 20px;
+  }
+  .status-bar { background: white; padding: 14px 20px; display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; }
+  .nav-bar { background: white; padding: 12px 20px; border-bottom: 1px solid #e5e5e5; text-align: center; font-size: 17px; font-weight: 600; margin-bottom: 12px; }
+
+  .cell-wrapper { padding: 8px 16px; }
+  .cell {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .cell:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+  .cover { width: 100%; height: 180px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; }
+  .cover.bg1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+  .cover.bg2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+  .body { padding: 14px 16px; }
+  .title { font-size: 16px; font-weight: 600; color: #1a1a1a; line-height: 1.4; margin-bottom: 8px; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px; background: #fff3e0; color: #e67e22; }
+  .meta { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: #888; }
+
+  /* layer 结构图 */
+  .layer-tree {
+    background: #1a1a2e;
+    color: #88e0d0;
+    padding: 18px;
+    border-radius: 8px;
+    font-family: "SF Mono", monospace;
+    font-size: 12.5px;
+    line-height: 1.8;
+    margin: 12px 0;
+  }
+  .layer-tree .node {
+    padding-left: 24px;
+    position: relative;
+  }
+  .layer-tree .lvl1 { color: #ffd54f; font-weight: bold; }
+  .layer-tree .lvl2 { color: #82aaff; }
+  .layer-tree .lvl3 { color: #c3e88d; }
+  .layer-tree .note { color: #6c7293; font-style: italic; margin-left: 8px; }
+</style>
+</head>
+<body>
+  <div class="nav">
+    <a href="../index.html">← 返回主菜单</a>
+    <a href="01_message_cell.html">← 上一个</a>
+    <a href="03_moment_cell.html">下一个 →</a>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <h1>2️⃣ NewsCell（新闻卡片：阴影 + 圆角）</h1>
+      <p style="color:#6c7293;font-size:14px;line-height:1.6;">
+        新闻卡片是<b>阴影 + 圆角组合</b>的典型场景。看似简单，但 80% 的人写错 ——
+        要么阴影被裁掉，要么 FPS 被离屏渲染拖垮。本节讲<b>正确的"分层"结构</b>。
+      </p>
+    </div>
+
+    <!-- 视觉效果 -->
+    <div class="section-block">
+      <h2>🎨 视觉效果</h2>
+      <div class="section-subtitle">每张卡片都有圆角 + 投影 + 部分圆角的封面图</div>
+      <div class="iphone">
+        <div class="status-bar"><span>9:41</span><span>•••</span></div>
+        <div class="nav-bar">📰 资讯</div>
+        <div class="cell-wrapper">
+          <div class="cell">
+            <div class="cover bg1">📰 封面图</div>
+            <div class="body">
+              <div class="title">iOS 18 新特性深度解读：UIKit 性能改进</div>
+              <span class="tag">技术</span>
+              <div class="meta"><span>科技日报</span><span>3 小时前</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="cell-wrapper">
+          <div class="cell">
+            <div class="cover bg2">📰 封面图</div>
+            <div class="body">
+              <div class="title">SwiftUI vs UIKit：2025 最佳实践对比</div>
+              <span class="tag" style="background:#e3f2fd;color:#1976d2;">前端</span>
+              <div class="meta"><span>掘金</span><span>1 天前</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 核心难题 -->
+    <div class="section-block">
+      <h2>🤔 核心难题：为什么阴影 + 圆角这么难？</h2>
+
+      <div class="step">
+        <div class="step-num bad">A</div>
+        <div class="step-content">
+          想用 <code>cornerRadius + clipsToBounds</code> 实现圆角卡片
+          → <b>触发离屏渲染</b>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num bad">B</div>
+        <div class="step-content">
+          想给卡片加阴影 → <code>shadowColor + shadowOpacity</code> 的同时<b>必须 clipsToBounds = NO</b>，
+          否则<b>阴影会被裁掉</b>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num bad">C</div>
+        <div class="step-content">
+          但圆角又需要 clipsToBounds 来裁内部图片<br>
+          → <b>矛盾：要圆角就要裁，要阴影就不能裁</b>
+        </div>
+      </div>
+
+      <div class="explain success">
+        <span class="h">💡 解法：</span>
+        <b>分两层！</b>外层 cardView 负责<b>阴影</b>（不 clip），
+        内层负责<b>裁圆角内容</b>。封面图自己用 maskedCorners + clipsToBounds 裁上面两个角。
+      </div>
+    </div>
+
+    <!-- 分层结构 -->
+    <div class="section-block">
+      <h2>🧱 正确的 layer 分层结构</h2>
+      <div class="section-subtitle">这个结构是新闻/商品/消息卡片的"通用解法"，背下来一辈子受用</div>
+
+      <div class="layer-tree">
+<span class="lvl1">contentView</span> <span class="note">// 灰色背景</span>
+<span class="node lvl2">└─ cardView</span> <span class="note">⭐ 带阴影 + 圆角，但<b style="color:#ff5252">不 clip</b></span>
+<span class="node lvl3" style="padding-left:48px">├─ coverView</span> <span class="note">封面图，maskedCorners 只圆上面两角</span>
+<span class="node lvl3" style="padding-left:48px">├─ titleLabel</span> <span class="note">opaque 不透明</span>
+<span class="node lvl3" style="padding-left:48px">├─ tagLabel</span> <span class="note">cornerCurve.continuous，不 clip</span>
+<span class="node lvl3" style="padding-left:48px">└─ metaLabel</span> <span class="note">opaque 不透明</span>
+      </div>
+
+      <div class="explain warn">
+        <span class="h">⚠️ 关键约束：</span>
+        cardView <b>不能</b> <code>clipsToBounds = YES</code>，否则它的 shadow 会被自身裁掉看不见。
+        圆角的"裁内容"动作要交给<b>它的子 view</b>（比如 coverView）自己负责。
+      </div>
+    </div>
+
+    <!-- 阴影优化 -->
+    <div class="section-block">
+      <h2>✅ 关键 1：阴影必须显式 shadowPath</h2>
+      <div class="section-subtitle">不设 shadowPath，每帧都要按 alpha 通道推算阴影形状 = 离屏渲染</div>
+
+      <div class="bad-good">
+        <div class="panel-bad">
+          <div class="panel-head">❌ 反例：阴影不设 path</div>
+<pre class="code-block">card.layer.shadowColor =
+  [<span class="type">UIColor</span> blackColor].CGColor;
+card.layer.shadowOpacity = <span class="num">0.08</span>;
+card.layer.shadowOffset =
+  CGSizeMake(<span class="num">0</span>, <span class="num">2</span>);
+card.layer.shadowRadius = <span class="num">8</span>;
+
+<span class="comm">// ❌ 没设 shadowPath</span>
+<span class="comm">// → GPU 每帧都要按 alpha
+//   通道推算阴影形状
+// → Color Off-screen Rendered
+//   全卡片黄色</span></pre>
+        </div>
+        <div class="panel-good">
+          <div class="panel-head">✅ 正例：显式 shadowPath</div>
+<pre class="code-block">card.layer.shadowColor =
+  [<span class="type">UIColor</span> blackColor].CGColor;
+card.layer.shadowOpacity = <span class="num">0.08</span>;
+card.layer.shadowOffset =
+  CGSizeMake(<span class="num">0</span>, <span class="num">2</span>);
+card.layer.shadowRadius = <span class="num">8</span>;
+
+<span class="comm">// ⭐ 在 layoutSubviews 里更新</span>
+- (<span class="kw">void</span>)<span class="meth">layoutSubviews</span> {
+  [<span class="kw">super</span> <span class="meth">layoutSubviews</span>];
+  card.layer.shadowPath =
+    [<span class="type">UIBezierPath</span>
+      <span class="meth">bezierPathWithRoundedRect:</span>
+        card.bounds
+      <span class="meth">cornerRadius:</span><span class="num">12</span>].CGPath;
+}</pre>
+        </div>
+      </div>
+
+      <div class="explain">
+        <span class="h">📖 原理：</span>
+        系统画阴影需要先知道"被投影物体的形状"。如果不告诉它，它就要每帧扫描 alpha 通道推算，
+        极其耗 GPU。<code>shadowPath</code> 就是直接把形状告诉它，省去推算。
+      </div>
+    </div>
+
+    <!-- 圆角优化 -->
+    <div class="section-block">
+      <h2>✅ 关键 2：圆角用 cornerCurve，不加 clipsToBounds</h2>
+      <div class="section-subtitle">iOS 13+ 的 cornerCurve = .continuous 是丝滑圆角的最优解</div>
+
+      <div class="bad-good">
+        <div class="panel-bad">
+          <div class="panel-head">❌ 反例：cornerRadius + clipsToBounds</div>
+<pre class="code-block">card.layer.cornerRadius = <span class="num">12</span>;
+card.<span class="bad">clipsToBounds</span> = <span class="kw">YES</span>;
+
+<span class="comm">// ❌ 1. 触发离屏渲染
+// ❌ 2. 阴影会被裁掉看不见
+// ❌ 3. iOS 标准矩形圆角，
+//      不如 macOS 那种"超椭圆"丝滑</span></pre>
+        </div>
+        <div class="panel-good">
+          <div class="panel-head">✅ 正例：cornerCurve.continuous</div>
+<pre class="code-block">card.layer.cornerRadius = <span class="num">12</span>;
+card.layer.cornerCurve =
+  kCACornerCurveContinuous;  <span class="comm">// iOS 13+</span>
+<span class="comm">// ⭐ 不加 clipsToBounds</span>
+
+<span class="comm">// ✅ 1. 不触发离屏（iOS 11+ 起优化）
+// ✅ 2. 阴影不会被裁
+// ✅ 3. "超椭圆"圆角更丝滑</span></pre>
+        </div>
+      </div>
+
+      <div class="explain success">
+        <span class="h">💡 cornerCurve 是什么：</span>
+        Apple 在 iOS 13 引入的"连续曲率"圆角，转角处更平滑（macOS 风格）。
+        视觉对比：标准圆角是"圆弧 + 直线"硬接，连续圆角是"逐渐过渡"，<b>更高级</b>。
+      </div>
+    </div>
+
+    <!-- 部分圆角 -->
+    <div class="section-block">
+      <h2>✅ 关键 3：封面图用 maskedCorners 实现部分圆角</h2>
+      <div class="section-subtitle">封面图只圆上面两个角（贴合卡片形状），用 maskedCorners 而不是 mask</div>
+
+<pre class="code-block">_coverView = [[<span class="type">UIImageView</span> <span class="meth">alloc</span>] <span class="meth">init</span>];
+_coverView.contentMode = <span class="type">UIViewContentModeScaleAspectFill</span>;
+_coverView.opaque = <span class="kw">YES</span>;
+_coverView.layer.cornerRadius = <span class="num">12</span>;
+_coverView.layer.cornerCurve = kCACornerCurveContinuous;
+<span class="comm">// ⭐ 只圆上面两个角</span>
+_coverView.layer.maskedCorners =
+  kCALayerMinXMinYCorner | kCALayerMaxXMinYCorner;
+<span class="comm">// ⚠️ 这里必须 clipsToBounds 才能裁掉超出圆角的图片
+// 这里会有少量离屏，但单图片裁切代价小，可接受</span>
+_coverView.<span class="kw">clipsToBounds</span> = <span class="kw">YES</span>;</pre>
+
+      <details class="collapsible">
+        <summary>📂 进阶：完全消除封面图离屏的方案</summary>
+        <div class="collapsible-body">
+          <p style="margin-bottom:10px;font-size:13px;color:#5a6378;">
+            如果你对性能要求极致，可以让 SDWebImage 在解码时<b>一并切好圆角</b>，
+            UIImageView 就不需要 clipsToBounds 了 → 完全 0 离屏。
+          </p>
+<pre class="code-block">SDWebImageRoundCornerTransformer *t =
+  [[SDWebImageRoundCornerTransformer alloc]
+    initWithRadius:<span class="num">12</span>
+           corners:UIRectCornerTopLeft | UIRectCornerTopRight
+       borderWidth:<span class="num">0</span> borderColor:<span class="kw">nil</span>];
+
+[coverView <span class="meth">sd_setImageWithURL:</span>url
+        <span class="meth">placeholderImage:</span><span class="kw">nil</span>
+                 <span class="meth">options:</span><span class="num">0</span>
+                 <span class="meth">context:</span>@{SDWebImageContextImageTransformer: t}];
+
+<span class="comm">// ✅ 切好的图本身就是部分圆角的</span>
+coverView.<span class="kw">clipsToBounds</span> = <span class="kw">NO</span>;  <span class="comm">// 不需要裁了</span></pre>
+        </div>
+      </details>
+    </div>
+
+    <!-- 完整代码 -->
+    <div class="section-block">
+      <h2>📦 完整 NewsCell.m 实现</h2>
+
+<pre class="code-block"><span class="kw">@interface</span> <span class="type">NewsCell</span> ()
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">UIView</span> *cardView;        <span class="comm">// 阴影层</span>
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">UIImageView</span> *coverView;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">UILabel</span> *titleLabel;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">UILabel</span> *tagLabel;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">UILabel</span> *metaLabel;
+<span class="kw">@end</span>
+
+<span class="kw">@implementation</span> <span class="type">NewsCell</span>
+
+- (<span class="type">instancetype</span>)<span class="meth">initWithStyle:</span>... {
+  <span class="kw">if</span> (<span class="kw">self</span> = [<span class="kw">super</span> ...]) {
+    <span class="selector">self</span>.contentView.backgroundColor =
+      [<span class="type">UIColor</span> colorWithWhite:<span class="num">0.95</span> alpha:<span class="num">1</span>];
+    <span class="selector">self</span>.contentView.opaque = <span class="kw">YES</span>;
+
+    <span class="comm">// ⭐ 外层 cardView：负责阴影 + 圆角，但不 clip</span>
+    _cardView = [[<span class="type">UIView</span> <span class="meth">alloc</span>] <span class="meth">init</span>];
+    _cardView.backgroundColor = [<span class="type">UIColor</span> whiteColor];
+    _cardView.opaque = <span class="kw">YES</span>;
+    _cardView.layer.cornerRadius = <span class="num">12</span>;
+    _cardView.layer.cornerCurve = kCACornerCurveContinuous;
+    <span class="comm">// 阴影 ✅ 必须显式 shadowPath</span>
+    _cardView.layer.shadowColor = [<span class="type">UIColor</span> blackColor].CGColor;
+    _cardView.layer.shadowOpacity = <span class="num">0.08</span>;
+    _cardView.layer.shadowOffset = CGSizeMake(<span class="num">0</span>, <span class="num">2</span>);
+    _cardView.layer.shadowRadius = <span class="num">8</span>;
+    <span class="comm">// shadowPath 在 layoutSubviews 里更新</span>
+    [<span class="selector">self</span>.contentView <span class="meth">addSubview:</span>_cardView];
+
+    <span class="comm">// 封面图：只圆上面两个角</span>
+    _coverView = [[<span class="type">UIImageView</span> <span class="meth">alloc</span>] <span class="meth">init</span>];
+    _coverView.contentMode = <span class="type">UIViewContentModeScaleAspectFill</span>;
+    _coverView.opaque = <span class="kw">YES</span>;
+    _coverView.layer.cornerRadius = <span class="num">12</span>;
+    _coverView.layer.cornerCurve = kCACornerCurveContinuous;
+    _coverView.layer.maskedCorners =
+      kCALayerMinXMinYCorner | kCALayerMaxXMinYCorner;
+    _coverView.<span class="kw">clipsToBounds</span> = <span class="kw">YES</span>;
+    [_cardView <span class="meth">addSubview:</span>_coverView];
+
+    <span class="comm">// 标签</span>
+    _titleLabel = ...; _titleLabel.numberOfLines = <span class="num">2</span>;
+    _tagLabel = ...; _tagLabel.layer.cornerRadius = <span class="num">4</span>;
+    _tagLabel.layer.cornerCurve = kCACornerCurveContinuous;
+    <span class="comm">// ✅ 不加 clipsToBounds</span>
+    _metaLabel = ...;
+  }
+  <span class="kw">return</span> <span class="kw">self</span>;
+}
+
+<span class="comm">// ⭐ 关键：每次 frame 变化都要更新 shadowPath</span>
+- (<span class="kw">void</span>)<span class="meth">layoutSubviews</span> {
+  [<span class="kw">super</span> <span class="meth">layoutSubviews</span>];
+  <span class="kw">if</span> (!CGRectIsEmpty(<span class="selector">self</span>.cardView.bounds)) {
+    <span class="selector">self</span>.cardView.layer.shadowPath =
+      [<span class="type">UIBezierPath</span>
+        <span class="meth">bezierPathWithRoundedRect:</span><span class="selector">self</span>.cardView.bounds
+        <span class="meth">cornerRadius:</span><span class="num">12</span>].CGPath;
+  }
+}
+
+- (<span class="kw">void</span>)<span class="meth">prepareForReuse</span> {
+  [<span class="kw">super</span> <span class="meth">prepareForReuse</span>];
+  [<span class="selector">self</span>.coverView <span class="meth">sd_cancelCurrentImageLoad</span>];
+  <span class="selector">self</span>.coverView.image = <span class="kw">nil</span>;
+  <span class="selector">self</span>.titleLabel.text = <span class="kw">nil</span>;
+  <span class="selector">self</span>.tagLabel.text = <span class="kw">nil</span>;
+  <span class="selector">self</span>.metaLabel.text = <span class="kw">nil</span>;
+}
+
+- (<span class="kw">void</span>)<span class="meth">configureWithViewModel:</span>(<span class="type">NewsViewModel</span> *)vm {
+  <span class="selector">self</span>.cardView.frame = vm.cardFrame;
+  <span class="selector">self</span>.coverView.frame = vm.coverFrame;
+  <span class="comm">// ... 其他 frame</span>
+
+  <span class="selector">self</span>.titleLabel.text = vm.news.title;
+  <span class="selector">self</span>.tagLabel.text = vm.news.tag;
+  <span class="selector">self</span>.metaLabel.text = vm.metaText;
+
+  [<span class="selector">self</span>.coverView <span class="meth">sd_setImageWithURL:</span>vm.news.coverURL];
+}
+
+<span class="kw">@end</span></pre>
+    </div>
+
+    <!-- 易错点 -->
+    <div class="section-block">
+      <h2>⚠️ 易错点</h2>
+
+      <div class="explain danger">
+        <span class="h">坑 1：</span>
+        给 cardView 加了 <code>clipsToBounds = YES</code> →
+        <b>shadow 会被裁没看不见</b>。永远不要给"带阴影的 view"开 clip。
+      </div>
+
+      <div class="explain danger">
+        <span class="h">坑 2：</span>
+        shadowPath 不在 <code>layoutSubviews</code> 里更新 →
+        <b>frame 变化后阴影位置/形状不对</b>。横竖屏切换、cell 复用尺寸变化时都会出问题。
+      </div>
+
+      <div class="explain danger">
+        <span class="h">坑 3：</span>
+        cardView 里只用 <code>cornerRadius</code> 不设 <code>cornerCurve</code> →
+        视觉上是 iOS 老式圆角，不够丝滑。<b>iOS 13+ 都加上 cornerCurve.continuous</b>。
+      </div>
+
+      <div class="explain success">
+        <span class="h">提示：</span>
+        如果 deployment target ≥ iOS 13，cornerCurve.continuous 闭着眼睛加，没有任何副作用。
+      </div>
+    </div>
+
+    <div class="nav" style="margin-top: 24px;">
+      <a href="../index.html">← 返回主菜单</a>
+      <a href="01_message_cell.html">← 上一个</a>
+      <a href="03_moment_cell.html">下一个 →</a>
+    </div>
+  </div>
+</body>
+</html>

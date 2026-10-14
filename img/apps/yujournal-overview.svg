@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1100" viewBox="0 0 1600 1100" fill="#293a2d" role="img" aria-labelledby="title desc">
+  <title id="title">Yujournal · 余记</title>
+  <desc id="desc">本机记账软件介绍与当天收支界面示意。图中账目为示例数据。</desc>
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fafaf4"/><stop offset="1" stop-color="#e8eee3"/></linearGradient>
+    <filter id="shadow" x="-40%" y="-20%" width="180%" height="150%"><feDropShadow dx="0" dy="20" stdDeviation="24" flood-color="#2f4937" flood-opacity=".15"/></filter>
+    <style>text{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC",sans-serif}.muted{fill:#64725e}.mono{font-family:"SF Mono",Menlo,monospace;letter-spacing:3px}.line{fill:none;stroke:#43694c;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}</style>
+    <g id="book"><rect x="0" y="0" width="29" height="35" rx="4" class="line"/><path d="M8 0v35M15 11h8M15 18h8" class="line"/></g>
+    <g id="mic"><rect x="6" y="0" width="12" height="23" rx="6" class="line"/><path d="M0 12v4a12 12 0 0024 0v-4M12 28v8M6 36h12" class="line"/></g>
+    <g id="image"><rect width="29" height="29" rx="4" class="line"/><circle cx="8" cy="8" r="2" class="line"/><path d="M2 26l9-10 5 5 6-9 6 8" class="line"/></g>
+  </defs>
+  <rect width="1600" height="1100" fill="url(#paper)"/>
+  <circle cx="1370" cy="135" r="260" fill="#dce8d4" opacity=".55"/>
+  <path d="M0 960C300 810 565 1050 800 958s445-27 800-70v212H0z" fill="#dbe6d2" opacity=".5"/>
+  <g transform="translate(102 102)">
+    <rect width="92" height="92" rx="23" fill="#e5eedf"/>
+    <rect x="24" y="18" width="46" height="57" rx="6" fill="#43694c"/>
+    <path d="M32 18v57M42 37h18M42 46h15M50 60l4 4 8-9" fill="none" stroke="#f8f8f2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="118" y="37" font-size="34" font-weight="650">Yujournal</text>
+    <text x="118" y="75" font-size="25" class="muted">余记 · 本机账本</text>
+  </g>
+  <text x="104" y="353" font-size="84" font-weight="650" letter-spacing="-3">每天记一点，</text>
+  <text x="104" y="466" font-size="84" font-weight="650" letter-spacing="-3">账目留在本机。</text>
+  <text x="108" y="561" font-size="29" class="muted">说一句话，拍一张截图。</text>
+  <text x="108" y="607" font-size="29" class="muted">核对金额，把日常好好留下来。</text>
+  <g transform="translate(108 695)">
+    <rect width="624" height="165" rx="24" fill="#ffffff" fill-opacity=".65" stroke="#dce3d6"/>
+    <g transform="translate(24 27)"><use href="#mic"/><text x="42" y="28" font-size="24">语音 + 截图</text></g>
+    <g transform="translate(327 28)"><use href="#book"/><text x="44" y="27" font-size="24">离线记录</text></g>
+    <path d="M24 88h576" stroke="#dce3d6"/>
+    <text x="24" y="130" font-size="24" class="muted">资产与计划</text>
+    <text x="327" y="130" font-size="24" class="muted">完整备份迁移</text>
+  </g>
+  <text x="108" y="980" font-size="21" class="mono muted">PWA / LOCAL FIRST / OPEN SOURCE</text>
+  <g transform="translate(911 66)" filter="url(#shadow)">
+    <rect width="503" height="960" rx="62" fill="#304537"/>
+    <rect x="11" y="11" width="481" height="938" rx="51" fill="#f8f8f2"/>
+    <rect x="176" y="27" width="152" height="27" rx="14" fill="#263a2e"/>
+    <g transform="translate(42 91)"><use href="#book"/><text x="46" y="29" font-size="31" font-weight="650">余记</text><text x="284" y="24" font-size="18" class="muted">10 月 14 日</text></g>
+    <text x="41" y="194" font-size="38" font-weight="650">今天，记下来。</text>
+    <text x="43" y="226" font-size="17" class="muted">星期三 · 3 笔收支记录</text>
+    <g transform="translate(38 259)">
+      <rect width="207" height="167" rx="24" fill="#e5eedf"/>
+      <rect x="219" width="207" height="167" rx="24" fill="#fffefa" stroke="#e0e7da" stroke-width="2"/>
+      <text x="20" y="38" font-size="17" class="muted">当日支出</text><text x="20" y="95" font-size="35" font-weight="600">¥64.00</text><text x="20" y="132" font-size="15" class="muted">2 笔支出记录</text>
+      <text x="239" y="38" font-size="17" class="muted">当日收入</text><text x="239" y="95" font-size="31" font-weight="600">¥20,000</text><text x="239" y="132" font-size="15" class="muted">1 笔收入记录</text>
+    </g>
+    <g transform="translate(38 448)">
+      <rect width="207" height="65" rx="19" fill="#fffefa" stroke="#e0e7da" stroke-width="2"/><rect x="219" width="207" height="65" rx="19" fill="#fffefa" stroke="#e0e7da" stroke-width="2"/>
+      <use href="#mic" transform="translate(20 14) scale(.8)"/><text x="53" y="40" font-size="18" class="muted">说一句记账</text>
+      <use href="#image" transform="translate(238 19) scale(.8)"/><text x="273" y="40" font-size="18" class="muted">识别付款截图</text>
+    </g>
+    <g font-size="16" class="muted" text-anchor="middle"><text x="68" y="552">一</text><text x="129" y="552">二</text><rect x="161" y="529" width="59" height="72" rx="20" fill="#43694c"/><text x="191" y="552" fill="#f8f8f2">三</text><text x="251" y="552">四</text><text x="311" y="552">五</text><text x="371" y="552">六</text><text x="431" y="552">日</text><text x="68" y="582">12</text><text x="129" y="582">13</text><text x="191" y="582" fill="#f8f8f2">14</text><text x="251" y="582">15</text><text x="311" y="582">16</text><text x="371" y="582">17</text><text x="431" y="582">18</text></g>
+    <text x="42" y="648" font-size="23" font-weight="600">今天的记录</text>
+    <g transform="translate(42 674)"><circle cx="22" cy="24" r="22" fill="#e5eedf"/><text x="14" y="31" font-size="19">餐</text><text x="60" y="23" font-size="20" font-weight="600">午饭</text><text x="60" y="47" font-size="14" class="muted">一句话 · 今天</text><text x="416" y="32" font-size="23" text-anchor="end">−36.00</text></g>
+    <path d="M42 741h416" stroke="#e4e7dc"/>
+    <g transform="translate(42 755)"><circle cx="22" cy="24" r="22" fill="#e5eedf"/><text x="14" y="31" font-size="19">饮</text><text x="60" y="23" font-size="20" font-weight="600">咖啡</text><text x="60" y="47" font-size="14" class="muted">截图识别 · 今天</text><text x="416" y="32" font-size="23" text-anchor="end">−28.00</text></g>
+    <path d="M24 842h454" stroke="#e4e7dc"/>
+    <g text-anchor="middle" font-size="17" class="muted"><text x="64" y="898">今天</text><text x="150" y="898">账本</text><rect x="219" y="826" width="65" height="69" rx="24" fill="#43694c"/><text x="251" y="873" font-size="40" fill="#fffefa">+</text><text x="350" y="898">计划</text><text x="439" y="898">我的</text></g>
+    <rect x="173" y="925" width="159" height="5" rx="3" fill="#293a2d" opacity=".4"/>
+  </g>
+</svg>

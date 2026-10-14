@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hexo + pixelterm v1.0.0">
+<meta name="description" content="Floki 的软件目录，提供下载、安装和使用说明。">
+<meta name="author" content="floki">
+<meta name="theme-color" content="#0b0f14">
+
+<title>软件 · Floki</title>
+<link rel="canonical" href="https://floki-u.github.io/apps/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Floki">
+<meta property="og:title" content="软件 · Floki">
+<meta property="og:description" content="Floki 的软件目录，提供下载、安装和使用说明。">
+<meta property="og:url" content="https://floki-u.github.io/apps/">
+<meta property="og:image" content="https://floki-u.github.io/img/cat-pixel.png">
+<meta name="twitter:card" content="summary_large_image">
+
+
+<link rel="icon" type="image/png" href="/img/cat.png">
+
+<!-- 字体（与设计稿一致） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css">
+
+<!-- 主题样式 -->
+<link rel="stylesheet" href="/css/pixelterm.css">
+<!-- 移动端适配增强（必须放在 pixelterm.css 之后） -->
+<link rel="stylesheet" href="/css/mobile.css">
+
+  <link rel="stylesheet" href="/css/mermaid.css">
+
+
+  <link rel="stylesheet" href="/css/lightgallery.min.css">
+
+
+<!-- 代码高亮（内置 IDE 风格：暗色 One Dark / 亮色 GitHub Light，跟随主题切换） -->
+<link rel="stylesheet" href="/css/highlight.css">
+
+<link rel="stylesheet" href="/css/studio.css?v=studio-20261013">
+
+<!-- 自定义 CSS 注入 -->
+
+
+
+<!-- 主题模式优先注入（避免闪屏） -->
+<script>
+(function(){
+  var def = 'auto';
+  var t;
+  try { t = localStorage.getItem('pt-theme'); } catch(e){}
+  if(!t){
+    t = (def === 'auto')
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : def;
+  }
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+
+<body class="layout-apps">
+
+<!-- 全屏背景层（CSS pseudos 提供 CRT 扫描线/vignette；下面是 canvas + grid） -->
+
+  <canvas id="rain" aria-hidden="true"></canvas>
+
+<div class="pix-grid" aria-hidden="true"></div>
+
+
+<a class="skip-link" href="#main">跳到正文</a>
+<header class="site-header"><div class="container header-inner">
+<a class="brand" href="/" aria-label="Floki 首页"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span><span class="brand-text">floki<span class="accent">_</span></span><span class="brand-path" style="display:block">~/apps</span></span></a>
+<span class="clock" data-clock>00:00:00</span>
+<nav class="nav" id="main-nav" aria-label="主导航"><a href="/" >首页</a><a href="/apps/" aria-current="page">软件</a><a href="/learn/" >学习专题</a><a href="/list/" >文章</a><a href="/about/" >关于</a></nav>
+<button class="theme-btn" data-theme-toggle aria-label="切换主题">☀</button><button class="menu-btn" data-menu-toggle aria-expanded="false" aria-controls="main-nav">菜单</button></div></header>
+
+
+<main id="main" class="shell container">
+  
+<header class="page-heading"><p class="eyebrow accent">$ ls ~/apps</p><h1>软件</h1><p class="lede">下载、安装和使用说明。</p></header><div class="catalog-intro"><span class="small">2 SOFTWARE</span></div><article class="feature-app fade"><div class="app-info">
+<div class="pills"><span class="pill">macOS 14+</span><span class="pill live">实验版</span></div>
+<div class="app-title"><img decoding="async" src="/img/apps/wallume-icon.png" alt="" width="44" height="44"><h3>Wallume</h3></div>
+<div class="summary">Mac 动态壁纸与视频锁屏工具。</div><p>导入本地图片或视频，为每块屏幕分别设置动态壁纸。macOS 26 及以上支持实验性的原生视频锁屏。</p><a class="button" href="/apps/wallume/">查看详情 ↗</a></div>
+<a class="app-visual" href="/apps/wallume/" aria-label="查看 Wallume 产品介绍"><img loading="lazy" decoding="async" src="/img/apps/wallume-overview.jpg" alt="Wallume 本地画面库与多显示器功能的模拟展示" width="1600" height="1100"><span class="media-caption">界面模拟演示，实际效果以应用为准。</span></a></article>
+<article class="feature-app fade"><div class="app-info">
+<div class="pills"><span class="pill">iPhone / Safari</span><span class="pill live">早期版本</span></div>
+<div class="app-title"><img decoding="async" src="/img/apps/yujournal-icon.png" alt="" width="44" height="44"><h3>Yujournal · 余记</h3></div>
+<div class="summary">每天记一点，账目留在本机。</div><p>为 iPhone 设计的本机账本。用语音或付款截图整理多笔收支，核对后一次保存；支持离线记账、资产与存钱计划，以及完整备份迁移。</p><a class="button" href="/apps/yujournal/">查看详情 ↗</a></div>
+<a class="app-visual" href="/apps/yujournal/" aria-label="查看 Yujournal · 余记 产品介绍"><img loading="lazy" decoding="async" src="/img/apps/yujournal-overview.jpg" alt="余记当天收支、语音与截图录入的界面示意" width="1600" height="1100"><span class="media-caption">界面示意图，账目为示例数据，实际效果以应用为准。</span></a></article>
+
+
+</main>
+
+<footer class="f">
+  <div class="f-inner">
+    <span><span class="prompt">$ </span>echo "© Floki · Code Notes"</span>
+    
+    
+      <span id="busuanzi_container_site_pv">
+        <span class="prompt">★ </span>visitors × <span id="busuanzi_value_site_pv"></span>
+      </span>
+    
+  </div>
+</footer>
+
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+  <script>
+    window.PT_CAT_BUDDY = {"src":"/img/cat.png","size":100,"corner":"br","followMouse":true,"phrases":["MEOW.EXE","SUDO PURR","> PET ME","HP +1","RUA~","CTRL+M","PRESS A"]};
+  </script>
+  <script src="/js/cat-buddy.js?v=studio-20261013" defer></script>
+
+
+
+<script src="/js/pixelterm.js?v=studio-20261013" defer></script>
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

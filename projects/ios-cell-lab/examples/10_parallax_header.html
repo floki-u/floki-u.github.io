@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>10. ParallaxHeader — 视差头图 + 折叠导航栏</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/shared.css">
+<script src="../assets/theme.js"></script>
+<style>
+  body { background: #f5f6fa; font-family: -apple-system, "PingFang SC", sans-serif; margin: 0; padding: 24px; color: #2d3748; }
+  .nav { max-width: 880px; margin: 0 auto 16px; display: flex; justify-content: space-between; font-size: 13px; }
+  .nav a { color: #4facfe; text-decoration: none; }
+  .container { max-width: 880px; margin: 0 auto; }
+  .header { background: linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%); color: white; padding: 28px; border-radius: 14px; margin-bottom: 20px; }
+  .header h1 { margin: 0 0 8px; font-size: 22px; }
+  .header p { margin: 0; opacity: 0.95; font-size: 14px; line-height: 1.7; }
+
+  .phone { width: 360px; margin: 0 auto; background: #fff; border-radius: 28px; padding: 0; box-shadow: 0 12px 40px rgba(0,0,0,0.18); overflow: hidden; position: relative; height: 600px; }
+  .scroll-area { width: 100%; height: 100%; overflow-y: auto; position: relative; }
+
+  /* 顶部固定导航 */
+  .fixed-bar {
+    position: absolute; top: 0; left: 0; right: 0; height: 64px; z-index: 100;
+    display: flex; align-items: flex-end; padding: 0 16px 10px;
+    background: rgba(255,255,255,0); transition: background 0.2s;
+    color: white;
+  }
+  .fixed-bar.scrolled { background: rgba(255,255,255,0.95); color: #1a1a2e; box-shadow: 0 2px 8px rgba(0,0,0,0.06); backdrop-filter: blur(10px); }
+  .fixed-bar .back { font-size: 22px; cursor: pointer; }
+  .fixed-bar .title { font-size: 16px; font-weight: 600; margin-left: 12px; opacity: 0; transition: opacity 0.2s; }
+  .fixed-bar.scrolled .title { opacity: 1; }
+
+  /* 视差头图 */
+  .header-img {
+    height: 240px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 80px;
+  }
+
+  /* 头像区 */
+  .avatar-section { padding: 16px; display: flex; gap: 12px; align-items: flex-end; margin-top: -40px; position: relative; z-index: 5; }
+  .avatar { width: 80px; height: 80px; border-radius: 16px; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); border: 4px solid white; display: flex; align-items: center; justify-content: center; font-size: 32px; color: white; font-weight: 700; }
+  .name-area { flex: 1; padding-bottom: 4px; }
+  .name-area h3 { margin: 0 0 4px; font-size: 18px; }
+  .name-area p { margin: 0; font-size: 12px; color: #6c7293; }
+
+  /* 内容 */
+  .seg { display: flex; padding: 0 16px; border-bottom: 1px solid #f0f1f5; margin-top: 12px; }
+  .seg-item { padding: 12px 16px; font-size: 13px; color: #6c7293; cursor: pointer; border-bottom: 2px solid transparent; }
+  .seg-item.active { color: #4facfe; border-bottom-color: #4facfe; font-weight: 600; }
+
+  .feed-item { padding: 14px 16px; border-bottom: 1px solid #f5f6fa; }
+  .feed-item h4 { margin: 0 0 6px; font-size: 14px; color: #1a1a2e; }
+  .feed-item p { margin: 0; font-size: 12px; color: #6c7293; line-height: 1.6; }
+
+  table.metrics { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+  table.metrics th, table.metrics td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ecedf1; }
+  table.metrics th { background: #f5f6fa; }
+
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .compare-card { background: #f9fafc; border-radius: 10px; padding: 14px; }
+  .compare-card.bad { border-top: 3px solid #ef5350; }
+  .compare-card.good { border-top: 3px solid #4caf50; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="../index.html">← 返回主菜单</a>
+  <span>
+    <a href="09_expandable_cell.html">← 上一个</a> &nbsp;|&nbsp;
+    <a href="11_waterfall_layout.html">下一个 →</a>
+  </span>
+</div>
+
+<div class="container">
+
+  <div class="header">
+    <h1>🌄 ParallaxHeader — 视差头图 + 折叠导航</h1>
+    <p>个人主页、商品详情、设置页常见效果。原理：监听 scrollView.contentOffset，根据偏移量同步修改头图 transform、导航栏背景透明度。</p>
+  </div>
+
+  <!-- 视觉演示 -->
+  <div class="section-block">
+    <h2>🎨 视觉演示（在手机框内向上滚动）</h2>
+    <div class="phone">
+      <div class="fixed-bar" id="fixedBar">
+        <div class="back">‹</div>
+        <div class="title">张三的主页</div>
+      </div>
+
+      <div class="scroll-area" id="scrollArea" onscroll="handleScroll(this)">
+        <div class="header-img" id="headerImg">🏞</div>
+
+        <div class="avatar-section">
+          <div class="avatar">张</div>
+          <div class="name-area">
+            <h3>张三</h3>
+            <p>iOS Engineer · Beijing</p>
+          </div>
+        </div>
+
+        <div class="seg">
+          <div class="seg-item active">动态</div>
+          <div class="seg-item">作品</div>
+          <div class="seg-item">收藏</div>
+          <div class="seg-item">关于</div>
+        </div>
+
+        <div class="feed-item"><h4>今天写了一篇 iOS 列表性能优化文章</h4><p>从 cell 复用到光栅化，从 Instruments 到 MetricKit，把 5 年的踩坑都梳理了一遍。</p></div>
+        <div class="feed-item"><h4>分享一个 Shimmer 骨架屏的实现</h4><p>用 CAGradientLayer 比序列帧高效十倍，还无需任何图片资源。</p></div>
+        <div class="feed-item"><h4>为什么 cell 不能开光栅化</h4><p>这是个经典反向优化案例，Color Hits Green and Misses Red 一开就明白。</p></div>
+        <div class="feed-item"><h4>UICollectionView Diffable 真香</h4><p>再也不用手算 indexPath，再也不会 crash 了。</p></div>
+        <div class="feed-item"><h4>聊一聊 SwiftUI 的 LazyVStack</h4><p>底层就是 UICollectionView，但 API 太香了。</p></div>
+        <div class="feed-item"><h4>面试答到 Hitch Time Ratio 加分</h4><p>iOS 14 起 Apple 推的新指标，但很多人还不知道。</p></div>
+      </div>
+    </div>
+
+    <script>
+      function handleScroll(scrollEl) {
+        const offset = scrollEl.scrollTop;
+        const headerImg = document.getElementById('headerImg');
+        const fixedBar = document.getElementById('fixedBar');
+
+        // 1. 视差：下拉时头图放大，上滑时正常滚出
+        if (offset < 0) {
+          // 下拉：头图放大不动
+          const scale = 1 + Math.abs(offset) / 240;
+          headerImg.style.transform = `scale(${scale}) translateY(${offset/2}px)`;
+          headerImg.style.transformOrigin = 'center top';
+        } else {
+          // 上滑：用 0.5 倍速跟随（视差感）
+          headerImg.style.transform = `translateY(${offset * 0.5}px)`;
+        }
+
+        // 2. 导航栏：滚到一定位置后变白
+        if (offset > 180) {
+          fixedBar.classList.add('scrolled');
+        } else {
+          fixedBar.classList.remove('scrolled');
+        }
+      }
+    </script>
+  </div>
+
+  <!-- 拆解 -->
+  <div class="section-block">
+    <h2>🧩 视觉效果拆解</h2>
+    <div class="explain">
+      <span class="h">这一个交互里同时包含 3 件事：</span>
+      <br>1. <b>视差跟随</b> —— 头图以 0.5 倍速度向上移动（让感觉"在更远的地方"）
+      <br>2. <b>下拉放大</b> —— 用户下拉时头图保持顶部贴合并放大（仪式感）
+      <br>3. <b>导航栏渐变</b> —— 头图滚出后导航栏从透明变成白色 + 模糊背景
+      <br>4. <b>标题渐入</b> —— 头图被遮住时显示标题（视觉接力）
+    </div>
+  </div>
+
+  <!-- 完整代码 -->
+  <div class="section-block">
+    <h2>📦 完整代码实现</h2>
+    <div class="section-subtitle">使用 UIScrollView delegate 监听 contentOffset，所有动画都跟随手指实时反馈</div>
+
+    <h3 style="margin-top:18px;font-size:14px;">1️⃣ 布局结构</h3>
+<div class="code-block"><span class="kw">@interface</span> <span class="type">ProfileViewController</span> () &lt;<span class="type">UIScrollViewDelegate</span>&gt;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">UIImageView</span> *headerImageView;     <span class="comm">// 视差头图</span>
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">UIVisualEffectView</span> *navBlurView;   <span class="comm">// 导航栏模糊背景</span>
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">UILabel</span> *navTitleLabel;          <span class="comm">// 折叠后显示的标题</span>
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">UITableView</span> *tableView;           <span class="comm">// 内容列表</span>
+<span class="kw">@end</span>
+
+<span class="kw">static const</span> <span class="type">CGFloat</span> kHeaderHeight = <span class="num">240</span>;
+<span class="kw">static const</span> <span class="type">CGFloat</span> kNavBarHeight = <span class="num">88</span>;     <span class="comm">// 含状态栏</span>
+
+<span class="kw">- (void)</span><span class="meth">viewDidLoad</span> {
+    [<span class="kw">super</span> <span class="meth">viewDidLoad</span>];
+
+    <span class="comm">// ⭐ 1. 头图（位于 tableView 后面）</span>
+    _headerImageView = [[<span class="type">UIImageView</span> alloc] initWithFrame:<span class="type">CGRectMake</span>(<span class="num">0</span>, <span class="num">0</span>,
+                                                <span class="kw">self</span>.view.bounds.size.width, kHeaderHeight)];
+    _headerImageView.contentMode = <span class="type">UIViewContentModeScaleAspectFill</span>;
+    _headerImageView.clipsToBounds = <span class="type">YES</span>;
+    _headerImageView.image = [<span class="type">UIImage</span> imageNamed:<span class="str">@"profile_bg"</span>];
+    [<span class="kw">self</span>.view addSubview:_headerImageView];
+
+    <span class="comm">// ⭐ 2. tableView（透明背景，内容偏移开头图）</span>
+    _tableView = [[<span class="type">UITableView</span> alloc] initWithFrame:<span class="kw">self</span>.view.bounds];
+    _tableView.delegate = <span class="kw">self</span>;
+    _tableView.dataSource = <span class="kw">self</span>;
+    _tableView.backgroundColor = [<span class="type">UIColor</span> clearColor];
+    <span class="comm">// 给 tableView 顶部留出 header 高度的位置</span>
+    _tableView.contentInset = <span class="type">UIEdgeInsetsMake</span>(kHeaderHeight, <span class="num">0</span>, <span class="num">0</span>, <span class="num">0</span>);
+    _tableView.contentOffset = <span class="type">CGPointMake</span>(<span class="num">0</span>, -kHeaderHeight);
+    [<span class="kw">self</span>.view addSubview:_tableView];
+
+    <span class="comm">// ⭐ 3. 导航栏（在最上层）</span>
+    _navBlurView = [[<span class="type">UIVisualEffectView</span> alloc]
+        initWithEffect:[<span class="type">UIBlurEffect</span> effectWithStyle:<span class="type">UIBlurEffectStyleSystemMaterial</span>]];
+    _navBlurView.frame = <span class="type">CGRectMake</span>(<span class="num">0</span>, <span class="num">0</span>, <span class="kw">self</span>.view.bounds.size.width, kNavBarHeight);
+    _navBlurView.alpha = <span class="num">0</span>;   <span class="comm">// 默认透明</span>
+    [<span class="kw">self</span>.view addSubview:_navBlurView];
+
+    _navTitleLabel = [[<span class="type">UILabel</span> alloc] init];
+    _navTitleLabel.text = <span class="str">@"张三的主页"</span>;
+    _navTitleLabel.font = [<span class="type">UIFont</span> systemFontOfSize:<span class="num">17</span> weight:<span class="type">UIFontWeightSemibold</span>];
+    _navTitleLabel.alpha = <span class="num">0</span>;
+    _navTitleLabel.frame = <span class="type">CGRectMake</span>(<span class="num">0</span>, <span class="num">44</span>, <span class="kw">self</span>.view.bounds.size.width, <span class="num">44</span>);
+    _navTitleLabel.textAlignment = <span class="type">NSTextAlignmentCenter</span>;
+    [<span class="kw">self</span>.view addSubview:_navTitleLabel];
+}</div>
+
+    <h3 style="margin-top:24px;font-size:14px;">2️⃣ 核心：scrollViewDidScroll —— 一切动画的源头</h3>
+<div class="code-block"><span class="kw">- (void)</span><span class="meth">scrollViewDidScroll:</span>(<span class="type">UIScrollView</span> *)scrollView {
+    <span class="comm">// ⭐ 计算"用户拖动了多少距离"（offset 是负数表示下拉）</span>
+    <span class="type">CGFloat</span> offset = scrollView.contentOffset.y + kHeaderHeight;
+
+    <span class="comm">// =============== 1. 视差头图 ===============</span>
+    <span class="kw">if</span> (offset &lt; <span class="num">0</span>) {
+        <span class="comm">// 下拉：头图放大并保持顶部贴合（橡皮筋效果）</span>
+        <span class="type">CGFloat</span> scale = <span class="num">1</span> + (-offset) / kHeaderHeight;
+        <span class="comm">// ⭐ 用 transform 而不是改 frame，避免触发 layout</span>
+        _headerImageView.transform =
+            <span class="type">CGAffineTransformMakeScale</span>(scale, scale);
+        _headerImageView.frame = <span class="type">CGRectMake</span>(<span class="num">0</span>, <span class="num">0</span>,
+            <span class="kw">self</span>.view.bounds.size.width, kHeaderHeight);
+    } <span class="kw">else</span> {
+        <span class="comm">// 上滑：以 0.5 倍速向上移动（视差感）</span>
+        <span class="comm">// ⭐ 关键：移动 0.5*offset 而不是 1.0*offset，让"远景慢于近景"</span>
+        _headerImageView.transform = <span class="type">CGAffineTransformIdentity</span>;
+        _headerImageView.frame = <span class="type">CGRectMake</span>(<span class="num">0</span>, -offset * <span class="num">0.5</span>,
+            <span class="kw">self</span>.view.bounds.size.width, kHeaderHeight);
+    }
+
+    <span class="comm">// =============== 2. 导航栏渐变 ===============</span>
+    <span class="comm">// ⭐ 滚动 (kHeaderHeight - kNavBarHeight) 距离时，导航栏完全显现</span>
+    <span class="type">CGFloat</span> threshold = kHeaderHeight - kNavBarHeight;
+    <span class="type">CGFloat</span> alpha = <span class="type">MAX</span>(<span class="num">0</span>, <span class="type">MIN</span>(<span class="num">1</span>, offset / threshold));
+
+    _navBlurView.alpha = alpha;
+    _navTitleLabel.alpha = alpha;
+
+    <span class="comm">// =============== 3. 状态栏样式联动 ===============</span>
+    <span class="comm">// 头图（深色）覆盖时用浅色状态栏，白色背景时用深色状态栏</span>
+    [<span class="kw">self</span> <span class="meth">setNeedsStatusBarAppearanceUpdate</span>];
+}
+
+<span class="kw">- (UIStatusBarStyle)</span><span class="meth">preferredStatusBarStyle</span> {
+    <span class="type">CGFloat</span> offset = <span class="kw">self</span>.tableView.contentOffset.y + kHeaderHeight;
+    <span class="type">CGFloat</span> threshold = kHeaderHeight - kNavBarHeight;
+    <span class="kw">return</span> (offset / threshold) &gt; <span class="num">0.7</span>
+        ? <span class="type">UIStatusBarStyleDarkContent</span>
+        : <span class="type">UIStatusBarStyleLightContent</span>;
+}</div>
+
+    <div class="explain">
+      <span class="h">为什么用 transform 而不是改 frame？</span>
+      <br>· transform 走 GPU 合成，不触发 layout/draw，每帧 < 1ms
+      <br>· 改 frame 会触发整个 view 树的重新布局，滚动时 60fps 难保
+      <br>· 这是滚动联动动画的<b>铁律</b>：能用 transform 就别动 frame
+    </div>
+  </div>
+
+  <!-- 反例 -->
+  <div class="section-block">
+    <h2>⚖️ 反例 vs 正例</h2>
+    <div class="compare-grid">
+      <div class="compare-card bad">
+        <h4>❌ 反例：改 frame + 重布局</h4>
+<div class="code-block" style="font-size:11.5px;"><span class="kw">- (void)</span><span class="meth">scrollViewDidScroll:</span>...{
+    <span class="type">CGFloat</span> offset = scrollView.contentOffset.y;
+    <span class="comm">// ❌ 直接改 frame</span>
+    <span class="type">CGRect</span> f = _headerImageView.frame;
+    f.origin.y = -offset * <span class="num">0.5</span>;
+    f.size.height = kHeaderHeight + <span class="type">MAX</span>(<span class="num">0</span>, -offset);
+    _headerImageView.frame = f;
+    <span class="comm">// 触发 layoutSubviews → 卡顿</span>
+}</div>
+        <div class="explain danger" style="font-size:12px;">滚动到 50fps，老设备掉到 30fps</div>
+      </div>
+
+      <div class="compare-card good">
+        <h4>✅ 正例：transform + GPU 合成</h4>
+<div class="code-block" style="font-size:11.5px;"><span class="kw">- (void)</span><span class="meth">scrollViewDidScroll:</span>...{
+    <span class="type">CGFloat</span> offset = scrollView.contentOffset.y;
+    <span class="kw">if</span> (offset &lt; <span class="num">0</span>) {
+        _headerImageView.transform =
+            <span class="type">CGAffineTransformMakeScale</span>(scale, scale);
+    } <span class="kw">else</span> {
+        _headerImageView.transform =
+            <span class="type">CGAffineTransformMakeTranslation</span>(<span class="num">0</span>, -offset*<span class="num">0.5</span>);
+    }
+    <span class="comm">// ✅ 仅 GPU 合成，不重布局</span>
+}</div>
+        <div class="explain success" style="font-size:12px;">稳 60fps，hitch ratio 接近 0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 进阶 -->
+  <div class="section-block">
+    <h2>🚀 进阶：更高级的实现</h2>
+    <div class="explain">
+      <span class="h">方案 A：UIScrollViewDelegate（本文方案）</span>
+      <br>· 优点：兼容所有 iOS 版本，逻辑清晰
+      <br>· 缺点：scrollViewDidScroll 回调密集，逻辑都要塞这里
+    </div>
+    <div class="explain">
+      <span class="h">方案 B：UICollectionView + Compositional Layout（iOS 13+）</span>
+      <br>· 把头图做成一个 supplementary view，section 滚动时自动布局
+      <br>· 配合 <code>visibleItemsInvalidationHandler</code> 做更精细的视差
+    </div>
+    <div class="explain">
+      <span class="h">方案 C：UILargeContentViewer + UINavigationController（iOS 11+）</span>
+      <br>· 用系统大标题导航，<code>navigationItem.largeTitleDisplayMode</code> 自带折叠效果
+      <br>· 适合系统风格的设置页
+    </div>
+  </div>
+
+  <!-- 易错点 -->
+  <div class="section-block">
+    <h2>⚠️ 实战易错点</h2>
+    <div class="explain danger">
+      <span class="h">坑 1：contentInset 没设</span><br>
+      tableView 的 contentInset.top 必须等于头图高度，否则首屏 cell 会被头图盖住。同时 contentOffset 初始值必须是 -kHeaderHeight。
+    </div>
+    <div class="explain danger">
+      <span class="h">坑 2：iOS 11+ 的 safeAreaInsets 自动调整</span><br>
+      <code>self.tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;</code><br>
+      否则系统会"贴心"地再加一次 inset，导致内容下移。
+    </div>
+    <div class="explain warn">
+      <span class="h">坑 3：状态栏样式跳变</span><br>
+      <code>setNeedsStatusBarAppearanceUpdate</code> 不能在 scrollViewDidScroll 每帧调，会卡。<br>
+      <b>解决</b>：加状态变量，只在样式真的变化时才调。
+    </div>
+    <div class="explain warn">
+      <span class="h">坑 4：模糊背景在低端机卡</span><br>
+      <code>UIVisualEffectView</code> 在 iPhone 8 以下设备开销大。可以根据设备型号降级为半透明纯色。
+    </div>
+    <div class="explain success">
+      <span class="h">最佳实践：把 offset 计算抽成方法</span><br>
+      <code>scrollViewDidScroll</code> 里只做"算出 alpha → 赋给 view"，所有阈值算 / 状态判断抽成纯函数，方便单测。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

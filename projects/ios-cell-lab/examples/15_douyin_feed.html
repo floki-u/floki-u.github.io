@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>15. 抖音式短视频 — 全屏分页</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/shared.css">
+<script src="../assets/theme.js"></script>
+<style>
+  body { background: #f5f6fa; font-family: -apple-system, "PingFang SC", sans-serif; margin: 0; padding: 24px; color: #2d3748; }
+  .nav { max-width: 1000px; margin: 0 auto 16px; display: flex; justify-content: space-between; font-size: 13px; }
+  .nav a { color: #4facfe; text-decoration: none; }
+  .container { max-width: 1000px; margin: 0 auto; }
+  .header { background: linear-gradient(135deg, #000 0%, #434343 100%); color: white; padding: 28px; border-radius: 14px; margin-bottom: 20px; }
+  .header h1 { margin: 0 0 8px; font-size: 22px; }
+  .header p { margin: 0; opacity: 0.95; font-size: 14px; line-height: 1.7; }
+
+  /* 抖音手机框 */
+  .phone { width: 360px; margin: 0 auto; background: #000; border-radius: 28px; padding: 6px; box-shadow: 0 12px 40px rgba(0,0,0,0.3); overflow: hidden; }
+  .video-screen { background: #000; height: 580px; border-radius: 24px; position: relative; overflow: hidden; }
+  
+  /* 视频背景 */
+  .video-bg { position: absolute; inset: 0; background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 50%, #ff5e62 100%); }
+
+  /* 顶部 Tab */
+  .top-tab { position: absolute; top: 16px; left: 0; right: 0; display: flex; justify-content: center; gap: 24px; z-index: 10; color: rgba(255,255,255,0.7); font-size: 14px; }
+  .top-tab .t.active { color: white; font-weight: 700; position: relative; }
+  .top-tab .t.active::after { content: ''; position: absolute; left: 50%; transform: translateX(-50%); bottom: -6px; width: 16px; height: 2px; background: white; border-radius: 1px; }
+
+  /* 右侧操作栏 */
+  .side-bar { position: absolute; right: 10px; bottom: 100px; display: flex; flex-direction: column; gap: 16px; align-items: center; z-index: 10; }
+  .side-item { display: flex; flex-direction: column; align-items: center; gap: 2px; color: white; font-size: 11px; }
+  .side-item .ico-circle { width: 44px; height: 44px; border-radius: 22px; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .side-item .avatar-side { width: 44px; height: 44px; border-radius: 22px; background: linear-gradient(135deg, #fa709a, #fee140); border: 2px solid white; position: relative; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; }
+  .side-item .avatar-side .add { position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 16px; height: 16px; background: #ff2442; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1; border: 2px solid #2c3e50; }
+  
+  /* 底部信息 */
+  .bottom-info { position: absolute; bottom: 70px; left: 16px; right: 80px; color: white; }
+  .bottom-info .name { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .bottom-info .desc { font-size: 12px; line-height: 1.5; opacity: 0.95; margin-bottom: 6px; }
+  .bottom-info .music { font-size: 11px; display: flex; align-items: center; gap: 4px; opacity: 0.9; }
+
+  /* 底部 TabBar */
+  .douyin-tabbar { position: absolute; bottom: 0; left: 0; right: 0; height: 56px; background: #000; display: flex; }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: rgba(255,255,255,0.5); font-size: 11px; }
+  .tab.active { color: white; }
+
+  /* 滑动指示器 */
+  .swipe-hint { position: absolute; right: 16px; bottom: 250px; color: white; font-size: 10px; opacity: 0.6; text-align: center; }
+  .swipe-hint .arrow { font-size: 24px; animation: bounce 1.5s infinite; }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  table.metrics { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+  table.metrics th, table.metrics td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ecedf1; vertical-align: top; }
+  table.metrics th { background: #f5f6fa; }
+
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .compare-card { background: #f9fafc; border-radius: 10px; padding: 14px; }
+  .compare-card.bad { border-top: 3px solid #ef5350; }
+  .compare-card.good { border-top: 3px solid #4caf50; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="../index.html">← 返回主菜单</a>
+  <span>
+    <a href="14_ecommerce_feed.html">← 上一个</a> &nbsp;|&nbsp;
+    <a href="16_chat_messages.html">下一个 →</a>
+  </span>
+</div>
+
+<div class="container">
+
+  <div class="header">
+    <h1>🎬 抖音式短视频 — 全屏分页 + 预加载</h1>
+    <p>抖音/快手/视频号/小红书视频流是过去 5 年最具创新的列表交互模式。看似简单，实际是<b>沉浸式 UX、视频预加载、Cell 复用</b>三大技术合奏。</p>
+  </div>
+
+  <!-- 视觉演示 -->
+  <div class="section-block">
+    <h2>🎨 视觉效果</h2>
+    <div class="phone">
+      <div class="video-screen">
+        <div class="video-bg"></div>
+
+        <!-- 顶部 Tab -->
+        <div class="top-tab">
+          <div class="t">同城</div>
+          <div class="t">关注</div>
+          <div class="t active">推荐</div>
+        </div>
+
+        <!-- 右侧操作栏 -->
+        <div class="side-bar">
+          <div class="side-item">
+            <div class="avatar-side">张<div class="add">+</div></div>
+          </div>
+          <div class="side-item">
+            <div class="ico-circle">❤️</div>
+            12.3w
+          </div>
+          <div class="side-item">
+            <div class="ico-circle">💬</div>
+            5648
+          </div>
+          <div class="side-item">
+            <div class="ico-circle">⭐</div>
+            收藏
+          </div>
+          <div class="side-item">
+            <div class="ico-circle">↪️</div>
+            分享
+          </div>
+        </div>
+
+        <!-- 底部信息 -->
+        <div class="bottom-info">
+          <div class="name">@张三</div>
+          <div class="desc">分享一个 iOS 列表性能优化的小技巧 #iOS开发 #性能优化</div>
+          <div class="music">🎵 @某音乐人 · 原创音乐</div>
+        </div>
+
+        <!-- 滑动提示 -->
+        <div class="swipe-hint">
+          <div class="arrow">↑</div>
+          上滑下一个
+        </div>
+
+        <!-- TabBar -->
+        <div class="douyin-tabbar">
+          <div class="tab active">首页</div>
+          <div class="tab">朋友</div>
+          <div class="tab" style="font-size:24px;color:white;">+</div>
+          <div class="tab">消息</div>
+          <div class="tab">我</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 设计哲学 -->
+  <div class="section-block">
+    <h2>🧠 沉浸式设计的 5 个核心原则</h2>
+    <div class="explain">
+      <span class="h">1. 单卡全屏</span> · 一屏一个视频，让用户注意力集中，无信息焦虑
+    </div>
+    <div class="explain">
+      <span class="h">2. 上滑切换</span> · 沿用 Tinder 的"滑卡"心智，比横滑更符合手指动作（拇指上下移动比左右更自然）
+    </div>
+    <div class="explain">
+      <span class="h">3. 操作右置</span> · 拇指操作热区在右下，所有交互按钮（点赞/评论/分享）都在右侧
+    </div>
+    <div class="explain">
+      <span class="h">4. 永远黑底</span> · 不切换深浅色，让视频内容自由表达
+    </div>
+    <div class="explain">
+      <span class="h">5. 隐性教学</span> · 头像下方的 "+" 提示关注；右侧操作栏的数字暗示"很多人都在做"
+    </div>
+  </div>
+
+  <!-- 核心实现 -->
+  <div class="section-block">
+    <h2>📦 完整实现 — UICollectionView 全屏分页</h2>
+    <div class="section-subtitle">关键技术：UICollectionViewFlowLayout 横向 → 改为竖向 + 整页对齐 + 视频复用</div>
+
+    <h3 style="margin-top:18px;font-size:14px;">1️⃣ Layout —— 竖向分页</h3>
+<div class="code-block"><span class="comm">// 用 UICollectionView 而不是 UIScrollView 的原因：</span>
+<span class="comm">// 复用！100 个视频，只创建 3 个 cell（前一个 + 当前 + 后一个）</span>
+
+<span class="kw">- (UICollectionView *)</span><span class="meth">setupCollectionView</span> {
+    <span class="type">UICollectionViewFlowLayout</span> *layout = [<span class="type">UICollectionViewFlowLayout</span> new];
+    layout.minimumLineSpacing = <span class="num">0</span>;
+    layout.minimumInteritemSpacing = <span class="num">0</span>;
+    layout.itemSize = <span class="kw">self</span>.view.bounds.size;
+    layout.scrollDirection = <span class="type">UICollectionViewScrollDirectionVertical</span>;
+
+    <span class="type">UICollectionView</span> *cv = [[<span class="type">UICollectionView</span> alloc]
+        initWithFrame:<span class="kw">self</span>.view.bounds collectionViewLayout:layout];
+
+    <span class="comm">// ⭐ 关键：开启分页</span>
+    cv.pagingEnabled = <span class="type">YES</span>;
+    cv.contentInsetAdjustmentBehavior = <span class="type">UIScrollViewContentInsetAdjustmentNever</span>;
+    cv.showsVerticalScrollIndicator = <span class="type">NO</span>;
+    cv.backgroundColor = [<span class="type">UIColor</span> blackColor];
+    [cv registerClass:[<span class="type">VideoCell</span> <span class="kw">class</span>] forCellWithReuseIdentifier:<span class="str">@"video"</span>];
+    <span class="kw">return</span> cv;
+}</div>
+
+    <h3 style="margin-top:24px;font-size:14px;">2️⃣ VideoCell —— 视频播放 + 复用</h3>
+<div class="code-block"><span class="kw">@interface</span> <span class="type">VideoCell</span> : <span class="type">UICollectionViewCell</span>
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">AVPlayerLayer</span> *playerLayer;
+<span class="kw">- (void)</span><span class="meth">configureWithVideo:</span>(<span class="type">VideoModel</span> *)model;
+<span class="kw">- (void)</span><span class="meth">play</span>;
+<span class="kw">- (void)</span><span class="meth">pause</span>;
+<span class="kw">@end</span>
+
+<span class="kw">@implementation</span> <span class="type">VideoCell</span> {
+    <span class="type">AVPlayer</span> *_player;
+    <span class="type">VideoModel</span> *_currentModel;
+}
+
+<span class="kw">- (instancetype)</span><span class="meth">initWithFrame:</span>(<span class="type">CGRect</span>)frame {
+    <span class="kw">if</span> (<span class="kw">self</span> = [<span class="kw">super</span> <span class="meth">initWithFrame:</span>frame]) {
+        _playerLayer = [<span class="type">AVPlayerLayer</span> layer];
+        _playerLayer.videoGravity = <span class="type">AVLayerVideoGravityResizeAspectFill</span>;
+        _playerLayer.frame = <span class="kw">self</span>.contentView.bounds;
+        [<span class="kw">self</span>.contentView.layer addSublayer:_playerLayer];
+    }
+    <span class="kw">return</span> <span class="kw">self</span>;
+}
+
+<span class="kw">- (void)</span><span class="meth">configureWithVideo:</span>(<span class="type">VideoModel</span> *)model {
+    <span class="kw">if</span> (_currentModel == model) <span class="kw">return</span>;
+    _currentModel = model;
+
+    <span class="comm">// ⭐ 核心：用 VideoPreloader 拿预加载好的 AVPlayerItem</span>
+    <span class="type">AVPlayerItem</span> *item = [[<span class="type">VideoPreloader</span> shared] <span class="meth">playerItemForVideo:</span>model];
+
+    _player = [[<span class="type">AVPlayer</span> alloc] initWithPlayerItem:item];
+    _player.actionAtItemEnd = <span class="type">AVPlayerActionAtItemEndNone</span>;   <span class="comm">// 不暂停</span>
+    _playerLayer.player = _player;
+
+    <span class="comm">// ⭐ 循环播放</span>
+    [[<span class="type">NSNotificationCenter</span> defaultCenter] addObserver:<span class="kw">self</span>
+        selector:<span class="meth">@selector</span>(loop:)
+            name:<span class="type">AVPlayerItemDidPlayToEndTimeNotification</span>
+          object:item];
+}
+
+<span class="kw">- (void)</span><span class="meth">loop:</span>(<span class="type">NSNotification</span> *)note {
+    [_player seekToTime:<span class="type">kCMTimeZero</span>];
+    [_player play];
+}
+
+<span class="kw">- (void)</span><span class="meth">play</span> { [_player play]; }
+<span class="kw">- (void)</span><span class="meth">pause</span> { [_player pause]; }
+
+<span class="kw">- (void)</span><span class="meth">prepareForReuse</span> {
+    [<span class="kw">super</span> <span class="meth">prepareForReuse</span>];
+    <span class="comm">// ⭐ 复用前必须清</span>
+    [_player pause];
+    _player = <span class="kw">nil</span>;
+    _playerLayer.player = <span class="kw">nil</span>;
+    [[<span class="type">NSNotificationCenter</span> defaultCenter] removeObserver:<span class="kw">self</span>];
+}
+<span class="kw">@end</span></div>
+
+    <h3 style="margin-top:24px;font-size:14px;">3️⃣ ⭐⭐⭐ 核心：VideoPreloader 预加载（决定流畅度的关键）</h3>
+<div class="code-block"><span class="comm">// 抖音流畅的秘密：用户看到 N 时，N+1、N+2 已经下载好</span>
+<span class="kw">@interface</span> <span class="type">VideoPreloader</span> : <span class="type">NSObject</span>
++ (<span class="kw">instancetype</span>)<span class="meth">shared</span>;
+<span class="kw">- (void)</span><span class="meth">preloadVideo:</span>(<span class="type">VideoModel</span> *)model;
+<span class="kw">- (AVPlayerItem *)</span><span class="meth">playerItemForVideo:</span>(<span class="type">VideoModel</span> *)model;
+<span class="kw">@end</span>
+
+<span class="kw">@implementation</span> <span class="type">VideoPreloader</span> {
+    <span class="comm">// ⭐ LRU 缓存：最多保留 5 个预加载好的 PlayerItem</span>
+    <span class="type">NSCache</span>&lt;<span class="type">NSString</span> *, <span class="type">AVPlayerItem</span> *&gt; *_cache;
+}
+
+<span class="kw">- (instancetype)</span><span class="meth">init</span> {
+    <span class="kw">if</span> (<span class="kw">self</span> = [<span class="kw">super</span> <span class="meth">init</span>]) {
+        _cache = [[<span class="type">NSCache</span> alloc] init];
+        _cache.countLimit = <span class="num">5</span>;
+    }
+    <span class="kw">return</span> <span class="kw">self</span>;
+}
+
+<span class="kw">- (void)</span><span class="meth">preloadVideo:</span>(<span class="type">VideoModel</span> *)model {
+    <span class="kw">if</span> ([_cache objectForKey:model.url]) <span class="kw">return</span>;
+
+    <span class="comm">// ⭐ 用 AVURLAsset，提前 loadValuesAsynchronouslyForKeys</span>
+    <span class="type">AVURLAsset</span> *asset = [<span class="type">AVURLAsset</span> URLAssetWithURL:[<span class="type">NSURL</span> URLWithString:model.url] options:<span class="kw">nil</span>];
+    [asset loadValuesAsynchronouslyForKeys:@[<span class="str">@"playable"</span>, <span class="str">@"duration"</span>, <span class="str">@"tracks"</span>]
+                         completionHandler:^{
+        <span class="meth">dispatch_async</span>(<span class="meth">dispatch_get_main_queue</span>(), ^{
+            <span class="type">AVPlayerItem</span> *item = [<span class="type">AVPlayerItem</span> playerItemWithAsset:asset];
+            <span class="comm">// ⭐ 预加载前 5 秒</span>
+            item.preferredForwardBufferDuration = <span class="num">5.0</span>;
+            [_cache setObject:item forKey:model.url];
+        });
+    }];
+}
+
+<span class="kw">- (AVPlayerItem *)</span><span class="meth">playerItemForVideo:</span>(<span class="type">VideoModel</span> *)model {
+    <span class="type">AVPlayerItem</span> *item = [_cache objectForKey:model.url];
+    <span class="kw">if</span> (item) {
+        [_cache removeObjectForKey:model.url];   <span class="comm">// 用了就移出，避免被多 player 共用</span>
+        <span class="kw">return</span> item;
+    }
+    <span class="comm">// 缓存未命中：实时加载</span>
+    <span class="type">AVURLAsset</span> *asset = [<span class="type">AVURLAsset</span> URLAssetWithURL:[<span class="type">NSURL</span> URLWithString:model.url] options:<span class="kw">nil</span>];
+    <span class="kw">return</span> [<span class="type">AVPlayerItem</span> playerItemWithAsset:asset];
+}
+<span class="kw">@end</span></div>
+
+    <h3 style="margin-top:24px;font-size:14px;">4️⃣ ViewController —— 滑动联动 + 预加载触发</h3>
+<div class="code-block"><span class="kw">@implementation</span> <span class="type">FeedViewController</span> {
+    <span class="type">NSInteger</span> _currentIndex;
+}
+
+<span class="comm">// 滚动停止时切换播放</span>
+<span class="kw">- (void)</span><span class="meth">scrollViewDidEndDecelerating:</span>(<span class="type">UIScrollView</span> *)scrollView {
+    <span class="type">NSInteger</span> page = scrollView.contentOffset.y / scrollView.bounds.size.height;
+    <span class="kw">if</span> (page == _currentIndex) <span class="kw">return</span>;
+    _currentIndex = page;
+
+    <span class="comm">// ⭐ 1. 切换播放</span>
+    [<span class="kw">self</span>.collectionView.visibleCells enumerateObjectsUsingBlock:^(<span class="type">VideoCell</span> *cell, ...) {
+        <span class="type">NSIndexPath</span> *ip = [<span class="kw">self</span>.collectionView indexPathForCell:cell];
+        <span class="kw">if</span> (ip.item == page) {
+            [cell <span class="meth">play</span>];
+        } <span class="kw">else</span> {
+            [cell <span class="meth">pause</span>];
+        }
+    }];
+
+    <span class="comm">// ⭐ 2. 预加载下两个</span>
+    <span class="kw">if</span> (page + <span class="num">1</span> &lt; <span class="kw">self</span>.videos.count) {
+        [[<span class="type">VideoPreloader</span> shared] <span class="meth">preloadVideo:</span><span class="kw">self</span>.videos[page + <span class="num">1</span>]];
+    }
+    <span class="kw">if</span> (page + <span class="num">2</span> &lt; <span class="kw">self</span>.videos.count) {
+        [[<span class="type">VideoPreloader</span> shared] <span class="meth">preloadVideo:</span><span class="kw">self</span>.videos[page + <span class="num">2</span>]];
+    }
+
+    <span class="comm">// ⭐ 3. 接近底部时拉新一页</span>
+    <span class="kw">if</span> (page &gt;= <span class="kw">self</span>.videos.count - <span class="num">3</span>) {
+        [<span class="kw">self</span> <span class="meth">loadMoreVideos</span>];
+    }
+}
+<span class="kw">@end</span></div>
+
+    <div class="explain success">
+      <span class="h">为什么用 UICollectionView 不用 UIScrollView？</span><br>
+      复用！100 个视频如果用 ScrollView 就要创建 100 个 AVPlayer，必崩。CollectionView 屏幕上最多 3 个 cell，3 个 player，内存稳定。
+    </div>
+  </div>
+
+  <!-- 性能优化 -->
+  <div class="section-block">
+    <h2>🚀 抖音同款的 5 个性能优化点</h2>
+    <table class="metrics">
+      <tr><th>优化点</th><th>做法</th><th>收益</th></tr>
+      <tr><td>视频预加载</td><td>用户在 N 时预下 N+1, N+2</td><td>切换无白屏，体感"秒开"</td></tr>
+      <tr><td>分段预加载</td><td>preferredForwardBufferDuration = 5s</td><td>不浪费流量，5 秒够用户决定划走</td></tr>
+      <tr><td>HEVC 编码</td><td>视频用 H.265 编码上传</td><td>同画质带宽 -40%</td></tr>
+      <tr><td>首帧立即显示</td><td>cover image 占位 → 视频起播渐显</td><td>首帧时间从 800ms 降到 100ms</td></tr>
+      <tr><td>边播边缓存</td><td>用 AVAssetResourceLoader hook 网络流</td><td>已播放的不用重下载，回滑秒开</td></tr>
+    </table>
+  </div>
+
+  <!-- 反例对比 -->
+  <div class="section-block">
+    <h2>⚖️ 反例 vs 正例</h2>
+    <div class="compare-grid">
+      <div class="compare-card bad">
+        <h4>❌ 反例：每个视频独立 ViewController</h4>
+        <div class="explain danger" style="font-size:12px;">
+          用 UIPageViewController 每页一个 VC<br>
+          → 100 个视频 = 100 个 VC + 100 个 player<br>
+          → 内存峰值 800MB+，第 30 个就崩
+        </div>
+      </div>
+      <div class="compare-card good">
+        <h4>✅ 正例：UICollectionView + Cell 复用</h4>
+        <div class="explain success" style="font-size:12px;">
+          屏幕上最多 3 个 cell，3 个 player<br>
+          → 内存稳定 200MB<br>
+          → 滚动 1000 个视频也不崩
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 设计亮点 -->
+  <div class="section-block">
+    <h2>🎓 可借鉴的设计创新点</h2>
+    <div class="explain success">
+      <span class="h">借鉴 1：滑动手势 = 行为信号</span><br>
+      上滑 = 不喜欢（隐式负反馈）。即使不点❤️，"看完率"和"完播率"就是推荐算法的核心信号。这个设计是抖音算法领先的根基之一。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 2：双击点赞</span><br>
+      手指停在视频上的概率高，比点右下角的小心心方便。有"心心动画"反馈，体验闭环。Instagram 发明，TikTok 沿用，已成标准。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 3：长按拖动进度</span><br>
+      抖音视频底部默认无进度条。长按视频暂停 + 显示进度条。"<b>默认隐藏控件</b>，按需召唤"是沉浸式 App 的金科玉律。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 4：评论页底部弹出而非全屏</span><br>
+      评论是 sheet 滑上来盖住下半屏，<b>视频继续在上半屏播放</b>。让用户"边看边评"，不打断内容消费。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 5：滑动卡顿时的"灵魂震荡"</span><br>
+      切换视频时如果加载慢，用一个轻微的"卡顿震荡"反馈，比 loading 圈更有"在努力"的感觉。是降低焦虑的微设计。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

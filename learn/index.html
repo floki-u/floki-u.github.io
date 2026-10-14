@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hexo + pixelterm v1.0.0">
+<meta name="description" content="Floki 的系列学习内容，按章节浏览示例、代码与演示。">
+<meta name="author" content="floki">
+<meta name="theme-color" content="#0b0f14">
+
+<title>学习专题 · Floki</title>
+<link rel="canonical" href="https://floki-u.github.io/learn/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Floki">
+<meta property="og:title" content="学习专题 · Floki">
+<meta property="og:description" content="Floki 的系列学习内容，按章节浏览示例、代码与演示。">
+<meta property="og:url" content="https://floki-u.github.io/learn/">
+<meta property="og:image" content="https://floki-u.github.io/img/cat-pixel.png">
+<meta name="twitter:card" content="summary_large_image">
+
+
+<link rel="icon" type="image/png" href="/img/cat.png">
+
+<!-- 字体（与设计稿一致） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css">
+
+<!-- 主题样式 -->
+<link rel="stylesheet" href="/css/pixelterm.css">
+<!-- 移动端适配增强（必须放在 pixelterm.css 之后） -->
+<link rel="stylesheet" href="/css/mobile.css">
+
+  <link rel="stylesheet" href="/css/mermaid.css">
+
+
+  <link rel="stylesheet" href="/css/lightgallery.min.css">
+
+
+<!-- 代码高亮（内置 IDE 风格：暗色 One Dark / 亮色 GitHub Light，跟随主题切换） -->
+<link rel="stylesheet" href="/css/highlight.css">
+
+<link rel="stylesheet" href="/css/studio.css?v=studio-20261013">
+
+<!-- 自定义 CSS 注入 -->
+
+
+
+<!-- 主题模式优先注入（避免闪屏） -->
+<script>
+(function(){
+  var def = 'auto';
+  var t;
+  try { t = localStorage.getItem('pt-theme'); } catch(e){}
+  if(!t){
+    t = (def === 'auto')
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : def;
+  }
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+
+<body class="layout-learn">
+
+<!-- 全屏背景层（CSS pseudos 提供 CRT 扫描线/vignette；下面是 canvas + grid） -->
+
+  <canvas id="rain" aria-hidden="true"></canvas>
+
+<div class="pix-grid" aria-hidden="true"></div>
+
+
+<a class="skip-link" href="#main">跳到正文</a>
+<header class="site-header"><div class="container header-inner">
+<a class="brand" href="/" aria-label="Floki 首页"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span><span class="brand-text">floki<span class="accent">_</span></span><span class="brand-path" style="display:block">~/learn</span></span></a>
+<span class="clock" data-clock>00:00:00</span>
+<nav class="nav" id="main-nav" aria-label="主导航"><a href="/" >首页</a><a href="/apps/" >软件</a><a href="/learn/" aria-current="page">学习专题</a><a href="/list/" >文章</a><a href="/about/" >关于</a></nav>
+<button class="theme-btn" data-theme-toggle aria-label="切换主题">☀</button><button class="menu-btn" data-menu-toggle aria-expanded="false" aria-controls="main-nav">菜单</button></div></header>
+
+
+<main id="main" class="shell container">
+  
+<header class="page-heading"><p class="eyebrow purple">$ open ~/learn</p><h1>学习专题</h1><p class="lede">按章节整理的内容，附示例、代码与演示。</p></header><div class="catalog-intro"><span class="small">1 SERIES</span></div><article class="feature-course fade"><a class="course-art" href="/learn/ios-list-lab/" aria-label="查看 iOS List Lab 学习专题"><div class="lab-title" lang="en">iOS<br>LIST LAB<span class="accent">_</span></div><div class="art-bottom"><span class="big">19</span><span class="small">EXAMPLES<br>OBJECTIVE-C</span></div></a>
+<div class="course-info"><div class="pills"><span class="pill study">学习专题</span><span class="pill">iOS · Objective-C</span></div><h3>iOS 列表：19 个示例</h3><p>从 cell 复用到全屏视频流，按基础、常用组件和应用拆解三组浏览。每个示例包含演示与 Objective-C 代码。</p>
+<div class="roadmap-mini"><b>01</b><span>基础</span><span aria-hidden="true">→</span><b>02</b><span>常用组件</span><span aria-hidden="true">→</span><b>03</b><span>头部 App 怎么做</span></div><a class="text-link purple" href="/learn/ios-list-lab/">查看章节 →</a></div></article>
+<p class="note-line">单篇笔记在 <a class="accent" href="/list/">文章 →</a>。</p>
+
+</main>
+
+<footer class="f">
+  <div class="f-inner">
+    <span><span class="prompt">$ </span>echo "© Floki · Code Notes"</span>
+    
+    
+      <span id="busuanzi_container_site_pv">
+        <span class="prompt">★ </span>visitors × <span id="busuanzi_value_site_pv"></span>
+      </span>
+    
+  </div>
+</footer>
+
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+  <script>
+    window.PT_CAT_BUDDY = {"src":"/img/cat.png","size":100,"corner":"br","followMouse":true,"phrases":["MEOW.EXE","SUDO PURR","> PET ME","HP +1","RUA~","CTRL+M","PRESS A"]};
+  </script>
+  <script src="/js/cat-buddy.js?v=studio-20261013" defer></script>
+
+
+
+<script src="/js/pixelterm.js?v=studio-20261013" defer></script>
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

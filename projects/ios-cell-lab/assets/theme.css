@@ -1,0 +1,175 @@
+/* ============================================================
+ * ⚠️ 已对齐 hexo-theme-pixelterm 配色（保持与博客视觉一致）
+ *  浅色：羊皮纸暖底 + 琥珀棕（pixelterm light_palette）
+ *  深色：深石板蓝 + 赛博青（pixelterm dark_palette）
+ * ============================================================ */
+
+/* ---------- 浅色（默认） ---------- */
+:root {
+  --bg:        #f5e8c8;        /* 羊皮纸暖底（与博客 bg 一致） */
+  --bg-alt:    #ecdcb0;        /* 二级背景 */
+  --bg-code:   #1e242c;        /* 代码块（One Dark 风，与博客 code-bg 一致） */
+  --bg-elev:   #fff7e0;        /* 卡片/弹层 */
+
+  --ink:       #3a2007;        /* 主文字（深棕，与博客 text 一致） */
+  --ink-2:     #5a3410;        /* 次文字 */
+  --ink-3:     #8a6a3a;        /* 三级文字 */
+
+  --line:      #9a7a3c;        /* 描边 */
+  --line-soft: #c8a868;        /* 浅描边 */
+
+  --accent:    #b45309;        /* 主品牌色：琥珀棕（与博客 accent 一致） */
+  --accent-2:  #0e7490;        /* 副色：墨青 */
+  --selection: rgba(180,83,9,0.18);
+
+  --shadow-sm: 0 1px 2px rgba(124,74,2,0.10);
+  --shadow:    0 4px 12px rgba(124,74,2,0.14);
+
+  /* code block 内部颜色（One Dark 风，暗亮共用一套） */
+  --code-text:    #abb2bf;
+  --code-comment: #7f848e;
+  --code-key:     #c678dd;
+  --code-str:     #98c379;
+  --code-fn:      #61afef;
+  --code-num:     #d19a66;
+
+  --mono: 'JetBrains Mono', 'SF Mono', 'Menlo', ui-monospace, monospace;
+  --sans: 'Inter', 'SF Pro Text', 'PingFang SC', -apple-system, sans-serif;
+  --serif: 'Charter', 'Iowan Old Style', 'Source Serif Pro', Georgia, serif;
+}
+
+/* ---------- 深色 ---------- */
+[data-theme="dark"] {
+  --bg:        #0b0f14;        /* 深石板蓝（与博客 bg 一致） */
+  --bg-alt:    #11161d;
+  --bg-code:   #1e242c;        /* One Dark */
+  --bg-elev:   #161c25;
+
+  --ink:       #e2e8f0;
+  --ink-2:     #94a3b8;
+  --ink-3:     #64748b;
+
+  --line:      #283142;
+  --line-soft: #1e2533;
+
+  --accent:    #5eead4;        /* 赛博青（与博客 accent 一致） */
+  --accent-2:  #c084fc;        /* 紫 */
+  --selection: rgba(94,234,212,0.22);
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.5);
+  --shadow:    0 4px 16px rgba(0,0,0,0.6);
+}
+
+/* 系统跟随（浏览器无 data-theme 属性时） */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:        #0b0f14;
+    --bg-alt:    #11161d;
+    --bg-code:   #1e242c;
+    --bg-elev:   #161c25;
+    --ink:       #e2e8f0;
+    --ink-2:     #94a3b8;
+    --ink-3:     #64748b;
+    --line:      #283142;
+    --line-soft: #1e2533;
+    --accent:    #5eead4;
+    --accent-2:  #c084fc;
+    --selection: rgba(94,234,212,0.22);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.5);
+    --shadow:    0 4px 16px rgba(0,0,0,0.6);
+  }
+}
+
+/* ---------- 全局选中色 ---------- */
+::selection { background: var(--selection); color: var(--ink); }
+
+/* ---------- 切换按钮 ---------- */
+.theme-toggle {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 100;
+
+  width: 44px;
+  height: 44px;
+  padding: 0;
+
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 0;
+
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-2);
+
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, transform 0.15s;
+  box-shadow: var(--shadow-sm);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  -webkit-tap-highlight-color: transparent;
+}
+.theme-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.theme-toggle:active { transform: translateY(1px); }
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.theme-toggle svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle:hover svg { transform: rotate(15deg); }
+
+.theme-toggle .icon-mask {
+  transition: cx 0.4s, r 0.4s;
+}
+.theme-toggle .icon-rays {
+  transform-origin: center;
+  transition: transform 0.4s, opacity 0.4s;
+  transform: scale(0);
+  opacity: 0;
+}
+
+:root:not([data-theme="dark"]) .theme-toggle .icon-mask { cx: 50; r: 0; }
+:root:not([data-theme="dark"]) .theme-toggle .icon-rays { transform: scale(1); opacity: 1; }
+
+[data-theme="dark"] .theme-toggle .icon-mask { cx: 16; r: 9; }
+[data-theme="dark"] .theme-toggle .icon-rays { transform: scale(0); opacity: 0; }
+
+/* ---------- View Transitions API 圆形扩散 ---------- */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) { z-index: 1; }
+::view-transition-new(root) { z-index: 999; }
+
+/* ---------- prefers-reduced-motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle svg,
+  .theme-toggle .icon-mask,
+  .theme-toggle .icon-rays { transition: none; }
+}
+
+/* ---------- 移动端按钮缩小 ---------- */
+@media (max-width: 640px) {
+  .theme-toggle {
+    left: 14px;
+    bottom: 14px;
+    width: 40px;
+    height: 40px;
+  }
+  .theme-toggle svg { width: 16px; height: 16px; }
+}

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hexo + pixelterm v1.0.0">
+<meta name="description" content="为 iPhone 设计的本机账本。用语音或付款截图整理多笔收支，核对后一次保存；支持离线记账、资产与存钱计划，以及完整备份迁移。">
+<meta name="author" content="floki">
+<meta name="theme-color" content="#0b0f14">
+
+<title>Yujournal · 余记｜iPhone 本机记账工具 · Floki</title>
+<link rel="canonical" href="https://floki-u.github.io/apps/yujournal/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Floki">
+<meta property="og:title" content="Yujournal · 余记｜iPhone 本机记账工具 · Floki">
+<meta property="og:description" content="为 iPhone 设计的本机账本。用语音或付款截图整理多笔收支，核对后一次保存；支持离线记账、资产与存钱计划，以及完整备份迁移。">
+<meta property="og:url" content="https://floki-u.github.io/apps/yujournal/">
+<meta property="og:image" content="https://floki-u.github.io/img/apps/yujournal-overview.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+
+<link rel="icon" type="image/png" href="/img/cat.png">
+
+<!-- 字体（与设计稿一致） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css">
+
+<!-- 主题样式 -->
+<link rel="stylesheet" href="/css/pixelterm.css">
+<!-- 移动端适配增强（必须放在 pixelterm.css 之后） -->
+<link rel="stylesheet" href="/css/mobile.css">
+
+  <link rel="stylesheet" href="/css/mermaid.css">
+
+
+  <link rel="stylesheet" href="/css/lightgallery.min.css">
+
+
+<!-- 代码高亮（内置 IDE 风格：暗色 One Dark / 亮色 GitHub Light，跟随主题切换） -->
+<link rel="stylesheet" href="/css/highlight.css">
+
+<link rel="stylesheet" href="/css/studio.css?v=studio-20261013">
+
+<!-- 自定义 CSS 注入 -->
+
+
+
+<!-- 主题模式优先注入（避免闪屏） -->
+<script>
+(function(){
+  var def = 'auto';
+  var t;
+  try { t = localStorage.getItem('pt-theme'); } catch(e){}
+  if(!t){
+    t = (def === 'auto')
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : def;
+  }
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+
+<body class="layout-app">
+
+<!-- 全屏背景层（CSS pseudos 提供 CRT 扫描线/vignette；下面是 canvas + grid） -->
+
+  <canvas id="rain" aria-hidden="true"></canvas>
+
+<div class="pix-grid" aria-hidden="true"></div>
+
+
+<a class="skip-link" href="#main">跳到正文</a>
+<header class="site-header"><div class="container header-inner">
+<a class="brand" href="/" aria-label="Floki 首页"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span><span class="brand-text">floki<span class="accent">_</span></span><span class="brand-path" style="display:block">~/apps</span></span></a>
+<span class="clock" data-clock>00:00:00</span>
+<nav class="nav" id="main-nav" aria-label="主导航"><a href="/" >首页</a><a href="/apps/" aria-current="page">软件</a><a href="/learn/" >学习专题</a><a href="/list/" >文章</a><a href="/about/" >关于</a></nav>
+<button class="theme-btn" data-theme-toggle aria-label="切换主题">☀</button><button class="menu-btn" data-menu-toggle aria-expanded="false" aria-controls="main-nav">菜单</button></div></header>
+
+
+<main id="main" class="shell container">
+  <header class="page-heading"><div class="breadcrumb"><a href="/apps/">软件</a><span>/</span><span>Yujournal · 余记</span></div><div class="app-detail-hero"><div><div class="pills"><span class="pill">iPhone / Safari</span><span class="pill">PWA · Web Clip</span><span class="pill live">早期版本 · 0.2.3</span></div><h1 style="margin-top:23px">Yujournal · 余记</h1><p class="detail-intro">每天记一点，账目留在本机。</p><div class="hero-actions"><a class="button" href="https://floki-u.github.io/Yujournal/" target="_blank" rel="noopener">打开余记 ↗</a><a class="text-link" href="https://github.com/floki-u/Yujournal" target="_blank" rel="noopener">GitHub 项目 ↗</a></div></div><img class="detail-icon" decoding="async" src="/img/apps/yujournal-icon.png" alt="Yujournal · 余记 图标" width="128" height="128"></div></header>
+<div class="detail-visual"><figure><img decoding="async" src="/img/apps/yujournal-overview.jpg" alt="余记当天收支、语音与截图录入的界面示意" width="1600" height="1100"><figcaption>界面示意图，账目为示例数据，实际效果以应用为准。</figcaption></figure></div><section class="benefits" aria-label="功能"><article class="benefit"><div class="small">01 / QUICK ENTRY</div><h2>语音与截图，少打几个字</h2><p>应用内长按说话，或识别付款截图；一次整理多笔收入与支出，保存前统一核对金额、方向和日期。</p></article><article class="benefit"><div class="small">02 / LOCAL FIRST</div><h2>离线记录，完整备份</h2><p>账目保存在当前设备，不上传云端。支持导出、导入完整 .yuji 备份，用于换机和保留历史记录。</p></article><article class="benefit"><div class="small">03 / DAILY LIFE</div><h2>收支、资产与存钱计划</h2><p>用日历查看日、月、年账目，设置固定收支和存钱目标，生成报告长图；还可收集徽章、佩戴并解锁主题。</p></article></section><section class="app-document"><h2 id="安装与开始使用"><a href="#安装与开始使用" class="headerlink" title="安装与开始使用"></a>安装与开始使用</h2><ol>
+<li>用 iPhone Safari <a href="https://floki-u.github.io/Yujournal/">打开余记</a>，选择“分享 → 添加到主屏幕”，保持“打开为网页 App”开启。</li>
+<li>从主屏幕图标打开，首次联网完成程序缓存后即可离线记账。建议始终使用这个固定入口保存正式账目。</li>
+<li>语音与截图识别资源按需准备。输入或识别后先核对清单，再一次确认入账。</li>
+</ol>
+<p>也可通过 <a href="https://floki-u.github.io/Yujournal/install.html">iPhone 安装页</a> 下载 <a href="https://floki-u.github.io/Yujournal/Yujournal.mobileconfig">Web Clip 描述文件</a>，然后在“设置 → 已下载描述文件”完成安装。描述文件只添加可移除的网页入口，不包含设备管理、VPN 或账本。</p>
+<p>这是网页应用，无需上架 App Store、付费苹果开发者账号或定期重新签名。应用联网更新程序缓存后，重开即可使用新版。</p>
+<h2 id="便捷记账与离线识别"><a href="#便捷记账与离线识别" class="headerlink" title="便捷记账与离线识别"></a>便捷记账与离线识别</h2><p>本机语音包约 98 MiB，首次按需下载，录音不上传。关闭录入浮层或切换应用内页面时继续下载，支持手动暂停和分段续传；iOS 锁屏、切到其他 App 或结束进程后仍可能暂停执行。</p>
+<p>截图识别支持裁剪、查看原文和多笔确认。快捷指令提供图片分享识别和语音录入入口，添加步骤见 <a target="_blank" rel="noopener" href="https://github.com/floki-u/Yujournal/blob/main/docs/SHORTCUTS.zh-CN.md">快捷输入说明</a>。余记不会后台读取微信、支付宝或银行 App 的流水。</p>
+<p>支持多币种与自动获取的日参考汇率，历史账目保留入账时的折算结果。报告可生成为本机 PNG 长图，通过系统分享面板保存到照片。</p>
+<h2 id="本机数据与换机"><a href="#本机数据与换机" class="headerlink" title="本机数据与换机"></a>本机数据与换机</h2><p>在“我的”中导出完整 <code>.yuji</code> 备份，换设备后导入。完整备份可包含账目、计划、固定收支、个人资料及已保留的截图，并可选择密码保护。</p>
+<p>清除网站数据前先导出备份。移除主屏幕图标或 Web Clip 不保证同时释放网页缓存；需要释放识别资源时，使用应用里的清理按钮，不影响账目。</p>
+<h2 id="版本与反馈"><a href="#版本与反馈" class="headerlink" title="版本与反馈"></a>版本与反馈</h2><p>当前为早期版本，主要面向 iPhone 与新版 Safari。自动化测试和浏览器验证范围、仍需真机确认的项目见 <a target="_blank" rel="noopener" href="https://github.com/floki-u/Yujournal/blob/main/docs/TESTING.md">测试说明</a>。</p>
+<p>使用问题见 <a target="_blank" rel="noopener" href="https://github.com/floki-u/Yujournal/blob/main/docs/FAQ.zh-CN.md">常见问题</a>；反馈可通过 <a target="_blank" rel="noopener" href="https://github.com/floki-u/Yujournal/issues">GitHub Issues</a> 提供系统版本和复现步骤，示例账目请使用虚构数据。</p>
+<p>代码采用 MIT 许可，详情见 <a target="_blank" rel="noopener" href="https://github.com/floki-u/Yujournal">代码仓库</a> 和 <a target="_blank" rel="noopener" href="https://github.com/floki-u/Yujournal/blob/main/THIRD_PARTY_NOTICES.md">第三方组件说明</a>。</p>
+</section>
+
+</main>
+
+<footer class="f">
+  <div class="f-inner">
+    <span><span class="prompt">$ </span>echo "© Floki · Code Notes"</span>
+    
+    
+      <span id="busuanzi_container_site_pv">
+        <span class="prompt">★ </span>visitors × <span id="busuanzi_value_site_pv"></span>
+      </span>
+    
+  </div>
+</footer>
+
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+  <script>
+    window.PT_CAT_BUDDY = {"src":"/img/cat.png","size":100,"corner":"br","followMouse":true,"phrases":["MEOW.EXE","SUDO PURR","> PET ME","HP +1","RUA~","CTRL+M","PRESS A"]};
+  </script>
+  <script src="/js/cat-buddy.js?v=studio-20261013" defer></script>
+
+
+
+<script src="/js/pixelterm.js?v=studio-20261013" defer></script>
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

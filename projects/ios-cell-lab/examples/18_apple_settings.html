@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>18. Apple 风格设置页 — iOS 系统设计语言</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/shared.css">
+<script src="../assets/theme.js"></script>
+<style>
+  body { background: #f5f6fa; font-family: -apple-system, "PingFang SC", sans-serif; margin: 0; padding: 24px; color: #2d3748; }
+  .nav { max-width: 1000px; margin: 0 auto 16px; display: flex; justify-content: space-between; font-size: 13px; }
+  .nav a { color: #4facfe; text-decoration: none; }
+  .container { max-width: 1000px; margin: 0 auto; }
+  .header { background: linear-gradient(135deg, #1a1a2e 0%, #4a4a6a 100%); color: white; padding: 28px; border-radius: 14px; margin-bottom: 20px; }
+  .header h1 { margin: 0 0 8px; font-size: 22px; }
+  .header p { margin: 0; opacity: 0.95; font-size: 14px; line-height: 1.7; }
+
+  .phone { width: 360px; margin: 0 auto; background: #f2f2f7; border-radius: 22px; padding: 0; box-shadow: 0 12px 40px rgba(0,0,0,0.18); overflow: hidden; }
+  .status-bar { padding: 14px 20px 8px; display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; }
+
+  /* 大标题导航 */
+  .large-title { padding: 8px 20px 16px; }
+  .large-title h1 { font-size: 34px; font-weight: 700; color: #000; margin: 0; }
+
+  /* 搜索栏 */
+  .search-bar { padding: 0 20px 14px; }
+  .search-bar .field { background: rgba(118,118,128,0.12); border-radius: 10px; padding: 8px 12px; display: flex; align-items: center; gap: 6px; font-size: 14px; color: rgba(60,60,67,0.6); }
+
+  /* InsetGrouped 段 */
+  .ig-section { margin: 0 16px 28px; }
+  .ig-section .header { background: transparent; padding: 6px 16px 6px; color: rgba(60,60,67,0.6); font-size: 13px; box-shadow: none; border-radius: 0; margin: 0; opacity: 1; }
+  .ig-section .group { background: white; border-radius: 12px; overflow: hidden; }
+  .ig-row { padding: 11px 16px; display: flex; align-items: center; gap: 12px; border-bottom: 0.5px solid rgba(60,60,67,0.18); cursor: pointer; min-height: 22px; }
+  .ig-row:last-child { border-bottom: none; }
+  .ig-row .ico-box {
+    width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 14px; flex-shrink: 0;
+  }
+  .ico-blue   { background: #007aff; }
+  .ico-green  { background: #34c759; }
+  .ico-orange { background: #ff9500; }
+  .ico-red    { background: #ff3b30; }
+  .ico-purple { background: #af52de; }
+  .ico-pink   { background: #ff2d55; }
+  .ico-gray   { background: #8e8e93; }
+  .ico-yellow { background: #ffcc00; }
+  .ico-teal   { background: #5ac8fa; }
+  .ico-indigo { background: #5856d6; }
+
+  .ig-row .label { flex: 1; font-size: 17px; color: #000; }
+  .ig-row .value { font-size: 17px; color: rgba(60,60,67,0.6); }
+  .ig-row .chev { color: rgba(60,60,67,0.3); font-size: 14px; font-weight: 600; }
+  .ig-row .badge { background: #ff3b30; color: white; font-size: 12px; padding: 2px 6px; border-radius: 9px; min-width: 18px; text-align: center; line-height: 1.2; font-weight: 600; }
+  .ig-row .switch { width: 50px; height: 30px; background: #34c759; border-radius: 15px; position: relative; }
+  .ig-row .switch.off { background: rgba(120,120,128,0.16); }
+  .ig-row .switch::after { content: ''; position: absolute; top: 2px; left: 22px; width: 26px; height: 26px; background: white; border-radius: 13px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .ig-row .switch.off::after { left: 2px; }
+
+  .section-footer { padding: 6px 16px 14px; color: rgba(60,60,67,0.6); font-size: 13px; line-height: 1.4; }
+
+  /* 设计原则表 */
+  table.metrics { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+  table.metrics th, table.metrics td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ecedf1; vertical-align: top; }
+  table.metrics th { background: #f5f6fa; }
+
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .compare-card { background: #f9fafc; border-radius: 10px; padding: 14px; }
+  .compare-card.bad { border-top: 3px solid #ef5350; }
+  .compare-card.good { border-top: 3px solid #4caf50; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="../index.html">← 返回主菜单</a>
+  <span>
+    <a href="17_story_card.html">← 上一个</a> &nbsp;|&nbsp;
+    <a href="19_design_overview.html">下一个 →</a>
+  </span>
+</div>
+
+<div class="container">
+
+  <div class="header">
+    <h1>⚙️ Apple 风格设置页 — iOS 系统设计语言</h1>
+    <p>iOS 系统设置 / 钱包 / Mail / 健康 都是这套设计。Apple 通过 HIG（人机界面指南）+ <code>UICollectionLayoutListConfiguration</code> 把它推成所有 iOS App 设置页的事实标准。<b>跟着 Apple 做，用户零学习成本</b>。</p>
+  </div>
+
+  <!-- 视觉 -->
+  <div class="section-block">
+    <h2>🎨 视觉效果（高度还原系统设置）</h2>
+    <div class="phone">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>● ● ●</span>
+      </div>
+
+      <div class="large-title">
+        <h1>设置</h1>
+      </div>
+
+      <div class="search-bar">
+        <div class="field">🔍 搜索</div>
+      </div>
+
+      <!-- 个人 section -->
+      <div class="ig-section">
+        <div class="group">
+          <div class="ig-row" style="padding: 12px 16px; gap: 14px;">
+            <div style="width:50px;height:50px;border-radius:25px;background:linear-gradient(135deg,#fa709a,#fee140);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:20px;">张</div>
+            <div style="flex:1;">
+              <div style="font-size:18px;font-weight:600;color:#000;">张三</div>
+              <div style="font-size:13px;color:rgba(60,60,67,0.6);">Apple ID, iCloud, 媒体与购买项目</div>
+            </div>
+            <div class="chev">›</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 系统 -->
+      <div class="ig-section">
+        <div class="group">
+          <div class="ig-row">
+            <div class="ico-box ico-orange">📱</div>
+            <div class="label">飞行模式</div>
+            <div class="switch off"></div>
+          </div>
+          <div class="ig-row">
+            <div class="ico-box ico-blue">📶</div>
+            <div class="label">无线局域网</div>
+            <div class="value">CMCC-5G</div>
+            <div class="chev">›</div>
+          </div>
+          <div class="ig-row">
+            <div class="ico-box ico-blue">🔵</div>
+            <div class="label">蓝牙</div>
+            <div class="value">打开</div>
+            <div class="chev">›</div>
+          </div>
+          <div class="ig-row">
+            <div class="ico-box ico-green">📞</div>
+            <div class="label">蜂窝网络</div>
+            <div class="chev">›</div>
+          </div>
+          <div class="ig-row">
+            <div class="ico-box ico-green">📡</div>
+            <div class="label">个人热点</div>
+            <div class="value">关闭</div>
+            <div class="chev">›</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 通知/声音 -->
+      <div class="ig-section">
+        <div class="group">
+          <div class="ig-row">
+            <div class="ico-box ico-red">🔔</div>
+            <div class="label">通知</div>
+            <div class="chev">›</div>
+          </div>
+          <div class="ig-row">
+            <div class="ico-box ico-pink">🔊</div>
+            <div class="label">声音与触感</div>
+            <div class="chev">›</div>
+          </div>
+          <div class="ig-row">
+            <div class="ico-box ico-purple">🎯</div>
+            <div class="label">专注模式</div>
+            <div class="chev">›</div>
+          </div>
+          <div class="ig-row">
+            <div class="ico-box ico-teal">⏰</div>
+            <div class="label">屏幕使用时间</div>
+            <div class="chev">›</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 通用 -->
+      <div class="ig-section">
+        <div class="group">
+          <div class="ig-row">
+            <div class="ico-box ico-gray">⚙️</div>
+            <div class="label">通用</div>
+            <div class="badge">1</div>
+            <div class="chev">›</div>
+          </div>
+          <div class="ig-row">
+            <div class="ico-box ico-blue">♿</div>
+            <div class="label">辅助功能</div>
+            <div class="chev">›</div>
+          </div>
+          <div class="ig-row">
+            <div class="ico-box ico-yellow">🔒</div>
+            <div class="label">隐私与安全性</div>
+            <div class="chev">›</div>
+          </div>
+        </div>
+        <div class="section-footer">通用设置可帮助你管理设备的语言、键盘、日期与时间等基础选项。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 设计原则 -->
+  <div class="section-block">
+    <h2>🧠 Apple 设置页的 7 条设计原则</h2>
+    <table class="metrics">
+      <tr><th>原则</th><th>表现</th><th>背后动机</th></tr>
+      <tr>
+        <td>1. 大标题</td>
+        <td>页面顶部 34pt 粗体大标题，下滑后变小</td>
+        <td>明确"我在哪一页"，避免迷失</td>
+      </tr>
+      <tr>
+        <td>2. InsetGrouped</td>
+        <td>白色卡片 + 12pt 圆角，左右留 16pt 边距</td>
+        <td>视觉模块化，强化"这是一组"</td>
+      </tr>
+      <tr>
+        <td>3. 彩色图标</td>
+        <td>圆角矩形（28×28）背景 + 白色 SF Symbols</td>
+        <td>类别识别度高，第一眼分类</td>
+      </tr>
+      <tr>
+        <td>4. 17pt 字号</td>
+        <td>所有标签 17pt 系统字</td>
+        <td>无障碍友好，老年人也能看清</td>
+      </tr>
+      <tr>
+        <td>5. 右侧 Chevron</td>
+        <td>所有可点击 row 都有 ›</td>
+        <td>明确"可以进入下一层"</td>
+      </tr>
+      <tr>
+        <td>6. Section Footer 帮助文案</td>
+        <td>section 底部一段灰色小字</td>
+        <td>就近解释，不需要单独"说明"页</td>
+      </tr>
+      <tr>
+        <td>7. 状态值左置 chevron</td>
+        <td>"无线局域网 .... CMCC-5G ›"</td>
+        <td>不进入页面也能知道当前状态</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 完整代码 -->
+  <div class="section-block">
+    <h2>📦 完整实现 — UICollectionView + List Configuration（iOS 14+）</h2>
+    <div class="section-subtitle">无需自定义 cell，全部用 Apple 系统组件，与系统设置一模一样</div>
+
+    <h3 style="margin-top:18px;font-size:14px;">1️⃣ 数据模型</h3>
+<div class="code-block"><span class="kw">@interface</span> <span class="type">SettingItem</span> : <span class="type">NSObject</span>
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">copy</span>) <span class="type">NSString</span> *title;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">copy</span>) <span class="type">NSString</span> *subtitle;        <span class="comm">// 右侧状态值</span>
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">copy</span>) <span class="type">NSString</span> *iconName;       <span class="comm">// SF Symbols 名</span>
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">UIColor</span> *iconBgColor;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">assign</span>) <span class="type">SettingAccessoryType</span> accessoryType;  <span class="comm">// chevron / switch / badge</span>
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">copy</span>) <span class="kw">void</span> (^onTap)(<span class="kw">void</span>);
+<span class="kw">@end</span></div>
+
+    <h3 style="margin-top:18px;font-size:14px;">2️⃣ Layout —— 一行代码搞定 InsetGrouped 风格</h3>
+<div class="code-block"><span class="kw">- (UICollectionViewLayout *)</span><span class="meth">makeListLayout</span> {
+    <span class="comm">// ⭐ 系统提供的 list configuration，appearance 是 InsetGrouped</span>
+    <span class="type">UICollectionLayoutListConfiguration</span> *cfg = [[<span class="type">UICollectionLayoutListConfiguration</span> alloc]
+        initWithAppearance:<span class="type">UICollectionLayoutListAppearanceInsetGrouped</span>];
+
+    cfg.headerMode = <span class="type">UICollectionLayoutListHeaderModeSupplementary</span>;   <span class="comm">// 支持 section header</span>
+    cfg.footerMode = <span class="type">UICollectionLayoutListFooterModeSupplementary</span>;   <span class="comm">// 支持帮助文案</span>
+
+    <span class="kw">return</span> [<span class="type">UICollectionViewCompositionalLayout</span> <span class="meth">layoutWithListConfiguration:</span>cfg];
+}</div>
+
+    <h3 style="margin-top:24px;font-size:14px;">3️⃣ Cell —— 用 UIListContentConfiguration（iOS 14+）</h3>
+<div class="code-block"><span class="comm">// ⭐ 完全不需要自定义 cell！用系统的 UICollectionViewListCell</span>
+<span class="type">UICollectionViewCellRegistration</span> *cellReg = [<span class="type">UICollectionViewCellRegistration</span>
+    <span class="meth">registrationWithCellClass:</span>[<span class="type">UICollectionViewListCell</span> <span class="kw">class</span>]
+                   <span class="meth">configurationHandler:</span>^(<span class="type">UICollectionViewListCell</span> *cell,
+                                              <span class="type">NSIndexPath</span> *ip,
+                                              <span class="type">SettingItem</span> *item) {
+    <span class="comm">// ⭐ 内容配置</span>
+    <span class="type">UIListContentConfiguration</span> *content = [cell defaultContentConfiguration];
+    content.text = item.title;
+
+    <span class="comm">// ⭐ 彩色图标方块（系统设置同款）</span>
+    <span class="kw">if</span> (item.iconName) {
+        <span class="type">UIImage</span> *symbol = [<span class="type">UIImage</span> systemImageNamed:item.iconName];
+        symbol = [symbol imageWithTintColor:[<span class="type">UIColor</span> whiteColor]
+                              renderingMode:<span class="type">UIImageRenderingModeAlwaysOriginal</span>];
+
+        <span class="comm">// 用 image 的 inset 做出"圆角彩色背景"效果</span>
+        <span class="type">UIImage</span> *iconWithBg = [<span class="kw">self</span> <span class="meth">renderIcon:</span>symbol bg:item.iconBgColor];
+        content.image = iconWithBg;
+        content.imageProperties.cornerRadius = <span class="num">6</span>;
+    }
+    cell.contentConfiguration = content;
+
+    <span class="comm">// ⭐ 右侧 accessory（chevron / switch / detail）</span>
+    <span class="type">NSMutableArray</span>&lt;<span class="type">UICellAccessory</span> *&gt; *accessories = [<span class="type">NSMutableArray</span> array];
+
+    <span class="kw">if</span> (item.subtitle) {
+        <span class="comm">// 右侧文字，比如 "无线局域网 ... CMCC-5G"</span>
+        <span class="type">UICellAccessoryLabel</span> *label = [[<span class="type">UICellAccessoryLabel</span> alloc] <span class="meth">initWithText:</span>item.subtitle];
+        [accessories addObject:label];
+    }
+
+    <span class="kw">switch</span> (item.accessoryType) {
+        <span class="kw">case</span> <span class="type">SettingAccessoryDisclosure</span>:
+            [accessories addObject:[<span class="type">UICellAccessoryDisclosureIndicator</span> new]];
+            <span class="kw">break</span>;
+        <span class="kw">case</span> <span class="type">SettingAccessorySwitch</span>: {
+            <span class="comm">// ⭐ Switch 也是系统的 cell accessory</span>
+            <span class="type">UISwitch</span> *sw = [<span class="type">UISwitch</span> new];
+            sw.on = item.switchOn;
+            <span class="type">UICellAccessoryCustomView</span> *customView =
+                [[<span class="type">UICellAccessoryCustomView</span> alloc] <span class="meth">initWithCustomView:</span>sw
+                                                          <span class="meth">placement:</span><span class="type">UICellAccessoryPlacementTrailing</span>];
+            [accessories addObject:customView];
+            <span class="kw">break</span>;
+        }
+        <span class="kw">case</span> <span class="type">SettingAccessoryBadge</span>: {
+            <span class="comm">// 红色 badge（"通用 ① ›" 那种）</span>
+            <span class="type">UIView</span> *badgeView = [<span class="kw">self</span> <span class="meth">badgeView:</span>item.badgeText];
+            <span class="type">UICellAccessoryCustomView</span> *cv =
+                [[<span class="type">UICellAccessoryCustomView</span> alloc] <span class="meth">initWithCustomView:</span>badgeView
+                                                          <span class="meth">placement:</span><span class="type">UICellAccessoryPlacementTrailing</span>];
+            [accessories addObject:cv];
+            [accessories addObject:[<span class="type">UICellAccessoryDisclosureIndicator</span> new]];
+            <span class="kw">break</span>;
+        }
+    }
+    cell.accessories = accessories;
+}];</div>
+
+    <h3 style="margin-top:24px;font-size:14px;">4️⃣ DataSource + Snapshot</h3>
+<div class="code-block"><span class="kw">self</span>.dataSource = [[<span class="type">UICollectionViewDiffableDataSource</span> alloc]
+    initWithCollectionView:<span class="kw">self</span>.collectionView
+              cellProvider:^<span class="type">UICollectionViewCell</span> *(<span class="type">UICollectionView</span> *cv,
+                                                         <span class="type">NSIndexPath</span> *ip,
+                                                         <span class="type">SettingItem</span> *item) {
+    <span class="kw">return</span> [cv <span class="meth">dequeueConfiguredReusableCellWithRegistration:</span>cellReg
+                                            <span class="meth">forIndexPath:</span>ip
+                                                    <span class="meth">item:</span>item];
+}];
+
+<span class="comm">// ⭐ Snapshot —— 数据驱动 UI</span>
+<span class="type">NSDiffableDataSourceSnapshot</span> *snap = [<span class="type">NSDiffableDataSourceSnapshot</span> new];
+[snap appendSectionsWithIdentifiers:@[<span class="str">@"profile"</span>, <span class="str">@"system"</span>, <span class="str">@"notification"</span>, <span class="str">@"general"</span>]];
+[snap <span class="meth">appendItemsWithIdentifiers:</span><span class="kw">self</span>.profileItems intoSectionWithIdentifier:<span class="str">@"profile"</span>];
+[snap <span class="meth">appendItemsWithIdentifiers:</span><span class="kw">self</span>.systemItems intoSectionWithIdentifier:<span class="str">@"system"</span>];
+<span class="comm">// ...</span>
+[<span class="kw">self</span>.dataSource <span class="meth">applySnapshot:</span>snap animatingDifferences:<span class="type">YES</span>];</div>
+
+    <div class="explain success">
+      <span class="h">这套方案的优势：</span><br>
+      · <b>0 行自定义 cell 代码</b>，全部用系统组件<br>
+      · 自动支持 Dynamic Type（无障碍字号）<br>
+      · 自动支持 Dark Mode<br>
+      · 自动支持 VoiceOver<br>
+      · iOS 升级后自动获得新设计（比如 iOS 17 的更圆角）
+    </div>
+  </div>
+
+  <!-- 反例 -->
+  <div class="section-block">
+    <h2>⚖️ 反例 vs 正例</h2>
+    <div class="compare-grid">
+      <div class="compare-card bad">
+        <h4>❌ 反例：自己画一套</h4>
+        <div class="explain danger" style="font-size:12px;">
+          自定义 cell + 手算图标圆角 + 自己处理 Dark Mode<br>
+          → 几百行代码<br>
+          → 系统升级要跟着改<br>
+          → 字号、配色和系统不一致，老用户感到陌生<br>
+          → VoiceOver 要自己配
+        </div>
+      </div>
+      <div class="compare-card good">
+        <h4>✅ 正例：UICollectionLayoutListConfiguration</h4>
+        <div class="explain success" style="font-size:12px;">
+          系统组件全包<br>
+          → 50 行代码完工<br>
+          → 永远跟系统同步<br>
+          → 用户零学习成本<br>
+          → 无障碍 / Dark Mode / Dynamic Type 全自动
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 设计创新 -->
+  <div class="section-block">
+    <h2>🎓 Apple 设计中可借鉴的 5 个点</h2>
+    <div class="explain success">
+      <span class="h">借鉴 1：彩色分类图标的"形状语言"</span><br>
+      所有图标都是 <b>28×28 圆角矩形 + 白色 SF Symbol</b>。这种"<b>统一容器形状 + 不同填充色</b>"的设计，识别度极高，可大量用在功能列表。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 2：状态值"前置"减少跳转</span><br>
+      WiFi 名、蓝牙状态都直接显示在 row 上。<b>用户不用进入下一层就能知道</b>，是优秀 UX 的标志。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 3：Section Footer 就近解释</span><br>
+      解释文案放在 section 底部 13pt 灰字，而不是单独的"说明"页。<b>就近原则</b>降低用户理解成本。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 4：大标题 → 小标题的渐变折叠</span><br>
+      <code>navigationItem.largeTitleDisplayMode = .always</code> 一行启用。下滑时大标题自动折叠到导航栏。这是一种"<b>层级感 + 节省空间</b>"的优雅方案。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 5：搜索栏的"按需展开"</span><br>
+      <code>navigationItem.searchController = ...</code><br>
+      默认折叠，用户下拉才出现搜索框。<b>不抢占首屏</b>但触手可及。微信、淘宝、知乎都跟进了这个模式。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

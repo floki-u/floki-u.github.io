@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3. MomentCell - 朋友圈九宫格</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/shared.css">
+<script src="../assets/theme.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "PingFang SC", sans-serif; background: #ededed; padding: 20px; }
+  .nav { max-width: 760px; margin: 0 auto 20px; display: flex; gap: 10px; }
+  .nav a { padding: 6px 12px; background: white; color: #333; text-decoration: none; border-radius: 6px; font-size: 13px; border: 1px solid #ddd; }
+  .nav a:hover { background: #1a1a2e; color: white; }
+  .container { max-width: 760px; margin: 0 auto; }
+  .header { background: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; }
+  .header h1 { font-size: 24px; color: #1a1a2e; margin-bottom: 12px; }
+
+  .iphone {
+    width: 390px; background: white; border-radius: 24px; margin: 0 auto;
+    overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  }
+  .status-bar { background: white; padding: 14px 20px; display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; }
+  .nav-bar { background: white; padding: 12px 20px; border-bottom: 1px solid #e5e5e5; text-align: center; font-size: 17px; font-weight: 600; }
+
+  .moment { background: white; padding: 16px 12px; display: flex; border-bottom: 1px solid #f0f0f0; }
+  .avatar { width: 40px; height: 40px; border-radius: 6px; flex-shrink: 0; margin-right: 10px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; }
+  .moment-body { flex: 1; min-width: 0; }
+  .name { font-size: 15px; color: #576b95; font-weight: 500; margin-bottom: 4px; }
+  .text { font-size: 15px; color: #1a1a1a; line-height: 1.5; margin-bottom: 8px; }
+  .grid { display: grid; gap: 4px; margin-bottom: 8px; grid-template-columns: repeat(3, 78px); }
+  .grid-item { width: 78px; height: 78px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: rgba(255,255,255,0.8); }
+  .footer { margin-top: 6px; display: flex; justify-content: space-between; font-size: 13px; color: #999; }
+</style>
+</head>
+<body>
+  <div class="nav">
+    <a href="../index.html">← 返回主菜单</a>
+    <a href="02_news_cell.html">← 上一个</a>
+    <a href="04_ad_cell.html">下一个 →</a>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <h1>3️⃣ MomentCell（朋友圈：图片九宫格）</h1>
+      <p style="color:#6c7293;font-size:14px;line-height:1.6;">
+        朋友圈 cell 的核心难点是 <b>图片九宫格 + 圆角</b>。
+        如果每张图都用 <code>clipsToBounds</code> 裁圆角，9 张图 = 9 次离屏 + 9 次混合，必卡。
+        本节讲<b>"零离屏圆角图片"</b>的工业级方案。
+      </p>
+    </div>
+
+    <!-- 视觉效果 -->
+    <div class="section-block">
+      <h2>🎨 视觉效果</h2>
+      <div class="iphone">
+        <div class="status-bar"><span>9:41</span><span>•••</span></div>
+        <div class="nav-bar">朋友圈</div>
+        <div class="moment">
+          <div class="avatar" style="background: linear-gradient(135deg, #11998e, #38ef7d);">陈</div>
+          <div class="moment-body">
+            <div class="name">陈小明</div>
+            <div class="text">今天去了一趟海边，风景超棒！</div>
+            <div class="grid">
+              <div class="grid-item" style="background:linear-gradient(135deg,#ffecd2,#fcb69f);">🌊</div>
+              <div class="grid-item" style="background:linear-gradient(135deg,#a1c4fd,#c2e9fb);">🏖️</div>
+              <div class="grid-item" style="background:linear-gradient(135deg,#fbc2eb,#a6c1ee);">⛱️</div>
+              <div class="grid-item" style="background:linear-gradient(135deg,#fa709a,#fee140);">🐚</div>
+              <div class="grid-item" style="background:linear-gradient(135deg,#84fab0,#8fd3f4);">🦀</div>
+              <div class="grid-item" style="background:linear-gradient(135deg,#d299c2,#fef9d7);">🌅</div>
+              <div class="grid-item" style="background:linear-gradient(135deg,#fdcbf1,#e6dee9);">🐬</div>
+              <div class="grid-item" style="background:linear-gradient(135deg,#ff9a9e,#fecfef);">🦞</div>
+              <div class="grid-item" style="background:linear-gradient(135deg,#a18cd1,#fbc2eb);">🦑</div>
+            </div>
+            <div class="footer"><span>2 小时前</span><span>👍 12  💬 3</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 核心问题 -->
+    <div class="section-block">
+      <h2>🚨 核心问题：9 张图的圆角代价</h2>
+      <div class="step">
+        <div class="step-num bad">1</div>
+        <div class="step-content">
+          每张图用 <code>cornerRadius=4 + clipsToBounds=YES</code> →
+          <b>每张图都触发一次离屏</b>，9 张图 = 9 次
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num bad">2</div>
+        <div class="step-content">
+          滚动时一屏可能有 2~3 个朋友圈 → <b>27 次离屏 + 27 次合成</b> → FPS 直接掉到 30 以下
+        </div>
+      </div>
+      <div class="explain success">
+        <span class="h">💡 解法：</span>
+        利用 <b>SDWebImage / Kingfisher 的 Transformer</b>，让图片在<b>解码阶段</b>就把圆角处理掉，
+        UIImageView 完全不需要 <code>clipsToBounds</code> = <b>0 离屏</b>
+      </div>
+    </div>
+
+    <!-- 反例 vs 正例 -->
+    <div class="section-block">
+      <h2>✅ 关键技巧：解码时切圆角</h2>
+
+      <div class="bad-good">
+        <div class="panel-bad">
+          <div class="panel-head">❌ 反例：UIImageView 自己 clip</div>
+<pre class="code-block">UIImageView *gridImg =
+  [[UIImageView alloc] init];
+gridImg.layer.cornerRadius = <span class="num">4</span>;
+gridImg.<span class="bad">clipsToBounds</span> = <span class="kw">YES</span>;
+
+[gridImg <span class="meth">sd_setImageWithURL:</span>url];
+
+<span class="comm">// ❌ 9 张图 = 9 次离屏渲染
+// ❌ Color Off-screen
+//   九宫格区域全黄</span></pre>
+        </div>
+        <div class="panel-good">
+          <div class="panel-head">✅ 正例：Transformer 解码切圆角</div>
+<pre class="code-block">UIImageView *gridImg =
+  [[UIImageView alloc] init];
+<span class="comm">// ⭐ 不设 cornerRadius
+// ⭐ 不开 clipsToBounds</span>
+
+SDWebImageRoundCornerTransformer *t =
+  [[SDWebImageRoundCornerTransformer alloc]
+    initWithRadius:<span class="num">4</span>
+           corners:UIRectCornerAllCorners
+       borderWidth:<span class="num">0</span> borderColor:<span class="kw">nil</span>];
+
+[gridImg <span class="meth">sd_setImageWithURL:</span>url
+     <span class="meth">placeholderImage:</span><span class="kw">nil</span>
+              <span class="meth">options:</span><span class="num">0</span>
+              <span class="meth">context:</span>@{
+  SDWebImageContextImageTransformer: t
+}];
+
+<span class="comm">// ✅ 切好的图自带圆角
+// ✅ 0 离屏，0 clip</span></pre>
+        </div>
+      </div>
+
+      <div class="explain">
+        <span class="h">📖 原理：</span>
+        SDWebImage 下载图片后会先解码（在子线程），Transformer 介入这个阶段，
+        把图片<b>直接画在一个圆角 UIBezierPath 裁剪过的 context</b> 里，输出的 UIImage 本身就是圆角的。
+        UIImageView 显示时只需要正常贴图，不需要任何裁切操作。
+      </div>
+    </div>
+
+    <!-- Kingfisher 方案 -->
+    <div class="section-block">
+      <h2>🦋 Kingfisher 等价方案（Swift）</h2>
+
+<pre class="code-block"><span class="kw">import</span> Kingfisher
+
+<span class="kw">let</span> processor = RoundCornerImageProcessor(
+  cornerRadius: <span class="num">4</span>,
+  targetSize: CGSize(width: <span class="num">78</span>, height: <span class="num">78</span>),
+  roundingCorners: .all
+)
+
+gridImageView.kf.setImage(
+  with: url,
+  placeholder: <span class="kw">nil</span>,
+  options: [.processor(processor), .cacheSerializer(FormatIndicatedCacheSerializer.png)]
+)
+
+<span class="comm">// ⭐ 注意 cacheSerializer 用 png，否则 jpeg 会丢透明通道</span>
+<span class="comm">// ⭐ Kingfisher 的 cache key 会自动包含 processor identifier</span></pre>
+    </div>
+
+    <!-- 文本预算 -->
+    <div class="section-block">
+      <h2>✅ 配套：文本子线程预算</h2>
+      <div class="section-subtitle">朋友圈正文长度不定，必须在子线程算好高度</div>
+
+<pre class="code-block"><span class="kw">@interface</span> <span class="type">MomentViewModel</span> : <span class="type">NSObject</span>
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">strong</span>) <span class="type">Moment</span> *moment;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">assign</span>) <span class="type">CGFloat</span> cachedHeight;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">assign</span>) <span class="type">CGRect</span> textFrame;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">assign</span>) <span class="type">CGRect</span> gridFrame;
+<span class="kw">@end</span>
+
+<span class="kw">@implementation</span> <span class="type">MomentViewModel</span>
+
+- (<span class="kw">void</span>)<span class="meth">prepareLayoutIfNeeded</span> {
+  <span class="kw">if</span> (<span class="selector">self</span>.cachedHeight &gt; <span class="num">0</span>) <span class="kw">return</span>;
+
+  <span class="type">CGFloat</span> top = <span class="num">16</span>, x = <span class="num">62</span>;
+  <span class="type">CGFloat</span> contentWidth = <span class="num">316</span>;
+
+  <span class="comm">// 正文高度：boundingRectWithSize 子线程算</span>
+  <span class="type">NSDictionary</span> *attr = @{
+    <span class="type">NSFontAttributeName</span>: [<span class="type">UIFont</span> systemFontOfSize:<span class="num">15</span>]
+  };
+  <span class="type">CGRect</span> textRect = [<span class="selector">self</span>.moment.text
+    <span class="meth">boundingRectWithSize:</span>CGSizeMake(contentWidth, CGFLOAT_MAX)
+                <span class="meth">options:</span><span class="type">NSStringDrawingUsesLineFragmentOrigin</span>
+             <span class="meth">attributes:</span>attr <span class="meth">context:</span><span class="kw">nil</span>];
+  <span class="selector">self</span>.textFrame = CGRectMake(x, top + <span class="num">22</span>, contentWidth, ceil(textRect.size.height));
+
+  <span class="comm">// 图片 grid 高度：行数 × (78 + 4) - 4</span>
+  <span class="kw">int</span> count = (<span class="kw">int</span>)<span class="selector">self</span>.moment.imageURLs.count;
+  <span class="kw">int</span> rows = (count + <span class="num">2</span>) / <span class="num">3</span>;
+  <span class="type">CGFloat</span> gridH = rows &gt; <span class="num">0</span> ? rows * <span class="num">82</span> - <span class="num">4</span> : <span class="num">0</span>;
+  <span class="selector">self</span>.gridFrame = CGRectMake(x, CGRectGetMaxY(<span class="selector">self</span>.textFrame) + <span class="num">8</span>,
+                              <span class="num">242</span>, gridH);
+
+  <span class="selector">self</span>.cachedHeight = CGRectGetMaxY(<span class="selector">self</span>.gridFrame) + <span class="num">40</span>;
+}
+
+<span class="kw">@end</span></pre>
+    </div>
+
+    <!-- 完整 cell -->
+    <div class="section-block">
+      <h2>📦 MomentCell.m 关键实现</h2>
+
+<pre class="code-block"><span class="kw">@implementation</span> <span class="type">MomentCell</span>
+
+- (<span class="type">instancetype</span>)<span class="meth">initWithStyle:</span>... {
+  <span class="kw">if</span> (<span class="kw">self</span> = [<span class="kw">super</span> ...]) {
+    <span class="selector">self</span>.contentView.backgroundColor = [<span class="type">UIColor</span> whiteColor];
+    <span class="selector">self</span>.contentView.opaque = <span class="kw">YES</span>;
+
+    <span class="comm">// 头像：方角，可直接 cornerRadius + cornerCurve</span>
+    _avatarView = [[<span class="type">UIImageView</span> alloc] init];
+    _avatarView.layer.cornerRadius = <span class="num">6</span>;
+    _avatarView.layer.cornerCurve = kCACornerCurveContinuous;
+    <span class="comm">// ✅ 不加 clipsToBounds</span>
+    [<span class="selector">self</span>.contentView <span class="meth">addSubview:</span>_avatarView];
+
+    <span class="comm">// 9 个 grid imageView</span>
+    _gridImageViews = [<span class="type">NSMutableArray</span> array];
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; <span class="num">9</span>; i++) {
+      <span class="type">UIImageView</span> *iv = [[<span class="type">UIImageView</span> alloc] init];
+      iv.contentMode = <span class="type">UIViewContentModeScaleAspectFill</span>;
+      iv.opaque = <span class="kw">YES</span>;
+      iv.backgroundColor = [<span class="type">UIColor</span> colorWithWhite:<span class="num">0.9</span> alpha:<span class="num">1</span>];
+      <span class="comm">// ⭐ 不设 cornerRadius，不 clipsToBounds</span>
+      <span class="comm">// 圆角由 SDWebImageTransformer 在解码时切好</span>
+      iv.hidden = <span class="kw">YES</span>;
+      [<span class="selector">self</span>.contentView <span class="meth">addSubview:</span>iv];
+      [_gridImageViews <span class="meth">addObject:</span>iv];
+    }
+  }
+  <span class="kw">return</span> <span class="kw">self</span>;
+}
+
+- (<span class="kw">void</span>)<span class="meth">prepareForReuse</span> {
+  [<span class="kw">super</span> <span class="meth">prepareForReuse</span>];
+  <span class="kw">for</span> (<span class="type">UIImageView</span> *iv <span class="kw">in</span> <span class="selector">self</span>.gridImageViews) {
+    [iv <span class="meth">sd_cancelCurrentImageLoad</span>];
+    iv.image = <span class="kw">nil</span>;
+    iv.hidden = <span class="kw">YES</span>;
+  }
+  [<span class="selector">self</span>.avatarView <span class="meth">sd_cancelCurrentImageLoad</span>];
+  <span class="selector">self</span>.avatarView.image = <span class="kw">nil</span>;
+  <span class="selector">self</span>.textLabel.text = <span class="kw">nil</span>;
+}
+
+- (<span class="kw">void</span>)<span class="meth">configureWithViewModel:</span>(<span class="type">MomentViewModel</span> *)vm {
+  <span class="selector">self</span>.textLabel.frame = vm.textFrame;
+  <span class="selector">self</span>.textLabel.text = vm.moment.text;
+
+  <span class="comm">// ⭐ 配置 9 宫格</span>
+  <span class="kw">static</span> SDWebImageRoundCornerTransformer *transformer;
+  <span class="kw">static</span> dispatch_once_t once;
+  dispatch_once(&once, ^{
+    transformer = [[SDWebImageRoundCornerTransformer alloc]
+      initWithRadius:<span class="num">4</span> corners:UIRectCornerAllCorners
+        borderWidth:<span class="num">0</span> borderColor:<span class="kw">nil</span>];
+  });
+
+  <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; <span class="num">9</span>; i++) {
+    <span class="type">UIImageView</span> *iv = <span class="selector">self</span>.gridImageViews[i];
+    <span class="kw">if</span> (i &lt; vm.moment.imageURLs.count) {
+      iv.hidden = <span class="kw">NO</span>;
+      iv.frame = [vm <span class="meth">gridFrameAtIndex:</span>i];
+      [iv <span class="meth">sd_setImageWithURL:</span>vm.moment.imageURLs[i]
+            <span class="meth">placeholderImage:</span><span class="kw">nil</span>
+                     <span class="meth">options:</span><span class="num">0</span>
+                     <span class="meth">context:</span>@{
+        SDWebImageContextImageTransformer: transformer
+      }];
+    } <span class="kw">else</span> {
+      iv.hidden = <span class="kw">YES</span>;
+    }
+  }
+}
+
+<span class="kw">@end</span></pre>
+    </div>
+
+    <!-- 性能对比 -->
+    <div class="section-block">
+      <h2>📊 性能对比（一屏 3 个朋友圈）</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <tr style="background:#1a1a2e;color:white;">
+          <th style="padding:10px;text-align:left;">指标</th>
+          <th style="padding:10px;text-align:left;">❌ clipsToBounds</th>
+          <th style="padding:10px;text-align:left;">✅ Transformer</th>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">离屏渲染次数 / 帧</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#c62828;">~27 次</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">0 次</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">滚动 FPS</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#c62828;">~30</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;color:#2e7d32;">~58</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e5e5e5;">内存（缓存圆角图）</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;">基础</td>
+          <td style="padding:10px;border:1px solid #e5e5e5;">略高（圆角图独立缓存）</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="nav" style="margin-top: 24px;">
+      <a href="../index.html">← 返回主菜单</a>
+      <a href="02_news_cell.html">← 上一个</a>
+      <a href="04_ad_cell.html">下一个 →</a>
+    </div>
+  </div>
+</body>
+</html>

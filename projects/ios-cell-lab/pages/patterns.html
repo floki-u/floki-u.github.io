@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>头部 App 怎么做 — 拆 7 个看个明白</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/category.css">
+<script src="../assets/theme.js"></script>
+</head>
+<body>
+
+<div class="frame">
+  <main class="main">
+
+    <div class="meta-bar">
+      <span class="dot">●</span>
+      <span><a href="../index.html">ios-list-lab</a></span>
+      <span>/</span>
+      <span style="color:var(--accent);">patterns</span>
+      <span class="right"><a href="../index.html">home</a> · <a href="basics.html">basics</a> · <a href="advanced.html">advanced</a> · <a href="patterns.html" class="active">patterns</a></span>
+    </div>
+
+    <section class="cat-hero">
+      <div class="breadcrumb"><a href="../index.html">~</a> / level 03 · patterns</div>
+      <h1>头部 App 怎么做 <em>— 拆 7 个</em></h1>
+      <p>拆开 7 个最值得看的：微信、抖音、淘宝、小红书、iMessage、Apple 系统设置。不止是抄实现，重点是它们为什么这么做。</p>
+    </section>
+
+    <div class="ascii-box">
+patterns/
+├── <span class="red">13</span>  tabbar_patterns    TabBar — 微信/抖音/小红书
+├── <span class="red">14</span>  ecommerce_feed     电商首页 — 淘宝 vs 小红书
+├── <span class="red">15</span>  douyin_feed        抖音式短视频流
+├── <span class="red">16</span>  chat_messages      聊天列表 — 微信/iMessage/Telegram
+├── <span class="red">17</span>  story_card         Story 卡片
+├── <span class="red">18</span>  apple_settings     Apple 风格设置页
+└── <span class="red">19</span>  design_overview    设计总览 ★
+    </div>
+
+    <section class="exam-grid">
+
+      <a class="exam" href="../examples/13_tabbar_patterns.html">
+        <div class="exam-num"><span class="id">13</span>patterns</div>
+        <div class="exam-body">
+          <div class="exam-title">TabBar — 微信 / 抖音 / 小红书</div>
+          <p class="exam-desc">同样是底部 4-5 个 tab，三家的设计完全不一样。看它们各自在意什么。</p>
+          <ul class="exam-points">
+            <li>三家的设计取舍对比：颜色、tab 数、有没有中间 +</li>
+            <li>中间凸起的 + 按钮怎么实现，含 hitTest 处理</li>
+            <li>双击 tab 滚回顶部 — Apple 系 App 的隐藏快捷键</li>
+            <li>徽标怎么管：红点、数字、99+ 上限</li>
+          </ul>
+          <div class="exam-tags"><span class="hi">设计取舍</span><span>CustomTabBar</span></div>
+        </div>
+        <div class="exam-arrow">→</div>
+      </a>
+
+      <a class="exam" href="../examples/14_ecommerce_feed.html">
+        <div class="exam-num"><span class="id">14</span>patterns</div>
+        <div class="exam-body">
+          <div class="exam-title">电商首页 — 淘宝 vs 小红书</div>
+          <p class="exam-desc">两家都用双列流，但一个为了卖货，一个为了让你逛。看页面怎么暗示用户行为。</p>
+          <ul class="exam-points">
+            <li>红橙渐变 vs 白底 — 紧迫感 vs 沉浸感</li>
+            <li>金刚区 + 双列瀑布 + sticky 顶 tab 的搭法</li>
+            <li>UICollectionLayoutListConfiguration 实现细节</li>
+            <li>导航栏跟着滚动渐变成不透明</li>
+          </ul>
+          <div class="exam-tags"><span class="hi">商业意图</span><span>Compositional</span></div>
+        </div>
+        <div class="exam-arrow">→</div>
+      </a>
+
+      <a class="exam" href="../examples/15_douyin_feed.html">
+        <div class="exam-num"><span class="id">15</span>patterns</div>
+        <div class="exam-body">
+          <div class="exam-title">抖音式短视频流</div>
+          <p class="exam-desc">全屏一个视频、上滑切下一个。看着简单，背后的复用 + 预加载相当讲究。</p>
+          <ul class="exam-points">
+            <li>VideoPreloader 怎么写：LRU 缓存 + 预下载 N+1、N+2</li>
+            <li>UICollectionView 竖向 + pagingEnabled 分页</li>
+            <li>沉浸式设计的 5 条规则（黑底、右侧操作栏、上滑切换…）</li>
+            <li>抖音线上同款的 5 个性能优化点</li>
+          </ul>
+          <div class="exam-tags"><span class="hi">沉浸式</span><span>AVPlayerLayer</span></div>
+        </div>
+        <div class="exam-arrow">→</div>
+      </a>
+
+      <a class="exam" href="../examples/16_chat_messages.html">
+        <div class="exam-num"><span class="id">16</span>patterns</div>
+        <div class="exam-body">
+          <div class="exam-title">聊天列表 — 微信 / iMessage / Telegram</div>
+          <p class="exam-desc">三家的气泡都长得不一样。视觉差异背后是对"已读"、"群聊"、"个性化"的不同态度。</p>
+          <ul class="exam-points">
+            <li>tableView 倒过来用 — 一行解决三件事</li>
+            <li>键盘弹出动画怎么和系统同步</li>
+            <li>历史消息上万条也能秒滚到底</li>
+            <li>iMessage 那种"连续消息合并尾巴"的实现</li>
+          </ul>
+          <div class="exam-tags"><span class="hi">IM 难题</span><span>Inverted List</span></div>
+        </div>
+        <div class="exam-arrow">→</div>
+      </a>
+
+      <a class="exam" href="../examples/17_story_card.html">
+        <div class="exam-num"><span class="id">17</span>patterns</div>
+        <div class="exam-body">
+          <div class="exam-title">Story 卡片</div>
+          <p class="exam-desc">Snapchat 发明、Instagram 推广、现在国内国外都在用的 Story 模式。</p>
+          <ul class="exam-points">
+            <li>渐变彩环头像 — CAGradientLayer 加 mask 实现</li>
+            <li>顶部分段进度条 + CADisplayLink 同步播放进度</li>
+            <li>触控分区：左/中/右 各管一种交互</li>
+            <li>长按时所有 UI 自动隐藏，让你看清内容</li>
+          </ul>
+          <div class="exam-tags"><span class="hi">Story 模式</span><span>CADisplayLink</span></div>
+        </div>
+        <div class="exam-arrow">→</div>
+      </a>
+
+      <a class="exam" href="../examples/18_apple_settings.html">
+        <div class="exam-num"><span class="id">18</span>patterns</div>
+        <div class="exam-body">
+          <div class="exam-title">Apple 风格设置页</div>
+          <p class="exam-desc">iOS 设置长这样不是设计师懒，是 Apple 在用 HIG 教你怎么做"用户零学习成本"的页面。</p>
+          <ul class="exam-points">
+            <li>UICollectionLayoutListConfiguration 一行布好</li>
+            <li>InsetGrouped 风格 + UICellAccessory 配件</li>
+            <li>大标题 + 搜索栏自动折叠</li>
+            <li>Apple 这套设计的 7 条心法</li>
+          </ul>
+          <div class="exam-tags"><span class="hi">系统组件</span><span>iOS 14+</span></div>
+        </div>
+        <div class="exam-arrow">→</div>
+      </a>
+
+      <a class="exam featured" href="../examples/19_design_overview.html">
+        <div class="exam-num"><span class="id">19 ★</span>finale</div>
+        <div class="exam-body">
+          <div class="exam-title">设计总览（强烈建议看）</div>
+          <p class="exam-desc">把工具、内容、电商、金融、系统这 7 大类 App 横着摆出来对比。看完知道为什么淘宝拥挤、为什么微信克制。</p>
+          <ul class="exam-points">
+            <li>7 大类 App 横向矩阵：核心动作 / 主导布局 / 视觉风格 / 商业目标</li>
+            <li>9 个跨 App 的共性 + 6 个最值得拆解的差异</li>
+            <li>12 条通用法则：拇指热区、信息层级 ≤ 3、反馈延迟 ≤ 100ms…</li>
+            <li>6 步进阶路径 + 一份高质量学习资源清单</li>
+          </ul>
+          <div class="exam-tags"><span class="hi">必看</span><span>串成体系</span></div>
+        </div>
+        <div class="exam-arrow">→</div>
+      </a>
+
+    </section>
+
+    <section class="path-section">
+      <div class="sec-title">
+        <span class="num">02</span>
+        <span class="h">怎么看</span>
+      </div>
+      <p class="sub">先看具体的 6 个 App 怎么做，再用 19 号总览把所有点串成一张图。</p>
+
+      <ul class="path-list">
+        <li class="path-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h5>13 → 14：先看导航和首页</h5>
+            <p>TabBar 是门面、首页是骨架。这两个搞清楚，对一个 App 的整体长相就有感觉。</p>
+          </div>
+        </li>
+        <li class="path-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h5>15 → 17：内容沉浸三连</h5>
+            <p>抖音全屏流、Story 卡片、聊天气泡 — 都是"用户专心看东西"场景的代表设计。</p>
+          </div>
+        </li>
+        <li class="path-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h5>18：跟 Apple 学克制</h5>
+            <p>看完前面那些"会玩花样"的，再看 Apple 怎么用最朴素的写法做出系统级体验。反差很大。</p>
+          </div>
+        </li>
+        <li class="path-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h5>★ 19：把所有点串起来</h5>
+            <p>7 大类 App 横着对比 + 12 条通用法则。这一步是从"会写"到"懂为什么"的关键。</p>
+          </div>
+        </li>
+        <li class="path-item">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <h5>建议：自己挑一个 App 仿一遍</h5>
+            <p>挑一个你最爱用的 App 的某个页面，1 周内仿出 80% 的样子 + 60% 的交互。仿一个能学到 5 个细节。</p>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <footer>
+      <div class="left">EOF · level 03 · patterns · series finale</div>
+      <div>
+        <a href="advanced.html">← prev: advanced</a> ·
+        <a href="../index.html">home</a> ·
+        <a href="../examples/19_design_overview.html">overview ★</a>
+      </div>
+    </footer>
+
+  </main>
+</div>
+
+</body>
+</html>

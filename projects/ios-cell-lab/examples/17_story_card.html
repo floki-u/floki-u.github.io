@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>17. Story 卡片 — Instagram/小红书/微信视频号</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/shared.css">
+<script src="../assets/theme.js"></script>
+<style>
+  body { background: #f5f6fa; font-family: -apple-system, "PingFang SC", sans-serif; margin: 0; padding: 24px; color: #2d3748; }
+  .nav { max-width: 1000px; margin: 0 auto 16px; display: flex; justify-content: space-between; font-size: 13px; }
+  .nav a { color: #4facfe; text-decoration: none; }
+  .container { max-width: 1000px; margin: 0 auto; }
+  .header { background: linear-gradient(135deg, #ff00cc 0%, #333399 100%); color: white; padding: 28px; border-radius: 14px; margin-bottom: 20px; }
+  .header h1 { margin: 0 0 8px; font-size: 22px; }
+  .header p { margin: 0; opacity: 0.95; font-size: 14px; line-height: 1.7; }
+
+  /* Story 圆环列表 */
+  .story-row { display: flex; gap: 12px; padding: 12px; overflow-x: auto; background: white; border-radius: 12px; }
+  .story-item { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
+  .story-ring {
+    width: 64px; height: 64px; border-radius: 32px;
+    padding: 2px;
+    background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .story-ring.viewed { background: #e0e0e0; }
+  .story-ring .inner {
+    width: 60px; height: 60px; border-radius: 30px;
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid white;
+  }
+  .story-ring .av {
+    width: 56px; height: 56px; border-radius: 28px;
+    color: white; font-size: 22px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .av-1 { background: linear-gradient(135deg, #fa709a, #fee140); }
+  .av-2 { background: linear-gradient(135deg, #667eea, #764ba2); }
+  .av-3 { background: linear-gradient(135deg, #11998e, #38ef7d); }
+  .av-4 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+  .av-5 { background: linear-gradient(135deg, #f093fb, #f5576c); }
+  .av-me { background: #f5f6fa; color: #4facfe; }
+  .story-name { font-size: 11px; color: #1a1a2e; max-width: 64px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Story 全屏播放 */
+  .story-player {
+    width: 360px; height: 640px; margin: 0 auto;
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    border-radius: 22px; overflow: hidden; position: relative;
+  }
+  .story-progress {
+    position: absolute; top: 8px; left: 8px; right: 8px;
+    display: flex; gap: 4px; z-index: 10;
+  }
+  .progress-seg {
+    flex: 1; height: 2.5px; background: rgba(255,255,255,0.3);
+    border-radius: 2px; overflow: hidden;
+  }
+  .progress-seg .fill { height: 100%; background: white; width: 0; transition: width 0.1s linear; }
+  .progress-seg.done .fill { width: 100%; }
+  .progress-seg.current .fill { width: 60%; }
+
+  .story-header {
+    position: absolute; top: 24px; left: 12px; right: 12px;
+    display: flex; align-items: center; gap: 8px; color: white; z-index: 10;
+  }
+  .story-header .av {
+    width: 32px; height: 32px; border-radius: 16px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+  }
+  .story-header .info { flex: 1; }
+  .story-header .name { font-size: 13px; font-weight: 600; }
+  .story-header .time { font-size: 11px; opacity: 0.8; }
+  .story-header .close { font-size: 22px; }
+
+  .story-content {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 56px;
+  }
+
+  .story-input {
+    position: absolute; bottom: 16px; left: 12px; right: 12px;
+    display: flex; gap: 8px; align-items: center; z-index: 10;
+  }
+  .story-input .field {
+    flex: 1; height: 36px; border-radius: 18px;
+    border: 1.5px solid rgba(255,255,255,0.6);
+    padding: 0 14px; font-size: 12px;
+    color: rgba(255,255,255,0.8); display: flex; align-items: center;
+  }
+  .story-input .ico { color: white; font-size: 20px; }
+
+  /* 触控区指示 */
+  .touch-zones { position: absolute; inset: 60px 0 60px 0; display: flex; z-index: 5; opacity: 0; transition: opacity 0.3s; }
+  .touch-zones:hover { opacity: 0.3; }
+  .zone { flex: 1; }
+  .zone-prev { background: rgba(255,0,0,0.5); }
+  .zone-pause { background: rgba(0,255,0,0.5); flex: 2; }
+  .zone-next { background: rgba(0,0,255,0.5); }
+
+  table.metrics { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+  table.metrics th, table.metrics td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ecedf1; vertical-align: top; }
+  table.metrics th { background: #f5f6fa; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="../index.html">← 返回主菜单</a>
+  <span>
+    <a href="16_chat_messages.html">← 上一个</a> &nbsp;|&nbsp;
+    <a href="18_apple_settings.html">下一个 →</a>
+  </span>
+</div>
+
+<div class="container">
+
+  <div class="header">
+    <h1>📸 Story 卡片 — Instagram/小红书/微信视频号</h1>
+    <p>Snapchat 发明、Instagram 发扬、全行业跟进的"故事"模式。看似简单，实际是<b>触控分区、自动推进、暂停/手动切换、进度条同步</b>的精密配合。</p>
+  </div>
+
+  <!-- Story 列表入口 -->
+  <div class="section-block">
+    <h2>🎨 入口列表 — 渐变彩环</h2>
+    <div class="story-row">
+      <div class="story-item">
+        <div class="story-ring viewed">
+          <div class="inner"><div class="av av-me">+</div></div>
+        </div>
+        <div class="story-name">你的Story</div>
+      </div>
+      <div class="story-item">
+        <div class="story-ring">
+          <div class="inner"><div class="av av-1">张</div></div>
+        </div>
+        <div class="story-name">张三</div>
+      </div>
+      <div class="story-item">
+        <div class="story-ring">
+          <div class="inner"><div class="av av-2">李</div></div>
+        </div>
+        <div class="story-name">李四</div>
+      </div>
+      <div class="story-item">
+        <div class="story-ring viewed">
+          <div class="inner"><div class="av av-3">王</div></div>
+        </div>
+        <div class="story-name">王五</div>
+      </div>
+      <div class="story-item">
+        <div class="story-ring">
+          <div class="inner"><div class="av av-4">赵</div></div>
+        </div>
+        <div class="story-name">赵六</div>
+      </div>
+      <div class="story-item">
+        <div class="story-ring viewed">
+          <div class="inner"><div class="av av-5">钱</div></div>
+        </div>
+        <div class="story-name">钱七</div>
+      </div>
+    </div>
+
+    <div class="explain" style="margin-top:14px;">
+      <span class="h">关键设计：彩环渐变 vs 灰环</span><br>
+      · <b>彩环（橙→粉→紫）</b>：Instagram 标志性配色，表示"有未读 Story"<br>
+      · <b>灰环</b>：表示"已读"<br>
+      这一个圆环颜色变化，让用户在 1 秒内识别"哪些朋友有新内容"，是<b>极致效率的视觉编码</b>。
+    </div>
+  </div>
+
+  <!-- Story 全屏播放 -->
+  <div class="section-block">
+    <h2>🎬 全屏播放器</h2>
+    <div class="story-player">
+      <!-- 进度条 -->
+      <div class="story-progress">
+        <div class="progress-seg done"><div class="fill"></div></div>
+        <div class="progress-seg done"><div class="fill"></div></div>
+        <div class="progress-seg current"><div class="fill"></div></div>
+        <div class="progress-seg"><div class="fill"></div></div>
+        <div class="progress-seg"><div class="fill"></div></div>
+      </div>
+
+      <!-- 头像 + 关闭 -->
+      <div class="story-header">
+        <div class="av">张</div>
+        <div class="info">
+          <div class="name">张三</div>
+          <div class="time">2 小时前</div>
+        </div>
+        <div class="close">✕</div>
+      </div>
+
+      <!-- 内容（这里用 emoji 占位） -->
+      <div class="story-content">🌅</div>
+
+      <!-- 触控区域指示（hover 时显示） -->
+      <div class="touch-zones">
+        <div class="zone zone-prev"></div>
+        <div class="zone zone-pause"></div>
+        <div class="zone zone-next"></div>
+      </div>
+
+      <!-- 输入栏 -->
+      <div class="story-input">
+        <div class="field">发消息...</div>
+        <div class="ico">❤️</div>
+        <div class="ico">↪️</div>
+      </div>
+    </div>
+
+    <div class="explain" style="margin-top:14px;">
+      <span class="h">触控分区（鼠标悬停查看）：</span><br>
+      · <b>左侧 1/4</b>：上一个 Story / 上一个用户<br>
+      · <b>中间 1/2</b>：长按暂停（看清细节）<br>
+      · <b>右侧 1/4</b>：下一个 Story / 下一个用户<br>
+      · <b>下滑</b>：关闭 Story 进入下一层级<br>
+      · <b>左/右 滑</b>：切换用户（不是 Story）
+    </div>
+  </div>
+
+  <!-- 设计哲学 -->
+  <div class="section-block">
+    <h2>🧠 Story 模式的设计精髓</h2>
+    <table class="metrics">
+      <tr>
+        <th>设计</th><th>原因</th>
+      </tr>
+      <tr>
+        <td><b>限时 24 小时</b></td>
+        <td>降低发布心理负担（不会"留下黑历史"），提升发布频率</td>
+      </tr>
+      <tr>
+        <td><b>满屏沉浸</b></td>
+        <td>消除信息焦虑（不让用户看见"还有多少没看完"）</td>
+      </tr>
+      <tr>
+        <td><b>顶部分段进度条</b></td>
+        <td>用最小视觉成本告诉用户"这一组有几条 / 当前到哪一条"</td>
+      </tr>
+      <tr>
+        <td><b>5-7 秒自动推进</b></td>
+        <td>符合短内容的注意力时长，比短视频更短促</td>
+      </tr>
+      <tr>
+        <td><b>点击切换 vs 滑动切换分层级</b></td>
+        <td>点击 = Story 内切换；滑动 = 用户间切换。两个交互绝不混淆</td>
+      </tr>
+      <tr>
+        <td><b>下滑关闭</b></td>
+        <td>对应"上拉打开"的对称操作，符合手势心智模型</td>
+      </tr>
+      <tr>
+        <td><b>看完不留痕</b></td>
+        <td>看了就消失，不像 Feed 还能翻回来。降低浏览压力</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 完整代码 -->
+  <div class="section-block">
+    <h2>📦 核心实现 — 进度条 + 自动推进</h2>
+
+    <h3 style="margin-top:18px;font-size:14px;">1️⃣ 渐变圆环头像（StoryRingView）</h3>
+<div class="code-block"><span class="kw">@implementation</span> <span class="type">StoryRingView</span> {
+    <span class="type">CAGradientLayer</span> *_ringLayer;
+    <span class="type">UIImageView</span> *_avatarView;
+}
+
+<span class="kw">- (instancetype)</span><span class="meth">initWithFrame:</span>(<span class="type">CGRect</span>)frame {
+    <span class="kw">if</span> (<span class="kw">self</span> = [<span class="kw">super</span> <span class="meth">initWithFrame:</span>frame]) {
+        <span class="comm">// ⭐ 渐变彩环（Instagram 同款配色）</span>
+        _ringLayer = [<span class="type">CAGradientLayer</span> layer];
+        _ringLayer.colors = @[
+            (id)[<span class="type">UIColor</span> colorWithRed:<span class="num">0.94</span> green:<span class="num">0.58</span> blue:<span class="num">0.20</span> alpha:<span class="num">1</span>].<span class="type">CGColor</span>,  <span class="comm">// 橙</span>
+            (id)[<span class="type">UIColor</span> colorWithRed:<span class="num">0.86</span> green:<span class="num">0.15</span> blue:<span class="num">0.40</span> alpha:<span class="num">1</span>].<span class="type">CGColor</span>,  <span class="comm">// 红</span>
+            (id)[<span class="type">UIColor</span> colorWithRed:<span class="num">0.74</span> green:<span class="num">0.10</span> blue:<span class="num">0.53</span> alpha:<span class="num">1</span>].<span class="type">CGColor</span>,  <span class="comm">// 紫</span>
+        ];
+        _ringLayer.startPoint = <span class="type">CGPointMake</span>(<span class="num">0</span>, <span class="num">0</span>);
+        _ringLayer.endPoint = <span class="type">CGPointMake</span>(<span class="num">1</span>, <span class="num">1</span>);
+
+        <span class="comm">// ⭐ 用 mask 把矩形渐变变成圆环</span>
+        <span class="type">CAShapeLayer</span> *mask = [<span class="type">CAShapeLayer</span> layer];
+        mask.fillColor = [<span class="type">UIColor</span> clearColor].<span class="type">CGColor</span>;
+        mask.strokeColor = [<span class="type">UIColor</span> blackColor].<span class="type">CGColor</span>;
+        mask.lineWidth = <span class="num">3</span>;
+        mask.path = [<span class="type">UIBezierPath</span> bezierPathWithOvalInRect:
+            <span class="type">CGRectInset</span>(<span class="kw">self</span>.bounds, <span class="num">2</span>, <span class="num">2</span>)].<span class="type">CGPath</span>;
+        _ringLayer.mask = mask;
+        _ringLayer.frame = <span class="kw">self</span>.bounds;
+        [<span class="kw">self</span>.layer addSublayer:_ringLayer];
+
+        <span class="comm">// 头像</span>
+        _avatarView = [[<span class="type">UIImageView</span> alloc] initWithFrame:<span class="type">CGRectInset</span>(<span class="kw">self</span>.bounds, <span class="num">6</span>, <span class="num">6</span>)];
+        _avatarView.layer.cornerRadius = (<span class="kw">self</span>.bounds.size.width - <span class="num">12</span>) / <span class="num">2</span>;
+        _avatarView.layer.masksToBounds = <span class="type">YES</span>;
+        [<span class="kw">self</span> addSubview:_avatarView];
+    }
+    <span class="kw">return</span> <span class="kw">self</span>;
+}
+
+<span class="kw">- (void)</span><span class="meth">setViewed:</span>(<span class="type">BOOL</span>)viewed {
+    <span class="comm">// ⭐ 已读时把彩环变灰</span>
+    _ringLayer.colors = viewed ? @[
+        (id)[<span class="type">UIColor</span> lightGrayColor].<span class="type">CGColor</span>,
+        (id)[<span class="type">UIColor</span> lightGrayColor].<span class="type">CGColor</span>,
+    ] : <span class="kw">self</span>.gradientColors;
+}
+<span class="kw">@end</span></div>
+
+    <h3 style="margin-top:24px;font-size:14px;">2️⃣ 进度条 + CADisplayLink 同步</h3>
+<div class="code-block"><span class="kw">@implementation</span> <span class="type">StoryProgressView</span> {
+    <span class="type">NSMutableArray</span>&lt;<span class="type">UIView</span> *&gt; *_segments;
+    <span class="type">NSMutableArray</span>&lt;<span class="type">UIView</span> *&gt; *_fills;
+    <span class="type">NSInteger</span> _currentIndex;
+    <span class="type">CADisplayLink</span> *_link;
+    <span class="type">CFTimeInterval</span> _startTime;
+    <span class="type">CGFloat</span> _duration;   <span class="comm">// 单段时长（图片 5s / 视频 = 视频时长）</span>
+}
+
+<span class="kw">- (void)</span><span class="meth">setupWithSegmentCount:</span>(<span class="type">NSInteger</span>)count {
+    _segments = [<span class="type">NSMutableArray</span> array];
+    _fills = [<span class="type">NSMutableArray</span> array];
+
+    <span class="kw">for</span> (<span class="type">NSInteger</span> i = <span class="num">0</span>; i &lt; count; i++) {
+        <span class="type">UIView</span> *seg = [[<span class="type">UIView</span> alloc] init];
+        seg.backgroundColor = [[<span class="type">UIColor</span> whiteColor] colorWithAlphaComponent:<span class="num">0.3</span>];
+        seg.layer.cornerRadius = <span class="num">1.25</span>;
+        [<span class="kw">self</span> addSubview:seg];
+        [_segments addObject:seg];
+
+        <span class="type">UIView</span> *fill = [[<span class="type">UIView</span> alloc] init];
+        fill.backgroundColor = [<span class="type">UIColor</span> whiteColor];
+        fill.frame = <span class="type">CGRectMake</span>(<span class="num">0</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">0</span>);   <span class="comm">// 宽度 0，按进度展开</span>
+        [seg addSubview:fill];
+        [_fills addObject:fill];
+    }
+}
+
+<span class="kw">- (void)</span><span class="meth">startSegment:</span>(<span class="type">NSInteger</span>)idx duration:(<span class="type">CGFloat</span>)duration {
+    _currentIndex = idx;
+    _duration = duration;
+    _startTime = <span class="type">CACurrentMediaTime</span>();
+
+    <span class="comm">// 之前的 segment 设为满</span>
+    <span class="kw">for</span> (<span class="type">NSInteger</span> i = <span class="num">0</span>; i &lt; idx; i++) {
+        _fills[i].frame = _segments[i].bounds;
+    }
+    <span class="comm">// 之后的 segment 设为空</span>
+    <span class="kw">for</span> (<span class="type">NSInteger</span> i = idx + <span class="num">1</span>; i &lt; _segments.count; i++) {
+        _fills[i].frame = <span class="type">CGRectZero</span>;
+    }
+
+    <span class="comm">// ⭐ 用 CADisplayLink 每帧更新当前 segment 宽度（60fps 流畅）</span>
+    [_link invalidate];
+    _link = [<span class="type">CADisplayLink</span> displayLinkWithTarget:<span class="kw">self</span> selector:<span class="meth">@selector</span>(tick)];
+    [_link addToRunLoop:[<span class="type">NSRunLoop</span> mainRunLoop] forMode:<span class="type">NSRunLoopCommonModes</span>];
+}
+
+<span class="kw">- (void)</span><span class="meth">tick</span> {
+    <span class="type">CFTimeInterval</span> elapsed = <span class="type">CACurrentMediaTime</span>() - _startTime;
+    <span class="type">CGFloat</span> progress = <span class="type">MIN</span>(<span class="num">1.0</span>, elapsed / _duration);
+
+    <span class="type">UIView</span> *seg = _segments[_currentIndex];
+    <span class="type">UIView</span> *fill = _fills[_currentIndex];
+    fill.frame = <span class="type">CGRectMake</span>(<span class="num">0</span>, <span class="num">0</span>, seg.bounds.size.width * progress, seg.bounds.size.height);
+
+    <span class="kw">if</span> (progress &gt;= <span class="num">1.0</span>) {
+        [_link invalidate];
+        <span class="kw">if</span> (<span class="kw">self</span>.onSegmentComplete) <span class="kw">self</span>.onSegmentComplete(_currentIndex);
+    }
+}
+
+<span class="kw">- (void)</span><span class="meth">pause</span> { _link.paused = <span class="type">YES</span>; }
+<span class="kw">- (void)</span><span class="meth">resume</span> {
+    <span class="comm">// ⭐ resume 时调整 _startTime，否则会跳到结尾</span>
+    <span class="type">UIView</span> *fill = _fills[_currentIndex];
+    <span class="type">CGFloat</span> currentProgress = fill.frame.size.width / _segments[_currentIndex].bounds.size.width;
+    _startTime = <span class="type">CACurrentMediaTime</span>() - _duration * currentProgress;
+    _link.paused = <span class="type">NO</span>;
+}
+<span class="kw">@end</span></div>
+
+    <h3 style="margin-top:24px;font-size:14px;">3️⃣ 触控分区</h3>
+<div class="code-block"><span class="kw">- (void)</span><span class="meth">handleTap:</span>(<span class="type">UITapGestureRecognizer</span> *)tap {
+    <span class="type">CGPoint</span> p = [tap locationInView:<span class="kw">self</span>.view];
+    <span class="type">CGFloat</span> w = <span class="kw">self</span>.view.bounds.size.width;
+
+    <span class="kw">if</span> (p.x &lt; w * <span class="num">0.3</span>) {
+        [<span class="kw">self</span> <span class="meth">previousStory</span>];
+    } <span class="kw">else</span> <span class="kw">if</span> (p.x &gt; w * <span class="num">0.7</span>) {
+        [<span class="kw">self</span> <span class="meth">nextStory</span>];
+    }
+}
+
+<span class="kw">- (void)</span><span class="meth">handleLongPress:</span>(<span class="type">UILongPressGestureRecognizer</span> *)lp {
+    <span class="kw">if</span> (lp.state == <span class="type">UIGestureRecognizerStateBegan</span>) {
+        [<span class="kw">self</span>.progressView <span class="meth">pause</span>];
+        [<span class="kw">self</span>.player <span class="meth">pause</span>];
+        <span class="comm">// ⭐ 长按时隐藏 UI（让用户看清内容）</span>
+        [<span class="type">UIView</span> animateWithDuration:<span class="num">0.2</span> animations:^{
+            <span class="kw">self</span>.headerView.alpha = <span class="num">0</span>;
+            <span class="kw">self</span>.progressView.alpha = <span class="num">0</span>;
+            <span class="kw">self</span>.inputBar.alpha = <span class="num">0</span>;
+        }];
+    } <span class="kw">else</span> <span class="kw">if</span> (lp.state == <span class="type">UIGestureRecognizerStateEnded</span>) {
+        [<span class="kw">self</span>.progressView <span class="meth">resume</span>];
+        [<span class="kw">self</span>.player <span class="meth">play</span>];
+        [<span class="type">UIView</span> animateWithDuration:<span class="num">0.2</span> animations:^{
+            <span class="kw">self</span>.headerView.alpha = <span class="num">1</span>;
+            <span class="kw">self</span>.progressView.alpha = <span class="num">1</span>;
+            <span class="kw">self</span>.inputBar.alpha = <span class="num">1</span>;
+        }];
+    }
+}</div>
+  </div>
+
+  <!-- 设计创新 -->
+  <div class="section-block">
+    <h2>🎓 可借鉴的创新点</h2>
+    <div class="explain success">
+      <span class="h">借鉴 1：分段进度条作为"目录"</span><br>
+      不只是显示进度，还告诉用户"<b>这一组有几条</b>"。用户决定要不要继续看。<br>
+      可推广到任何"序列内容"场景：教学课程、新手引导、产品介绍。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 2：长按隐藏 UI</span><br>
+      给用户"看清细节"的能力。视频/图片浏览类 App 都该有。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 3：彩环 → 灰环的状态编码</span><br>
+      用<b>颜色 + 形状</b>双重编码已读未读，比单纯红点更清晰。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 4：左右分屏触控</span><br>
+      手机大屏时代，左右大拇指各管一半屏幕，比"必须按某个按钮"更人性化。<br>
+      Kindle 翻页、Pocket 阅读、抖音也借用这套。
+    </div>
+    <div class="explain success">
+      <span class="h">借鉴 5：下滑关闭手势的"接力"</span><br>
+      Story 关闭后回到 Feed，<b>动画上是头像缩小回到圆环位置</b>。这种"<b>来源即去向</b>"的转场，让 App 有了"空间感"。<br>
+      iOS 的 <code>UIViewControllerTransitioningDelegate</code> 可以实现，参考 Apple 的 Interactive Transitions 文档。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

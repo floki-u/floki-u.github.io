@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>11. WaterfallLayout — 瀑布流自定义布局</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/shared.css">
+<script src="../assets/theme.js"></script>
+<style>
+  body { background: #f5f6fa; font-family: -apple-system, "PingFang SC", sans-serif; margin: 0; padding: 24px; color: #2d3748; }
+  .nav { max-width: 880px; margin: 0 auto 16px; display: flex; justify-content: space-between; font-size: 13px; }
+  .nav a { color: #4facfe; text-decoration: none; }
+  .container { max-width: 880px; margin: 0 auto; }
+  .header { background: linear-gradient(135deg, #c471f5 0%, #fa71cd 100%); color: white; padding: 28px; border-radius: 14px; margin-bottom: 20px; }
+  .header h1 { margin: 0 0 8px; font-size: 22px; }
+  .header p { margin: 0; opacity: 0.95; font-size: 14px; line-height: 1.7; }
+
+  .phone { width: 360px; margin: 0 auto; background: #fff; border-radius: 28px; padding: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.18); }
+  .status { height: 28px; display: flex; justify-content: space-between; padding: 0 18px; font-size: 12px; font-weight: 600; align-items: center; }
+  .nav-bar { padding: 12px 16px; font-size: 16px; font-weight: 600; border-bottom: 1px solid #f0f1f5; }
+
+  /* 瀑布流容器 */
+  .waterfall { padding: 8px; column-count: 2; column-gap: 8px; }
+  .pin {
+    break-inside: avoid; margin-bottom: 8px; border-radius: 12px; overflow: hidden; background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; flex-direction: column; cursor: pointer;
+  }
+  .pin .img { background-size: cover; background-position: center; }
+  .pin .meta { padding: 8px 10px; }
+  .pin .meta h5 { margin: 0 0 4px; font-size: 12px; color: #1a1a2e; line-height: 1.4; }
+  .pin .meta .author { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #6c7293; }
+  .pin .meta .author .av { width: 16px; height: 16px; border-radius: 8px; background: linear-gradient(135deg, #667eea, #764ba2); }
+
+  /* 不同高度模拟瀑布 */
+  .h1 { height: 120px; background: linear-gradient(135deg, #fa709a, #fee140); }
+  .h2 { height: 180px; background: linear-gradient(135deg, #667eea, #764ba2); }
+  .h3 { height: 140px; background: linear-gradient(135deg, #11998e, #38ef7d); }
+  .h4 { height: 200px; background: linear-gradient(135deg, #4facfe, #00f2fe); }
+  .h5 { height: 160px; background: linear-gradient(135deg, #f093fb, #f5576c); }
+  .h6 { height: 100px; background: linear-gradient(135deg, #ffecd2, #fcb69f); }
+  .h7 { height: 220px; background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
+
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .compare-card { background: #f9fafc; border-radius: 10px; padding: 14px; }
+  .compare-card.bad { border-top: 3px solid #ef5350; }
+  .compare-card.good { border-top: 3px solid #4caf50; }
+
+  .layout-diagram {
+    background: #f5f6fa; padding: 16px; border-radius: 10px; margin-top: 14px;
+    font-family: "SF Mono", monospace; font-size: 11.5px; line-height: 1.6; white-space: pre;
+  }
+
+  table.metrics { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+  table.metrics th, table.metrics td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ecedf1; }
+  table.metrics th { background: #f5f6fa; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="../index.html">← 返回主菜单</a>
+  <span>
+    <a href="10_parallax_header.html">← 上一个</a> &nbsp;|&nbsp;
+    <a href="12_pull_refresh.html">下一个 →</a>
+  </span>
+</div>
+
+<div class="container">
+
+  <div class="header">
+    <h1>🌊 WaterfallLayout — 瀑布流自定义布局</h1>
+    <p>Pinterest 风格的多列不等高布局。<code>UICollectionViewFlowLayout</code> 不支持，必须自己继承 <code>UICollectionViewLayout</code>。掌握这个就理解了 CollectionView 的"自定义布局"心法。</p>
+  </div>
+
+  <!-- 视觉演示 -->
+  <div class="section-block">
+    <h2>🎨 视觉演示</h2>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>● ● ●</span></div>
+      <div class="nav-bar">发现</div>
+
+      <div class="waterfall">
+        <div class="pin">
+          <div class="img h1"></div>
+          <div class="meta">
+            <h5>春日午后的咖啡馆</h5>
+            <div class="author"><div class="av"></div>张三</div>
+          </div>
+        </div>
+        <div class="pin">
+          <div class="img h2"></div>
+          <div class="meta">
+            <h5>极简主义家居设计灵感分享</h5>
+            <div class="author"><div class="av"></div>李四</div>
+          </div>
+        </div>
+        <div class="pin">
+          <div class="img h3"></div>
+          <div class="meta">
+            <h5>东京夜景</h5>
+            <div class="author"><div class="av"></div>王五</div>
+          </div>
+        </div>
+        <div class="pin">
+          <div class="img h4"></div>
+          <div class="meta">
+            <h5>手冲咖啡入门指南：从豆子到萃取</h5>
+            <div class="author"><div class="av"></div>赵六</div>
+          </div>
+        </div>
+        <div class="pin">
+          <div class="img h6"></div>
+          <div class="meta">
+            <h5>北海道</h5>
+            <div class="author"><div class="av"></div>钱七</div>
+          </div>
+        </div>
+        <div class="pin">
+          <div class="img h5"></div>
+          <div class="meta">
+            <h5>樱花季的京都</h5>
+            <div class="author"><div class="av"></div>孙八</div>
+          </div>
+        </div>
+        <div class="pin">
+          <div class="img h7"></div>
+          <div class="meta">
+            <h5>意大利菜谱</h5>
+            <div class="author"><div class="av"></div>周九</div>
+          </div>
+        </div>
+        <div class="pin">
+          <div class="img h3"></div>
+          <div class="meta">
+            <h5>露营装备清单</h5>
+            <div class="author"><div class="av"></div>吴十</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 算法原理 -->
+  <div class="section-block">
+    <h2>🧠 核心算法 —— "最短列优先"</h2>
+    <div class="explain">
+      <span class="h">瀑布流的核心算法只有一句：</span><br>
+      <b>每个新 item 都放进当前最矮的那一列</b>。这样能保证整体视觉平衡，不会出现某一列特别长。
+    </div>
+
+    <h3 style="margin-top:14px;font-size:14px;">逐步演示（2 列瀑布流）：</h3>
+    <div class="layout-diagram">初始状态：[ 0, 0 ]      // 两列高度都是 0
+
+放 item0 (h=120) → 找最短列(0) → 放第 0 列
+状态：[ 120, 0 ]
+┌─────┬─────┐
+│ #0  │     │
+└─────┘     ├─────┐
+
+放 item1 (h=180) → 找最短列(1) → 放第 1 列
+状态：[ 120, 180 ]
+┌─────┬─────┐
+│ #0  │ #1  │
+└─────┤     │
+      │     │
+      └─────┘
+
+放 item2 (h=140) → 找最短列(0) → 放第 0 列
+状态：[ 260, 180 ]
+┌─────┬─────┐
+│ #0  │ #1  │
+├─────┤     │
+│ #2  │     │
+│     ├─────┤
+└─────┘
+
+放 item3 (h=200) → 找最短列(1) → 放第 1 列
+状态：[ 260, 380 ]
+...</div>
+  </div>
+
+  <!-- 完整代码 -->
+  <div class="section-block">
+    <h2>📦 完整代码 —— WaterfallLayout</h2>
+    <div class="section-subtitle">继承 UICollectionViewLayout，重写 4 个核心方法</div>
+
+    <h3 style="margin-top:18px;font-size:14px;">1️⃣ 接口设计</h3>
+<div class="code-block"><span class="comm">// WaterfallLayout.h</span>
+<span class="kw">@protocol</span> <span class="type">WaterfallLayoutDelegate</span> &lt;<span class="type">NSObject</span>&gt;
+<span class="comm">// ⭐ 把"每个 item 高度"的决策权交给业务方（通常 ViewModel 已经预算好）</span>
+<span class="kw">- (CGFloat)</span><span class="meth">waterfallLayout:</span>(<span class="type">WaterfallLayout</span> *)layout
+       <span class="meth">heightForItemAtIndexPath:</span>(<span class="type">NSIndexPath</span> *)indexPath
+                  <span class="meth">itemWidth:</span>(<span class="type">CGFloat</span>)itemWidth;
+<span class="kw">@end</span>
+
+<span class="kw">@interface</span> <span class="type">WaterfallLayout</span> : <span class="type">UICollectionViewLayout</span>
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">assign</span>) <span class="type">NSInteger</span> columnCount;        <span class="comm">// 列数</span>
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">assign</span>) <span class="type">CGFloat</span> columnSpacing;       <span class="comm">// 列间距</span>
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">assign</span>) <span class="type">CGFloat</span> itemSpacing;         <span class="comm">// 行间距</span>
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">assign</span>) <span class="type">UIEdgeInsets</span> sectionInset;
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">weak</span>) <span class="type">id</span>&lt;<span class="type">WaterfallLayoutDelegate</span>&gt; delegate;
+<span class="kw">@end</span></div>
+
+    <h3 style="margin-top:24px;font-size:14px;">2️⃣ 核心：prepareLayout —— 预计算所有 item 位置</h3>
+<div class="code-block"><span class="kw">@implementation</span> <span class="type">WaterfallLayout</span> {
+    <span class="type">NSMutableArray</span>&lt;<span class="type">UICollectionViewLayoutAttributes</span> *&gt; *_attrsCache;  <span class="comm">// item 属性缓存</span>
+    <span class="type">NSMutableArray</span>&lt;<span class="type">NSNumber</span> *&gt; *_columnHeights;                       <span class="comm">// 每列当前高度</span>
+    <span class="type">CGFloat</span> _contentHeight;
+}
+
+<span class="kw">- (void)</span><span class="meth">prepareLayout</span> {
+    [<span class="kw">super</span> <span class="meth">prepareLayout</span>];
+
+    <span class="comm">// ⭐ 1. 重置缓存</span>
+    _attrsCache = [<span class="type">NSMutableArray</span> array];
+    _columnHeights = [<span class="type">NSMutableArray</span> arrayWithCapacity:<span class="kw">self</span>.columnCount];
+    <span class="kw">for</span> (<span class="type">NSInteger</span> i = <span class="num">0</span>; i &lt; <span class="kw">self</span>.columnCount; i++) {
+        [_columnHeights addObject:@(<span class="kw">self</span>.sectionInset.top)];
+    }
+    _contentHeight = <span class="num">0</span>;
+
+    <span class="comm">// ⭐ 2. 算每列宽度</span>
+    <span class="type">CGFloat</span> totalSpacing = <span class="kw">self</span>.sectionInset.left + <span class="kw">self</span>.sectionInset.right
+                          + (<span class="kw">self</span>.columnCount - <span class="num">1</span>) * <span class="kw">self</span>.columnSpacing;
+    <span class="type">CGFloat</span> itemWidth = (<span class="kw">self</span>.collectionView.bounds.size.width - totalSpacing)
+                       / <span class="kw">self</span>.columnCount;
+
+    <span class="comm">// ⭐ 3. 遍历所有 item，决定放哪一列</span>
+    <span class="type">NSInteger</span> itemCount = [<span class="kw">self</span>.collectionView numberOfItemsInSection:<span class="num">0</span>];
+    <span class="kw">for</span> (<span class="type">NSInteger</span> i = <span class="num">0</span>; i &lt; itemCount; i++) {
+        <span class="type">NSIndexPath</span> *ip = [<span class="type">NSIndexPath</span> indexPathForItem:i inSection:<span class="num">0</span>];
+
+        <span class="comm">// 问 delegate 这个 item 多高</span>
+        <span class="type">CGFloat</span> itemHeight = [<span class="kw">self</span>.delegate <span class="meth">waterfallLayout:</span><span class="kw">self</span>
+                                       <span class="meth">heightForItemAtIndexPath:</span>ip
+                                                  <span class="meth">itemWidth:</span>itemWidth];
+
+        <span class="comm">// ⭐⭐⭐ 核心：找最短列</span>
+        <span class="type">NSInteger</span> shortestCol = <span class="num">0</span>;
+        <span class="type">CGFloat</span> minHeight = _columnHeights[<span class="num">0</span>].<span class="type">CGFloatValue</span>;
+        <span class="kw">for</span> (<span class="type">NSInteger</span> c = <span class="num">1</span>; c &lt; <span class="kw">self</span>.columnCount; c++) {
+            <span class="kw">if</span> (_columnHeights[c].<span class="type">CGFloatValue</span> &lt; minHeight) {
+                minHeight = _columnHeights[c].<span class="type">CGFloatValue</span>;
+                shortestCol = c;
+            }
+        }
+
+        <span class="comm">// ⭐ 算 item 的 frame</span>
+        <span class="type">CGFloat</span> x = <span class="kw">self</span>.sectionInset.left
+                 + shortestCol * (itemWidth + <span class="kw">self</span>.columnSpacing);
+        <span class="type">CGFloat</span> y = minHeight;
+
+        <span class="type">UICollectionViewLayoutAttributes</span> *attrs =
+            [<span class="type">UICollectionViewLayoutAttributes</span> <span class="meth">layoutAttributesForCellWithIndexPath:</span>ip];
+        attrs.frame = <span class="type">CGRectMake</span>(x, y, itemWidth, itemHeight);
+        [_attrsCache addObject:attrs];
+
+        <span class="comm">// 更新该列高度</span>
+        _columnHeights[shortestCol] = @(y + itemHeight + <span class="kw">self</span>.itemSpacing);
+    }
+
+    <span class="comm">// ⭐ 4. 算总高度（用最高那一列）</span>
+    <span class="kw">for</span> (<span class="type">NSNumber</span> *h <span class="kw">in</span> _columnHeights) {
+        _contentHeight = <span class="type">MAX</span>(_contentHeight, h.<span class="type">CGFloatValue</span>);
+    }
+    _contentHeight += <span class="kw">self</span>.sectionInset.bottom;
+}</div>
+
+    <h3 style="margin-top:24px;font-size:14px;">3️⃣ 必须实现的 3 个查询方法</h3>
+<div class="code-block"><span class="comm">// ⭐ contentSize：告诉 collectionView 总滚动范围</span>
+<span class="kw">- (CGSize)</span><span class="meth">collectionViewContentSize</span> {
+    <span class="kw">return</span> <span class="type">CGSizeMake</span>(<span class="kw">self</span>.collectionView.bounds.size.width, _contentHeight);
+}
+
+<span class="comm">// ⭐ 给定一个区域，返回所有可见 item 的属性（性能关键）</span>
+<span class="kw">- (NSArray</span>&lt;<span class="type">UICollectionViewLayoutAttributes</span> *&gt; *<span class="kw">)</span><span class="meth">layoutAttributesForElementsInRect:</span>(<span class="type">CGRect</span>)rect {
+    <span class="comm">// ⚠️ 注意：这个方法每次滚动都被调用，必须高效</span>
+    <span class="comm">// 简单实现：遍历缓存，过滤相交的</span>
+    <span class="type">NSMutableArray</span> *result = [<span class="type">NSMutableArray</span> array];
+    <span class="kw">for</span> (<span class="type">UICollectionViewLayoutAttributes</span> *attrs <span class="kw">in</span> _attrsCache) {
+        <span class="kw">if</span> (<span class="type">CGRectIntersectsRect</span>(attrs.frame, rect)) {
+            [result addObject:attrs];
+        }
+    }
+    <span class="kw">return</span> result;
+    <span class="comm">// ⭐ 高级优化：用二分查找快速定位区间，O(logN)</span>
+}
+
+<span class="comm">// ⭐ 单个 item 属性</span>
+<span class="kw">- (UICollectionViewLayoutAttributes *)</span><span class="meth">layoutAttributesForItemAtIndexPath:</span>(<span class="type">NSIndexPath</span> *)ip {
+    <span class="kw">return</span> _attrsCache[ip.item];
+}
+
+<span class="comm">// ⭐ bounds 变化时是否重新布局（旋转、宽度变化要重算）</span>
+<span class="kw">- (BOOL)</span><span class="meth">shouldInvalidateLayoutForBoundsChange:</span>(<span class="type">CGRect</span>)newBounds {
+    <span class="kw">return</span> newBounds.size.width != <span class="kw">self</span>.collectionView.bounds.size.width;
+}
+<span class="kw">@end</span></div>
+
+    <h3 style="margin-top:24px;font-size:14px;">4️⃣ 业务侧使用</h3>
+<div class="code-block"><span class="kw">@implementation</span> <span class="type">DiscoverViewController</span>
+<span class="kw">- (void)</span><span class="meth">viewDidLoad</span> {
+    <span class="type">WaterfallLayout</span> *layout = [[<span class="type">WaterfallLayout</span> alloc] init];
+    layout.columnCount = <span class="num">2</span>;
+    layout.columnSpacing = <span class="num">8</span>;
+    layout.itemSpacing = <span class="num">8</span>;
+    layout.sectionInset = <span class="type">UIEdgeInsetsMake</span>(<span class="num">8</span>, <span class="num">8</span>, <span class="num">8</span>, <span class="num">8</span>);
+    layout.delegate = <span class="kw">self</span>;
+
+    <span class="kw">self</span>.collectionView = [[<span class="type">UICollectionView</span> alloc]
+        initWithFrame:<span class="kw">self</span>.view.bounds collectionViewLayout:layout];
+}
+
+<span class="comm">// 实现 delegate</span>
+<span class="kw">- (CGFloat)</span><span class="meth">waterfallLayout:</span>(<span class="type">WaterfallLayout</span> *)layout
+       <span class="meth">heightForItemAtIndexPath:</span>(<span class="type">NSIndexPath</span> *)ip
+                  <span class="meth">itemWidth:</span>(<span class="type">CGFloat</span>)itemWidth {
+    <span class="type">PinModel</span> *pin = <span class="kw">self</span>.pins[ip.item];
+    <span class="comm">// ⭐ 关键：图片高度按宽高比缩放，文本高度提前预算</span>
+    <span class="type">CGFloat</span> imageHeight = itemWidth * pin.imageAspectRatio;
+    <span class="type">CGFloat</span> textHeight = pin.titleHeight;  <span class="comm">// ViewModel 子线程预算</span>
+    <span class="kw">return</span> imageHeight + textHeight + <span class="num">16</span>;
+}
+<span class="kw">@end</span></div>
+  </div>
+
+  <!-- 高级优化 -->
+  <div class="section-block">
+    <h2>🚀 高级优化：二分查找加速 layoutAttributesForElementsInRect</h2>
+    <div class="explain warn">
+      <span class="h">问题：</span> 1 万个 item 时，每次滚动都遍历整个缓存判断相交，O(N) 太慢。
+    </div>
+
+<div class="code-block"><span class="comm">// 假设 _attrsCache 按 frame.minY 升序排列（瀑布流不严格，但近似有序）</span>
+<span class="kw">- (NSInteger)</span><span class="meth">binarySearchFirstIndexInRect:</span>(<span class="type">CGRect</span>)rect {
+    <span class="type">NSInteger</span> low = <span class="num">0</span>, high = _attrsCache.count - <span class="num">1</span>;
+    <span class="kw">while</span> (low &lt;= high) {
+        <span class="type">NSInteger</span> mid = (low + high) / <span class="num">2</span>;
+        <span class="type">CGRect</span> midFrame = _attrsCache[mid].frame;
+        <span class="kw">if</span> (<span class="type">CGRectGetMaxY</span>(midFrame) &lt; <span class="type">CGRectGetMinY</span>(rect)) {
+            low = mid + <span class="num">1</span>;
+        } <span class="kw">else</span> {
+            high = mid - <span class="num">1</span>;
+        }
+    }
+    <span class="kw">return</span> low;
+}
+
+<span class="kw">- (NSArray</span> *<span class="kw">)</span><span class="meth">layoutAttributesForElementsInRect:</span>(<span class="type">CGRect</span>)rect {
+    <span class="type">NSInteger</span> startIdx = [<span class="kw">self</span> <span class="meth">binarySearchFirstIndexInRect:</span>rect];
+    <span class="type">NSMutableArray</span> *result = [<span class="type">NSMutableArray</span> array];
+    <span class="kw">for</span> (<span class="type">NSInteger</span> i = startIdx; i &lt; _attrsCache.count; i++) {
+        <span class="type">UICollectionViewLayoutAttributes</span> *attrs = _attrsCache[i];
+        <span class="kw">if</span> (<span class="type">CGRectGetMinY</span>(attrs.frame) &gt; <span class="type">CGRectGetMaxY</span>(rect)) <span class="kw">break</span>;
+        <span class="kw">if</span> (<span class="type">CGRectIntersectsRect</span>(attrs.frame, rect)) [result addObject:attrs];
+    }
+    <span class="kw">return</span> result;
+}</div>
+
+    <div class="explain success">
+      O(N) → O(log N + K)，K 是可见 item 数。1 万 item 滚动也丝滑。
+    </div>
+  </div>
+
+  <!-- 反例 -->
+  <div class="section-block">
+    <h2>⚖️ 反例 vs 正例</h2>
+    <div class="compare-grid">
+      <div class="compare-card bad">
+        <h4>❌ 反例：在 cellForItem 里算高度</h4>
+<div class="code-block" style="font-size:11.5px;"><span class="kw">- (UICollectionViewCell *)</span><span class="meth">collectionView:</span>...{
+    <span class="comm">// ❌ 主线程 boundingRectWithSize</span>
+    <span class="type">CGSize</span> size = [pin.title <span class="meth">boundingRectWithSize:</span>...
+                              <span class="meth">options:</span>...].size;
+    cell.titleLabel.frame = <span class="type">CGRectMake</span>(<span class="num">0</span>,<span class="num">0</span>,size.width,size.height);
+}
+<span class="comm">// 滚动时每个 cell 都算一次，必卡</span></div>
+      </div>
+
+      <div class="compare-card good">
+        <h4>✅ 正例：ViewModel 子线程预算</h4>
+<div class="code-block" style="font-size:11.5px;"><span class="kw">- (void)</span><span class="meth">parsePinList:</span>(<span class="type">NSArray</span> *)json {
+    <span class="comm">// ⭐ 拉到数据立刻在子线程算高度</span>
+    <span class="meth">dispatch_async</span>(bgQueue, ^{
+        <span class="kw">for</span> (<span class="type">PinModel</span> *p <span class="kw">in</span> models) {
+            p.titleHeight = [<span class="kw">self</span> <span class="meth">heightOfText:</span>p.title width:itemWidth];
+        }
+        <span class="meth">dispatch_async</span>(<span class="meth">dispatch_get_main_queue</span>(), ^{
+            [<span class="kw">self</span>.cv reloadData];
+        });
+    });
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 易错点 -->
+  <div class="section-block">
+    <h2>⚠️ 实战易错点</h2>
+    <div class="explain danger">
+      <span class="h">坑 1：prepareLayout 里调 numberOfItems 死循环</span><br>
+      在 prepare 里调 <code>collectionView numberOfItemsInSection:</code> 是安全的，但如果你在 dataSource 里也触发 layout 操作，会陷入死循环。
+    </div>
+    <div class="explain danger">
+      <span class="h">坑 2：忘记 invalidateLayout</span><br>
+      数据变化后必须 <code>[layout invalidateLayout]</code> 或 <code>[cv reloadData]</code>，否则 prepareLayout 不会重跑。
+    </div>
+    <div class="explain warn">
+      <span class="h">坑 3：列宽是浮点数导致缝隙</span><br>
+      <code>(总宽 - 边距) / 列数</code> 可能不是整数，渲染后列与列间会有 1px 缝。<br>
+      <b>解决</b>：用 <code>floor</code> 取整，剩余像素加到 sectionInset.right。
+    </div>
+    <div class="explain success">
+      <span class="h">最佳实践：用开源库</span><br>
+      生产可直接用 <a href="https://github.com/chiahsien/CHTCollectionViewWaterfallLayout">CHTCollectionViewWaterfallLayout</a> 或 Swift 的 <a href="https://github.com/AndreaMiotto/WaterfallGrid">WaterfallGrid</a>。原理一致，但已处理了大量边界 case。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

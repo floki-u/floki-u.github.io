@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://floki-u.github.io/sitemap.xml

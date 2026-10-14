@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>19. 设计模式总览 — 7 大类 App 横向对比</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/shared.css">
+<script src="../assets/theme.js"></script>
+<style>
+  body { background: #f5f6fa; font-family: -apple-system, "PingFang SC", sans-serif; margin: 0; padding: 24px; color: #2d3748; }
+  .nav { max-width: 1100px; margin: 0 auto 16px; display: flex; justify-content: space-between; font-size: 13px; }
+  .nav a { color: #4facfe; text-decoration: none; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .header { background: linear-gradient(135deg, #1a1a2e 0%, #4facfe 100%); color: white; padding: 32px; border-radius: 14px; margin-bottom: 20px; }
+  .header h1 { margin: 0 0 10px; font-size: 26px; }
+  .header p { margin: 0; opacity: 0.95; font-size: 14px; line-height: 1.7; }
+
+  /* 大表格 */
+  .matrix {
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    background: white; border-radius: 12px; overflow: hidden;
+    margin-top: 14px; font-size: 12.5px;
+  }
+  .matrix th, .matrix td { padding: 12px 14px; border-bottom: 1px solid #ecedf1; vertical-align: top; text-align: left; }
+  .matrix thead th { background: #1a1a2e; color: white; font-weight: 600; position: sticky; top: 0; }
+  .matrix tbody tr:nth-child(even) { background: #fafbfd; }
+  .matrix .category { background: #eef2ff !important; color: #1a1a2e; font-weight: 700; font-size: 13px; padding: 14px; }
+  .matrix .label { font-weight: 600; color: #1a1a2e; }
+
+  /* 标签 */
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin: 2px 0; }
+  .p-blue { background: #e3f2fd; color: #1976d2; }
+  .p-green { background: #e8f5e9; color: #2e7d32; }
+  .p-red { background: #ffebee; color: #c62828; }
+  .p-orange { background: #fff3e0; color: #ef6c00; }
+  .p-purple { background: #f3e5f5; color: #7b1fa2; }
+  .p-gray { background: #f5f6fa; color: #5a6378; }
+
+  /* 卡片网格 */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+  .insight-card {
+    background: white; border-radius: 10px; padding: 18px;
+    border-left: 4px solid #4facfe;
+  }
+  .insight-card.green { border-color: #4caf50; }
+  .insight-card.orange { border-color: #ff9800; }
+  .insight-card.red { border-color: #f44336; }
+  .insight-card.purple { border-color: #9c27b0; }
+  .insight-card h4 { font-size: 15px; margin: 0 0 8px; color: #1a1a2e; }
+  .insight-card p { font-size: 13px; line-height: 1.7; color: #5a6378; margin: 0; }
+  .insight-card .ex { font-size: 11.5px; color: #9099a8; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e0e3eb; }
+
+  /* 推荐路径 */
+  .path {
+    background: white; border-radius: 12px; padding: 20px;
+    margin-top: 14px;
+  }
+  .path-step {
+    display: flex; gap: 14px; align-items: flex-start; padding: 12px 0;
+    border-bottom: 1px dashed #e0e3eb;
+  }
+  .path-step:last-child { border-bottom: none; }
+  .path-step .num {
+    width: 28px; height: 28px; border-radius: 14px;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; flex-shrink: 0;
+  }
+  .path-step .content { flex: 1; }
+  .path-step h5 { margin: 0 0 4px; font-size: 14px; color: #1a1a2e; }
+  .path-step p { margin: 0; font-size: 12.5px; color: #6c7293; line-height: 1.6; }
+  .path-step .links { margin-top: 6px; font-size: 11.5px; }
+  .path-step .links a { color: #4facfe; text-decoration: none; margin-right: 12px; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="../index.html">← 返回主菜单</a>
+  <a href="18_apple_settings.html">← 上一个</a>
+</div>
+
+<div class="container">
+
+  <div class="header">
+    <h1>🌐 设计模式总览 — 7 大类 App 横向对比</h1>
+    <p>把 App 按"<b>用户使用场景</b>"分成 7 大类，对比它们在<b>信息架构</b>、<b>视觉语言</b>、<b>交互范式</b>、<b>商业目标</b>上的共性和差异。这是产品 / 设计 / 开发都该掌握的"<b>App 通识</b>"。</p>
+  </div>
+
+  <!-- 7 大类总览 -->
+  <div class="section-block">
+    <h2>📊 7 大类 App 总览矩阵</h2>
+    <table class="matrix">
+      <thead>
+        <tr>
+          <th>类型</th>
+          <th>代表 App</th>
+          <th>核心动作</th>
+          <th>主导布局</th>
+          <th>视觉风格</th>
+          <th>商业目标</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="label">🛠 工具类</td>
+          <td>微信、QQ、邮件、备忘录</td>
+          <td>处理消息、查询信息</td>
+          <td><span class="pill p-blue">单列 List</span></td>
+          <td><span class="pill p-gray">克制、低饱和</span></td>
+          <td>留存、效率</td>
+        </tr>
+        <tr>
+          <td class="label">📱 内容消费</td>
+          <td>抖音、快手、B站、视频号</td>
+          <td>看短视频、长视频</td>
+          <td><span class="pill p-purple">全屏分页</span></td>
+          <td><span class="pill p-red">沉浸黑、高饱和</span></td>
+          <td>时长、推荐 CTR</td>
+        </tr>
+        <tr>
+          <td class="label">📸 内容社区</td>
+          <td>小红书、Instagram、Pinterest</td>
+          <td>发笔记、刷探索</td>
+          <td><span class="pill p-purple">瀑布流</span></td>
+          <td><span class="pill p-gray">白底、内容主导</span></td>
+          <td>UGC、互动率</td>
+        </tr>
+        <tr>
+          <td class="label">🛒 电商</td>
+          <td>淘宝、京东、拼多多、得物</td>
+          <td>浏览商品、下单</td>
+          <td><span class="pill p-blue">混合</span> Banner+金刚区+双列</td>
+          <td><span class="pill p-red">渐变红橙、信息密集</span></td>
+          <td>GMV、转化率</td>
+        </tr>
+        <tr>
+          <td class="label">🍔 本地生活</td>
+          <td>美团、大众点评、滴滴</td>
+          <td>找服务、下单</td>
+          <td><span class="pill p-blue">金刚区主导</span></td>
+          <td><span class="pill p-orange">品牌色 + 卡片</span></td>
+          <td>订单数、商家广告</td>
+        </tr>
+        <tr>
+          <td class="label">💰 金融工具</td>
+          <td>支付宝、微信支付、招行、Wallet</td>
+          <td>查账户、转账</td>
+          <td><span class="pill p-blue">卡片 + 列表</span></td>
+          <td><span class="pill p-blue">蓝色信任感、安全</span></td>
+          <td>资金沉淀、理财转化</td>
+        </tr>
+        <tr>
+          <td class="label">⚙️ 系统/设置</td>
+          <td>iOS 设置、健康、Apple Wallet</td>
+          <td>查询/修改配置</td>
+          <td><span class="pill p-blue">InsetGrouped List</span></td>
+          <td><span class="pill p-gray">Apple HIG 标准</span></td>
+          <td>无（功能性）</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 共性总结 -->
+  <div class="section-block">
+    <h2>✨ 跨 App 的「共性」— 它们都用了这些</h2>
+    <div class="grid-3">
+      <div class="insight-card green">
+        <h4>① TabBar 5 选 1</h4>
+        <p>底部 4-5 个 Tab 是绝对主流。原因：拇指能轻松触达，5 个之内不用滚动。</p>
+        <div class="ex">微信 4、抖音 5、淘宝 5、小红书 5、Apple 设置无 TabBar（单层级）</div>
+      </div>
+      <div class="insight-card green">
+        <h4>② 红色徽标</h4>
+        <p>系统级共识。即使品牌色不是红，徽标也用红色。心理学上"红 = 注意"。</p>
+        <div class="ex">微信、抖音、QQ、Instagram、Twitter、邮件全用红色</div>
+      </div>
+      <div class="insight-card green">
+        <h4>③ 下拉刷新</h4>
+        <p>Loren Brichter 在 Tweetie 发明（2008），现在已成"列表标配"。用户不需教学。</p>
+        <div class="ex">所有内容流类 App 都支持，缺失反而被觉得"做得不完整"</div>
+      </div>
+      <div class="insight-card orange">
+        <h4>④ 沉浸式头部</h4>
+        <p>头图视差 + 渐变导航栏。从 Spotify 推广到电商详情、个人主页、商品详情。</p>
+        <div class="ex">小红书博主主页、淘宝商品详情、网易云专辑页都用</div>
+      </div>
+      <div class="insight-card orange">
+        <h4>⑤ 双击交互</h4>
+        <p>Tab 双击滚到顶部 / 双击点赞 / 双击切换。<b>给重度用户的"隐藏快捷键"</b>。</p>
+        <div class="ex">Instagram 双击点赞 → 抖音、小红书、微博跟进</div>
+      </div>
+      <div class="insight-card orange">
+        <h4>⑥ 长按菜单</h4>
+        <p>长按消息/图片/链接弹"更多动作"。比按钮更隐蔽，给"知道的用户"加分。</p>
+        <div class="ex">iMessage Tapback、微信引用、Telegram 转发都是长按</div>
+      </div>
+      <div class="insight-card purple">
+        <h4>⑦ 骨架屏 / Shimmer</h4>
+        <p>替代菊花已成共识。Facebook 2017 发明，2 年内全行业普及。</p>
+        <div class="ex">小红书、微博、淘宝、知乎都用</div>
+      </div>
+      <div class="insight-card purple">
+        <h4>⑧ 半屏 Modal Sheet</h4>
+        <p>评论、分享、详情等次级页面用半屏 sheet 弹出。<b>不打断主上下文</b>。</p>
+        <div class="ex">iOS 15+ 的 UISheetPresentationController 把它做成系统能力</div>
+      </div>
+      <div class="insight-card purple">
+        <h4>⑨ Modal 转场动画</h4>
+        <p>"<b>来源即去向</b>" — 元素从哪来回哪去。Story 关闭时缩回头像圈是经典。</p>
+        <div class="ex">Apple Photos、Instagram Story、抖音详情转场</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 差异化总结 -->
+  <div class="section-block">
+    <h2>🎯 不同类型 App 的「差异点」— 看清各自取舍</h2>
+
+    <div class="grid-2">
+      <div class="insight-card">
+        <h4>📌 工具 vs 内容：信息密度的取舍</h4>
+        <p><b>工具类</b>追求"一屏看更多"，行高紧凑（微信会话列表 ~64pt）；<b>内容类</b>追求"沉浸感"，单屏甚至只放 1-2 个内容（抖音全屏、小红书双列大图）。</p>
+        <div class="ex">学习点：根据"用户希望<b>处理</b>多少 vs <b>欣赏</b>多少"决定行高</div>
+      </div>
+      <div class="insight-card">
+        <h4>📌 电商 vs 社区：CTA 的位置</h4>
+        <p><b>电商</b>把"购买/加购"按钮做在最显眼位置，价格用大号红字；<b>社区</b>把"点赞/收藏"放右下小图标，绝不抢戏。</p>
+        <div class="ex">学习点："想让用户做的事"决定按钮的视觉权重</div>
+      </div>
+      <div class="insight-card">
+        <h4>📌 短视频 vs 长视频：默认播放</h4>
+        <p><b>短视频</b>默认自动播放、循环、有声（抖音）；<b>长视频</b>默认静音封面（B站、爱奇艺）。原因是短视频的"选择成本低"，长视频"播错很烦"。</p>
+        <div class="ex">学习点：用户决策成本决定默认行为</div>
+      </div>
+      <div class="insight-card">
+        <h4>📌 金融 vs 娱乐：颜色心理学</h4>
+        <p><b>金融</b>用蓝色（信任、稳定）+ 大量留白（庄严感）；<b>娱乐</b>用高饱和（兴奋）+ 紧凑布局（信息流）。</p>
+        <div class="ex">学习点：颜色 = 情绪，与功能匹配</div>
+      </div>
+      <div class="insight-card">
+        <h4>📌 系统 vs 业务：图标风格</h4>
+        <p><b>系统</b>用 SF Symbols 线性图标 + 彩色背景方块（统一感）；<b>业务</b>用插画式图标（差异化、品牌感）。</p>
+        <div class="ex">学习点：偏功能就线性，偏品牌就插画</div>
+      </div>
+      <div class="insight-card">
+        <h4>📌 国内 vs 海外：信息密度差异</h4>
+        <p><b>国内</b>同一屏挤更多信息（淘宝首页 vs Amazon），因为屏小、人多、注意力短；<b>海外</b>更多留白，重视呼吸感。</p>
+        <div class="ex">学习点：本地化不只是翻译，还是<b>排版习惯</b></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 提炼出的"通用设计法则" -->
+  <div class="section-block">
+    <h2>🏆 总结 — 12 条通用设计法则</h2>
+
+    <div class="grid-2">
+      <div class="insight-card green">
+        <h4>1️⃣ 拇指热区原则</h4>
+        <p>iPhone 屏幕越来越大，但拇指能舒适触达的区域只有右下 1/3。所有高频操作（点赞、发布、关闭）都该在这。</p>
+      </div>
+      <div class="insight-card green">
+        <h4>2️⃣ 信息层级最多 3 层</h4>
+        <p>Tab → 列表 → 详情。再深用户会迷路。如果功能多，用 search 或快捷入口替代深层级。</p>
+      </div>
+      <div class="insight-card green">
+        <h4>3️⃣ 加载态比成功态更重要</h4>
+        <p>用户能容忍慢，但容忍不了"不知道发生了什么"。骨架屏 / 进度条 / Toast 必须有。</p>
+      </div>
+      <div class="insight-card green">
+        <h4>4️⃣ 反馈延迟 ≤ 100ms</h4>
+        <p>用户感知"流畅"的临界点。任何点击都要在 100ms 内有视觉反馈（即使数据还没回来）。</p>
+      </div>
+      <div class="insight-card green">
+        <h4>5️⃣ 颜色语义化</h4>
+        <p>红 = 危险/通知 / 绿 = 成功/确认 / 蓝 = 信任/链接 / 黄 = 警告。<b>不要随意用</b>。</p>
+      </div>
+      <div class="insight-card green">
+        <h4>6️⃣ 主操作只有一个</h4>
+        <p>每个页面只有一个最高优先级 CTA。多个"主按钮"会让用户犹豫。</p>
+      </div>
+      <div class="insight-card orange">
+        <h4>7️⃣ 系统组件优于自定义</h4>
+        <p>用户对系统设计有肌肉记忆。能用 UICollectionLayoutListConfiguration 就别自己撸。</p>
+      </div>
+      <div class="insight-card orange">
+        <h4>8️⃣ Dark Mode 不是反色</h4>
+        <p>不是简单 invert。需要重新设计层级（深色背景下层级用浅黑表达）。</p>
+      </div>
+      <div class="insight-card orange">
+        <h4>9️⃣ 无障碍是必修</h4>
+        <p>VoiceOver、Dynamic Type、对比度。不是加分项，是基本盘。Apple 审核会卡。</p>
+      </div>
+      <div class="insight-card orange">
+        <h4>🔟 动效要服务于功能</h4>
+        <p>不是为了炫。Story 关闭缩回头像 = 告诉用户"它来自这里"，是空间感。</p>
+      </div>
+      <div class="insight-card red">
+        <h4>1️⃣1️⃣ 不要过度设计</h4>
+        <p>淘宝首页之所以"乱"，是因为它要在一屏内卖出尽可能多商品。<b>设计服务商业</b>，不是反过来。</p>
+      </div>
+      <div class="insight-card red">
+        <h4>1️⃣2️⃣ 永远在 iPhone SE 上验证</h4>
+        <p>4.7 寸屏幕能用，13 Pro Max 才会好用。<b>从最小屏开始</b>。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 学习路径 -->
+  <div class="section-block">
+    <h2>🎓 推荐学习路径 — 怎么把这些组件融会贯通</h2>
+    <div class="path">
+
+      <div class="path-step">
+        <div class="num">1</div>
+        <div class="content">
+          <h5>🟢 先打牢"反离屏"基本功</h5>
+          <p>每天看到的所有 cell 都问自己一个问题："这个圆角/阴影离屏了吗？怎么消除？"练 1 周后形成肌肉记忆。</p>
+          <div class="links">
+            <a href="01_message_cell.html">→ MessageCell</a>
+            <a href="02_news_cell.html">→ NewsCell</a>
+            <a href="06_comparison.html">→ 反例对比</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="path-step">
+        <div class="num">2</div>
+        <div class="content">
+          <h5>🟡 掌握 6 种核心组件</h5>
+          <p>骨架屏、左滑菜单、展开卡片、视差头图、瀑布流、下拉刷新。这 6 个组件覆盖业务 80% 场景。</p>
+          <div class="links">
+            <a href="07_skeleton_cell.html">→ Skeleton</a>
+            <a href="08_swipe_actions.html">→ Swipe</a>
+            <a href="09_expandable_cell.html">→ Expandable</a>
+            <a href="10_parallax_header.html">→ Parallax</a>
+            <a href="11_waterfall_layout.html">→ Waterfall</a>
+            <a href="12_pull_refresh.html">→ Refresh</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="path-step">
+        <div class="num">3</div>
+        <div class="content">
+          <h5>🟣 拆解头部 App 的设计</h5>
+          <p>每天用一个 App，问"<b>它为什么这么设计</b>"，写一篇 200 字的 mini 复盘。坚持 1 个月，设计感会突飞猛进。</p>
+          <div class="links">
+            <a href="13_tabbar_patterns.html">→ TabBar</a>
+            <a href="14_ecommerce_feed.html">→ 电商</a>
+            <a href="15_douyin_feed.html">→ 抖音</a>
+            <a href="16_chat_messages.html">→ 聊天</a>
+            <a href="17_story_card.html">→ Story</a>
+            <a href="18_apple_settings.html">→ Apple 设置</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="path-step">
+        <div class="num">4</div>
+        <div class="content">
+          <h5>🔵 通过仿写练习沉淀</h5>
+          <p>挑一个你最喜欢的 App 的某个页面，1 周内仿写出 80% 的视觉效果 + 60% 的交互。每仿写一个，吸收 5+ 个细节。</p>
+          <div class="links">
+            <a href="javascript:alert('推荐顺序：抖音首页 → 微信会话 → 小红书发现 → Apple 设置')">推荐仿写清单</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="path-step">
+        <div class="num">5</div>
+        <div class="content">
+          <h5>🟠 阅读 Apple HIG（人机界面指南）</h5>
+          <p>这是 Apple 官方的"设计圣经"。每周读一章，半年读完，设计水平 = 中级 → 高级。<br>
+          地址：<a href="https://developer.apple.com/design/human-interface-guidelines/" target="_blank" style="color:#4facfe;">developer.apple.com/design/human-interface-guidelines</a></p>
+        </div>
+      </div>
+
+      <div class="path-step">
+        <div class="num">6</div>
+        <div class="content">
+          <h5>🔴 持续关注 WWDC</h5>
+          <p>每年 6 月 WWDC 会发布新 API + 新设计语言。第一时间用到项目里，永远比同行快一步。<br>
+          推荐 session：「What's new in UICollectionView」、「Modern cell configuration」、「Design with iOS pickers, menus and actions」。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 资源汇总 -->
+  <div class="section-block">
+    <h2>📚 高质量学习资源</h2>
+    <div class="grid-2">
+      <div class="insight-card">
+        <h4>📖 设计</h4>
+        <p>
+          · <b>Apple HIG</b> — Apple 官方设计指南<br>
+          · <b>Material Design</b> — Google 设计语言<br>
+          · <b>Mobbin</b>（mobbin.com）— 顶级 App 截图库<br>
+          · <b>Dribbble / Behance</b> — 设计灵感<br>
+          · <b>UISDC（优设网）</b> — 中文设计资讯
+        </p>
+      </div>
+      <div class="insight-card">
+        <h4>💻 开发</h4>
+        <p>
+          · <b>Apple Developer Documentation</b> — 官方文档<br>
+          · <b>WWDC sessions</b> — 必看<br>
+          · <b>objc.io</b> — iOS 高质量博客<br>
+          · <b>Swift by Sundell</b> — Swift 最佳实践<br>
+          · <b>Hacking with Swift</b> — 项目教程
+        </p>
+      </div>
+      <div class="insight-card">
+        <h4>🎬 视频</h4>
+        <p>
+          · <b>WWDC 2020+ Compositional Layout</b><br>
+          · <b>WWDC 2021 UIKit modernization</b><br>
+          · <b>WWDC 2023 design with menus</b><br>
+          · <b>Stanford CS193P</b>（公开课）<br>
+          · <b>Paul Hudson YouTube</b>
+        </p>
+      </div>
+      <div class="insight-card">
+        <h4>🛠 工具</h4>
+        <p>
+          · <b>Reveal</b> — 运行时查看 view 层级<br>
+          · <b>Hierarchy Viewer</b> — Xcode 自带<br>
+          · <b>Instruments</b> — 性能分析必备<br>
+          · <b>Sketch / Figma</b> — 设计稿工具<br>
+          · <b>SF Symbols app</b> — 系统图标浏览
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

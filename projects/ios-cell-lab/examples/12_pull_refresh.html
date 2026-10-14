@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>12. PullRefresh — 自定义下拉刷新</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/shared.css">
+<script src="../assets/theme.js"></script>
+<style>
+  body { background: #f5f6fa; font-family: -apple-system, "PingFang SC", sans-serif; margin: 0; padding: 24px; color: #2d3748; }
+  .nav { max-width: 880px; margin: 0 auto 16px; display: flex; justify-content: space-between; font-size: 13px; }
+  .nav a { color: #4facfe; text-decoration: none; }
+  .container { max-width: 880px; margin: 0 auto; }
+  .header { background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%); color: white; padding: 28px; border-radius: 14px; margin-bottom: 20px; }
+  .header h1 { margin: 0 0 8px; font-size: 22px; }
+  .header p { margin: 0; opacity: 0.95; font-size: 14px; line-height: 1.7; }
+
+  .phone { width: 360px; margin: 0 auto; background: #fff; border-radius: 28px; padding: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.18); overflow: hidden; }
+  .status { height: 28px; display: flex; justify-content: space-between; padding: 0 18px; font-size: 12px; font-weight: 600; align-items: center; }
+  .nav-bar { padding: 12px 16px; font-size: 16px; font-weight: 600; border-bottom: 1px solid #f0f1f5; }
+
+  /* 演示：进度环 */
+  .demo-area { background: #f9faff; padding: 20px 16px; }
+  .stage { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px dashed #d8dde8; }
+  .stage:last-child { border-bottom: none; }
+  .stage .label { flex: 1; font-size: 13px; color: #1a1a2e; }
+  .stage .label small { display: block; font-size: 11px; color: #6c7293; margin-top: 3px; }
+
+  .ring { width: 48px; height: 48px; position: relative; flex-shrink: 0; }
+  .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring circle { fill: none; stroke-width: 4; stroke-linecap: round; }
+  .ring .bg { stroke: #e8eaf0; }
+  .ring .fg { stroke: #4facfe; transition: stroke-dasharray 0.3s; }
+  .ring.spinning svg { animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(270deg); } }
+
+  .dot { width: 12px; height: 12px; border-radius: 6px; background: #4caf50; margin-left: 18px; }
+
+  .ctrl-row { display: flex; gap: 8px; padding: 10px; justify-content: center; background: #fafbff; }
+  .ctrl-row button { background: #4facfe; color: white; border: none; padding: 6px 12px; font-size: 11px; border-radius: 12px; cursor: pointer; }
+
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .compare-card { background: #f9fafc; border-radius: 10px; padding: 14px; }
+  .compare-card.bad { border-top: 3px solid #ef5350; }
+  .compare-card.good { border-top: 3px solid #4caf50; }
+
+  table.metrics { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+  table.metrics th, table.metrics td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ecedf1; }
+  table.metrics th { background: #f5f6fa; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="../index.html">← 返回主菜单</a>
+  <span>
+    <a href="11_waterfall_layout.html">← 上一个</a> &nbsp;|&nbsp;
+    <a href="../index.html">回主菜单 →</a>
+  </span>
+</div>
+
+<div class="container">
+
+  <div class="header">
+    <h1>🔄 PullRefresh — 自定义下拉刷新</h1>
+    <p>系统 <code>UIRefreshControl</code> 太死板，主流 App（淘宝、微博、抖音）都自己做。原理：监听 contentOffset，超过阈值进入"释放即刷新"状态，loading 态用 <code>contentInset</code> "顶住"内容。</p>
+  </div>
+
+  <!-- 视觉演示 -->
+  <div class="section-block">
+    <h2>🎨 4 个状态可视化</h2>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>● ● ●</span></div>
+      <div class="nav-bar">下拉刷新状态机</div>
+
+      <div class="demo-area">
+        <!-- 状态 1：idle -->
+        <div class="stage">
+          <div class="ring">
+            <svg viewBox="0 0 50 50">
+              <circle class="bg" cx="25" cy="25" r="20"></circle>
+            </svg>
+          </div>
+          <div class="label">
+            <b>idle</b> · 静止
+            <small>contentOffset.y ≥ 0，刷新控件不可见</small>
+          </div>
+        </div>
+
+        <!-- 状态 2：pulling -->
+        <div class="stage">
+          <div class="ring">
+            <svg viewBox="0 0 50 50">
+              <circle class="bg" cx="25" cy="25" r="20"></circle>
+              <circle class="fg" cx="25" cy="25" r="20"
+                stroke-dasharray="60 200"></circle>
+            </svg>
+          </div>
+          <div class="label">
+            <b>pulling</b> · 下拉中（progress = 0.5）
+            <small>用户拉了 30pt / 阈值 60pt，进度环画半圈</small>
+          </div>
+        </div>
+
+        <!-- 状态 3：trigger -->
+        <div class="stage">
+          <div class="ring">
+            <svg viewBox="0 0 50 50">
+              <circle class="bg" cx="25" cy="25" r="20"></circle>
+              <circle class="fg" cx="25" cy="25" r="20"
+                stroke-dasharray="125 200"></circle>
+            </svg>
+          </div>
+          <div class="label">
+            <b>readyToRefresh</b> · 即将触发（progress = 1.0）
+            <small>拉到 60pt 阈值，进度环画满，松手即刷新</small>
+          </div>
+          <div class="dot"></div>
+        </div>
+
+        <!-- 状态 4：refreshing -->
+        <div class="stage">
+          <div class="ring spinning">
+            <svg viewBox="0 0 50 50">
+              <circle class="bg" cx="25" cy="25" r="20"></circle>
+              <circle class="fg" cx="25" cy="25" r="20"
+                stroke-dasharray="80 200"></circle>
+            </svg>
+          </div>
+          <div class="label">
+            <b>refreshing</b> · 刷新中
+            <small>进度环改为旋转动画，contentInset 顶住 60pt</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 状态机原理 -->
+  <div class="section-block">
+    <h2>🧠 4 状态状态机</h2>
+    <div class="explain">
+      <span class="h">完整流程：</span><br>
+      <code>idle</code> →（手指开始下拉）→ <code>pulling</code>（progress 0~1）→（拉过阈值松手）→ <code>refreshing</code> →（数据返回）→ <code>idle</code><br>
+      关键节点：<br>
+      · <b>pulling 阶段</b>：用 progress 驱动 UI（如进度环、箭头旋转）<br>
+      · <b>readyToRefresh</b>：拉到阈值时震动反馈（haptic）<br>
+      · <b>refreshing</b>：禁用手势，contentInset.top += headerHeight 顶住<br>
+      · <b>结束</b>：恢复 contentInset，可选播放"刷新完成"动画
+    </div>
+  </div>
+
+  <!-- 完整代码 -->
+  <div class="section-block">
+    <h2>📦 完整代码 —— PullRefreshHeader</h2>
+    <div class="section-subtitle">基于 KVO 监听 contentOffset，无侵入挂载到任何 UIScrollView</div>
+
+    <h3 style="margin-top:18px;font-size:14px;">1️⃣ 头视图接口</h3>
+<div class="code-block"><span class="comm">// PullRefreshHeader.h</span>
+<span class="kw">typedef</span> <span class="type">NS_ENUM</span>(<span class="type">NSInteger</span>, <span class="type">PullRefreshState</span>) {
+    <span class="type">PullRefreshStateIdle</span>,
+    <span class="type">PullRefreshStatePulling</span>,
+    <span class="type">PullRefreshStateReadyToRefresh</span>,
+    <span class="type">PullRefreshStateRefreshing</span>,
+};
+
+<span class="kw">@interface</span> <span class="type">PullRefreshHeader</span> : <span class="type">UIView</span>
+<span class="kw">@property</span> (<span class="kw">nonatomic</span>, <span class="kw">copy</span>) <span class="kw">void</span> (^onRefresh)(<span class="kw">void</span>);
+<span class="kw">- (void)</span><span class="meth">attachToScrollView:</span>(<span class="type">UIScrollView</span> *)scrollView;
+<span class="kw">- (void)</span><span class="meth">endRefreshing</span>;
+<span class="kw">@end</span></div>
+
+    <h3 style="margin-top:18px;font-size:14px;">2️⃣ 实现 —— KVO 监听 + 状态机</h3>
+<div class="code-block"><span class="kw">static const</span> <span class="type">CGFloat</span> kRefreshHeight = <span class="num">60</span>;
+
+<span class="kw">@implementation</span> <span class="type">PullRefreshHeader</span> {
+    <span class="kw">__weak</span> <span class="type">UIScrollView</span> *_scrollView;
+    <span class="type">PullRefreshState</span> _state;
+    <span class="type">UIEdgeInsets</span> _originalInset;
+    <span class="type">CAShapeLayer</span> *_progressLayer;
+    <span class="type">CAShapeLayer</span> *_bgLayer;
+}
+
+<span class="kw">- (instancetype)</span><span class="meth">init</span> {
+    <span class="kw">if</span> (<span class="kw">self</span> = [<span class="kw">super</span> initWithFrame:<span class="type">CGRectMake</span>(<span class="num">0</span>, -kRefreshHeight, <span class="num">0</span>, kRefreshHeight)]) {
+        <span class="kw">self</span>.backgroundColor = [<span class="type">UIColor</span> clearColor];
+        [<span class="kw">self</span> <span class="meth">setupProgressLayer</span>];
+    }
+    <span class="kw">return</span> <span class="kw">self</span>;
+}
+
+<span class="kw">- (void)</span><span class="meth">setupProgressLayer</span> {
+    <span class="comm">// ⭐ 用 CAShapeLayer 画进度环，旋转/进度动画走 GPU</span>
+    <span class="type">UIBezierPath</span> *path = [<span class="type">UIBezierPath</span>
+        <span class="meth">bezierPathWithArcCenter:</span><span class="type">CGPointMake</span>(<span class="num">25</span>, <span class="num">25</span>)
+                          <span class="meth">radius:</span><span class="num">20</span>
+                      <span class="meth">startAngle:</span>-<span class="type">M_PI_2</span>
+                        <span class="meth">endAngle:</span><span class="num">3</span> * <span class="type">M_PI_2</span>
+                       <span class="meth">clockwise:</span><span class="type">YES</span>];
+
+    _bgLayer = [<span class="type">CAShapeLayer</span> layer];
+    _bgLayer.path = path.<span class="type">CGPath</span>;
+    _bgLayer.strokeColor = [<span class="type">UIColor</span> colorWithWhite:<span class="num">0.9</span> alpha:<span class="num">1</span>].<span class="type">CGColor</span>;
+    _bgLayer.fillColor = [<span class="type">UIColor</span> clearColor].<span class="type">CGColor</span>;
+    _bgLayer.lineWidth = <span class="num">3</span>;
+    [<span class="kw">self</span>.layer addSublayer:_bgLayer];
+
+    _progressLayer = [<span class="type">CAShapeLayer</span> layer];
+    _progressLayer.path = path.<span class="type">CGPath</span>;
+    _progressLayer.strokeColor = [<span class="type">UIColor</span> systemBlueColor].<span class="type">CGColor</span>;
+    _progressLayer.fillColor = [<span class="type">UIColor</span> clearColor].<span class="type">CGColor</span>;
+    _progressLayer.lineWidth = <span class="num">3</span>;
+    _progressLayer.lineCap = <span class="type">kCALineCapRound</span>;
+    _progressLayer.strokeEnd = <span class="num">0</span>;
+    [<span class="kw">self</span>.layer addSublayer:_progressLayer];
+}
+
+<span class="kw">- (void)</span><span class="meth">attachToScrollView:</span>(<span class="type">UIScrollView</span> *)scrollView {
+    _scrollView = scrollView;
+    _originalInset = scrollView.contentInset;
+    [scrollView addSubview:<span class="kw">self</span>];
+
+    <span class="comm">// ⭐ 用 KVO 监听 contentOffset</span>
+    [scrollView <span class="meth">addObserver:</span><span class="kw">self</span>
+              <span class="meth">forKeyPath:</span><span class="str">@"contentOffset"</span>
+                 <span class="meth">options:</span><span class="type">NSKeyValueObservingOptionNew</span>
+                 <span class="meth">context:</span><span class="type">NULL</span>];
+}
+
+<span class="kw">- (void)</span><span class="meth">observeValueForKeyPath:</span>(<span class="type">NSString</span> *)keyPath
+                       <span class="meth">ofObject:</span>(<span class="type">id</span>)object
+                         <span class="meth">change:</span>(<span class="type">NSDictionary</span> *)change
+                        <span class="meth">context:</span>(<span class="kw">void</span> *)context {
+    <span class="kw">if</span> (![keyPath isEqualToString:<span class="str">@"contentOffset"</span>]) <span class="kw">return</span>;
+    [<span class="kw">self</span> <span class="meth">scrollViewDidScroll</span>];
+}
+
+<span class="kw">- (void)</span><span class="meth">scrollViewDidScroll</span> {
+    <span class="kw">if</span> (_state == <span class="type">PullRefreshStateRefreshing</span>) <span class="kw">return</span>;
+
+    <span class="type">CGFloat</span> offset = _scrollView.contentOffset.y + _originalInset.top;
+    <span class="type">CGFloat</span> pulled = -offset;   <span class="comm">// 用户实际下拉的距离（正数）</span>
+
+    <span class="kw">if</span> (pulled &lt;= <span class="num">0</span>) {
+        <span class="comm">// 没下拉，回到 idle</span>
+        [<span class="kw">self</span> <span class="meth">transitionToState:</span><span class="type">PullRefreshStateIdle</span>];
+        _progressLayer.strokeEnd = <span class="num">0</span>;
+        <span class="kw">return</span>;
+    }
+
+    <span class="comm">// ⭐ 计算进度并更新进度环</span>
+    <span class="type">CGFloat</span> progress = <span class="type">MIN</span>(<span class="num">1.0</span>, pulled / kRefreshHeight);
+    [<span class="type">CATransaction</span> begin];
+    [<span class="type">CATransaction</span> setDisableActions:<span class="type">YES</span>];   <span class="comm">// 禁用隐式动画，跟手</span>
+    _progressLayer.strokeEnd = progress;
+    [<span class="type">CATransaction</span> commit];
+
+    <span class="comm">// ⭐ 状态切换 + haptic 反馈</span>
+    <span class="kw">if</span> (_scrollView.isDragging) {
+        <span class="kw">if</span> (progress &gt;= <span class="num">1.0</span> &amp;&amp; _state != <span class="type">PullRefreshStateReadyToRefresh</span>) {
+            [<span class="kw">self</span> <span class="meth">transitionToState:</span><span class="type">PullRefreshStateReadyToRefresh</span>];
+            <span class="comm">// ⭐ 触发 haptic（拉到位的反馈）</span>
+            [[[<span class="type">UIImpactFeedbackGenerator</span> alloc] initWithStyle:<span class="type">UIImpactFeedbackStyleMedium</span>]
+                <span class="meth">impactOccurred</span>];
+        } <span class="kw">else</span> <span class="kw">if</span> (progress &lt; <span class="num">1.0</span>) {
+            [<span class="kw">self</span> <span class="meth">transitionToState:</span><span class="type">PullRefreshStatePulling</span>];
+        }
+    } <span class="kw">else</span> {
+        <span class="comm">// 松手时如果在 ready 状态 → 触发刷新</span>
+        <span class="kw">if</span> (_state == <span class="type">PullRefreshStateReadyToRefresh</span>) {
+            [<span class="kw">self</span> <span class="meth">beginRefreshing</span>];
+        }
+    }
+}
+
+<span class="kw">- (void)</span><span class="meth">beginRefreshing</span> {
+    [<span class="kw">self</span> <span class="meth">transitionToState:</span><span class="type">PullRefreshStateRefreshing</span>];
+
+    <span class="comm">// ⭐ 用 contentInset 把 header 顶住</span>
+    [<span class="type">UIView</span> <span class="meth">animateWithDuration:</span><span class="num">0.25</span> animations:^{
+        <span class="type">UIEdgeInsets</span> i = _originalInset;
+        i.top += kRefreshHeight;
+        _scrollView.contentInset = i;
+    }];
+
+    <span class="comm">// ⭐ 进度环改为旋转动画</span>
+    [<span class="kw">self</span> <span class="meth">startSpinAnimation</span>];
+
+    <span class="comm">// ⭐ 通知业务方</span>
+    <span class="kw">if</span> (<span class="kw">self</span>.onRefresh) <span class="kw">self</span>.onRefresh();
+}
+
+<span class="kw">- (void)</span><span class="meth">endRefreshing</span> {
+    [_progressLayer removeAllAnimations];
+    [<span class="type">UIView</span> <span class="meth">animateWithDuration:</span><span class="num">0.25</span> animations:^{
+        _scrollView.contentInset = _originalInset;
+    } completion:^(<span class="type">BOOL</span> done) {
+        [<span class="kw">self</span> <span class="meth">transitionToState:</span><span class="type">PullRefreshStateIdle</span>];
+        _progressLayer.strokeEnd = <span class="num">0</span>;
+    }];
+}
+
+<span class="kw">- (void)</span><span class="meth">startSpinAnimation</span> {
+    <span class="type">CABasicAnimation</span> *spin = [<span class="type">CABasicAnimation</span> animationWithKeyPath:<span class="str">@"transform.rotation.z"</span>];
+    spin.fromValue = @<span class="num">0</span>;
+    spin.toValue = @(<span class="num">2</span> * <span class="type">M_PI</span>);
+    spin.duration = <span class="num">0.8</span>;
+    spin.repeatCount = <span class="type">HUGE_VALF</span>;
+    [_progressLayer addAnimation:spin forKey:<span class="str">@"spin"</span>];
+}
+
+<span class="kw">- (void)</span><span class="meth">transitionToState:</span>(<span class="type">PullRefreshState</span>)newState {
+    <span class="kw">if</span> (_state == newState) <span class="kw">return</span>;
+    _state = newState;
+    <span class="comm">// 子类可重写做更多 UI 反馈</span>
+}
+
+<span class="kw">- (void)</span><span class="meth">dealloc</span> {
+    [_scrollView removeObserver:<span class="kw">self</span> forKeyPath:<span class="str">@"contentOffset"</span>];
+}
+<span class="kw">@end</span></div>
+
+    <div class="explain">
+      <span class="h">关键技术点：</span>
+      <br>· <code>CATransaction setDisableActions:YES</code> —— 禁用 strokeEnd 的隐式动画，让进度环跟手
+      <br>· <code>UIImpactFeedbackGenerator</code> —— 拉到阈值时震动一下，体验质的飞跃
+      <br>· <code>contentInset.top += kRefreshHeight</code> —— refresh 期间顶住，避免 header 被遮回去
+      <br>· <code>CAShapeLayer + strokeEnd</code> —— 进度环画法，比 drawRect 高效百倍
+    </div>
+
+    <h3 style="margin-top:24px;font-size:14px;">3️⃣ 业务侧使用</h3>
+<div class="code-block"><span class="kw">- (void)</span><span class="meth">viewDidLoad</span> {
+    <span class="kw">self</span>.refreshHeader = [[<span class="type">PullRefreshHeader</span> alloc] init];
+    [<span class="kw">self</span>.refreshHeader <span class="meth">attachToScrollView:</span><span class="kw">self</span>.tableView];
+
+    <span class="kw">__weak</span> <span class="kw">typeof</span>(<span class="kw">self</span>) weakSelf = <span class="kw">self</span>;
+    <span class="kw">self</span>.refreshHeader.onRefresh = ^{
+        [<span class="type">API</span> <span class="meth">fetchLatest:</span>^(<span class="type">NSArray</span> *list) {
+            weakSelf.items = list;
+            [weakSelf.tableView reloadData];
+            [weakSelf.refreshHeader <span class="meth">endRefreshing</span>];
+        }];
+    };
+}</div>
+  </div>
+
+  <!-- 反例 -->
+  <div class="section-block">
+    <h2>⚖️ 反例 vs 正例</h2>
+    <div class="compare-grid">
+      <div class="compare-card bad">
+        <h4>❌ 反例：UIView 动画驱动进度环</h4>
+<div class="code-block" style="font-size:11.5px;"><span class="kw">- (void)</span><span class="meth">scrollViewDidScroll:</span>...{
+    <span class="comm">// ❌ 用 UIView animate，每帧主线程</span>
+    [<span class="type">UIView</span> <span class="meth">animateWithDuration:</span><span class="num">0.1</span> animations:^{
+        _progressView.transform =
+            <span class="type">CGAffineTransformMakeRotation</span>(progress * <span class="type">M_PI</span>);
+    }];
+    <span class="comm">// 滚动时每帧都触发动画排队，必卡</span>
+}</div>
+      </div>
+
+      <div class="compare-card good">
+        <h4>✅ 正例：CATransaction + strokeEnd</h4>
+<div class="code-block" style="font-size:11.5px;"><span class="kw">- (void)</span><span class="meth">scrollViewDidScroll</span> {
+    [<span class="type">CATransaction</span> <span class="meth">begin</span>];
+    [<span class="type">CATransaction</span> <span class="meth">setDisableActions:</span><span class="type">YES</span>];
+    _progressLayer.strokeEnd = progress;
+    [<span class="type">CATransaction</span> <span class="meth">commit</span>];
+    <span class="comm">// ✅ 禁用隐式动画，立刻应用，0 排队</span>
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 进阶 -->
+  <div class="section-block">
+    <h2>🚀 进阶：上拉加载更多 (Footer)</h2>
+    <div class="explain">
+      <span class="h">原理对称：</span>
+      <br>· 监听 contentOffset.y + bounds.height 是否接近 contentSize.height
+      <br>· 接近时显示 footer 的 loading 态
+      <br>· 加载完成插入新数据后，contentOffset 不变（避免视觉跳变）
+    </div>
+<div class="code-block"><span class="kw">- (void)</span><span class="meth">scrollViewDidScroll</span> {
+    <span class="type">CGFloat</span> bottomOffset = _scrollView.contentSize.height -
+                          _scrollView.contentOffset.y -
+                          _scrollView.bounds.size.height;
+    <span class="kw">if</span> (bottomOffset &lt; <span class="num">100</span> &amp;&amp; !_isLoadingMore &amp;&amp; _hasMore) {
+        _isLoadingMore = <span class="type">YES</span>;
+        <span class="kw">if</span> (<span class="kw">self</span>.onLoadMore) <span class="kw">self</span>.onLoadMore();
+    }
+}</div>
+  </div>
+
+  <!-- 易错点 -->
+  <div class="section-block">
+    <h2>⚠️ 实战易错点</h2>
+    <div class="explain danger">
+      <span class="h">坑 1：KVO 没移除导致崩溃</span><br>
+      dealloc 必须 removeObserver，否则 scrollView 可能晚于 header 释放，触发 KVO 给已释放对象，崩。
+    </div>
+    <div class="explain danger">
+      <span class="h">坑 2：refresh 期间用户继续拉，状态错乱</span><br>
+      <code>scrollViewDidScroll</code> 开头判断 <code>if (_state == Refreshing) return</code>，避免重入。
+    </div>
+    <div class="explain warn">
+      <span class="h">坑 3：contentInset 没恢复</span><br>
+      endRefreshing 必须把 contentInset 改回 _originalInset，否则下次进入页面顶部会多 60pt 空白。
+    </div>
+    <div class="explain warn">
+      <span class="h">坑 4：导航栏 largeTitle 时 inset 计算错</span><br>
+      iOS 11+ largeTitle 会动态改 inset，要么用 <code>adjustedContentInset</code>，要么直接用 <code>contentInsetAdjustmentBehavior = Never</code>。
+    </div>
+    <div class="explain success">
+      <span class="h">最佳实践：用 MJRefresh</span><br>
+      生产项目直接用 <a href="https://github.com/CoderMJLee/MJRefresh">MJRefresh</a>。它已处理了几百个边界 case（横屏、双手势、多 ScrollView 嵌套等）。但你必须懂原理才能 debug 它。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
